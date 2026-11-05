@@ -44,16 +44,16 @@ MongoDB is a document database using BSON, suitable for flexible and hierarchica
 2. DATABASE, COLLECTION, DOCUMENT AND BSON
 
 Database:
-Container for collections.
+Database: A container that holds collections.
 
 Collection:
-Group of documents, similar to table.
+Collection: A group of MongoDB documents, similar to a table in SQL.
 
 Document:
-Basic data unit, similar to row.
+ Document: An individual record containing field-value pairs, similar to a row in SQL.
 
 BSON:
-Binary JSON format used internally by MongoDB.
+Technical definition: BSON stands for Binary JSON. It is a binary-encoded serialization format used by MongoDB to store documents.
 
 Example:
 use ecommerce;
@@ -61,6 +61,27 @@ db.users.insertOne({ name: "Ravi", age: 25 });
 
 Use case:
 Users, products, orders, logs, analytics events.
+
+// Show databases
+show dbs
+
+// Create or switch database
+use myApplication
+
+// Show collections
+show collections
+
+// Create collection
+db.createCollection("users")
+
+// Insert document
+db.users.insertOne({
+  name: "Sathish",
+  age: 25
+})
+
+// Find documents
+db.users.find()
 
 Internal working:
 Documents are stored in BSON. Each document has a unique _id by default, usually ObjectId.
@@ -73,6 +94,10 @@ Follow-up questions:
 
 Interview-ready answer:
 MongoDB stores flexible BSON documents in collections. Each document has an _id; ObjectId includes timestamp, random value and counter, which helps approximate creation order.
+
+Remember: Mongoose is an ODM (Object Data Modeling) library that helps you define schemas, models, validation and database operations in Node.js.
+
+Technical definition: ObjectId is a 12-byte BSON data type commonly used as the default unique identifier (_id) for MongoDB documents.
 
 --------------------------------------------------------------------
 3. CRUD OPERATIONS
@@ -147,14 +172,27 @@ I use comparison and logical operators for filtering. For performance, I ensure 
 2. PROJECTION, SORTING AND PAGINATION
 
 Projection:
-Returns selected fields.
+Interview definition: Projection in MongoDB is the process of selecting specific fields to include or exclude from the documents returned by a query.
 
 db.users.find({}, { name: 1, email: 1, _id: 0 });
 
+- 1 means include the field.
+- 0 means exclude the field.
+- _id is included by default, unless explicitly excluded.
+
 Sorting:
+Interview definition: Sorting in MongoDB is used to arrange query results in ascending or descending order based on one or more fields.
+
+- 1 — ascending order (smallest to largest).
+- -1 — descending order (largest to smallest).
+
 db.users.find().sort({ createdAt: -1 });
 
 Pagination:
+Interview definition: Pagination is the process of dividing a large dataset into smaller portions and returning a limited number of records per request.
+- skip() — skips a specified number of documents.
+- limit() — limits the number of documents returned.
+
 db.users.find()
   .sort({ createdAt: -1 })
   .skip(20)
@@ -179,7 +217,7 @@ For small datasets, skip/limit is fine. For large datasets, I prefer cursor-base
 3. EMBEDDING VS REFERENCING
 
 Embedding:
-Store related data inside same document.
+Interview definition: Embedding is a MongoDB data modeling approach in which related data is stored inside the same document using nested objects or arrays.
 
 {
   "name": "Ravi",
@@ -190,7 +228,7 @@ Store related data inside same document.
 }
 
 Referencing:
-Store ObjectId of related document.
+Interview definition: Referencing is a MongoDB data modeling approach in which related data is stored in separate documents or collections and connected using document IDs.
 
 {
   "name": "Ravi",
@@ -212,6 +250,45 @@ Follow-up questions:
 
 Interview-ready answer:
 I embed data that is accessed together and bounded in size, such as user address. I reference large or independently managed entities such as department, category or orders.
+
+4. What is Normalization?
+
+Interview definition: Normalization is a database design technique used to reduce data duplication by storing related information separately and maintaining relationships between collections.
+Users:
+{
+  _id: 101,
+  name: "Sathish",
+  email: "sathish@gmail.com"
+}
+Orders:
+{
+  _id: 501,
+  userId: 101,
+  amount: 50000
+}
+
+Benefits:
+- Reduces duplicated data.
+- Makes updates easier.
+- Helps maintain consistency.
+
+Disadvantage:
+
+- Retrieving related information may require additional queries or $lookup/populate().
+
+5. What is Denormalization?
+Interview definition: Denormalization is a database design technique in which we intentionally duplicate some data across documents to improve read performance and reduce the need for joins or additional queries.
+
+Example:
+
+Orders:
+{
+  _id: 501,
+  userId: 101,
+  userName: "Sathish",
+  product: "Laptop",
+  amount: 50000
+}
 
 --------------------------------------------------------------------
 4. RELATIONSHIPS IN MONGODB
