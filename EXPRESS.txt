@@ -9,7 +9,7 @@ DAY 1: EXPRESS FUNDAMENTALS
 1. WHAT IS EXPRESS.JS?
 
 Definition:
-Express.js is a minimal, flexible Node.js web application framework used to build REST APIs and web servers.
+"Express.js is a fast, lightweight, and minimal web application framework built on top of Node.js. It simplifies backend development by providing features such as routing, middleware, request-response handling, and REST API development."
 
 Example:
 const express = require("express");
@@ -40,9 +40,14 @@ Express simplifies Node.js HTTP server development through routing and middlewar
 2. REQUEST AND RESPONSE
 
 req:
+"The request object represents the incoming HTTP request from the client to the server. It contains information such as request parameters, query parameters, request body, headers, HTTP method, and URL."
+
 Contains request data: params, query, body, headers, cookies.
 
 res:
+
+"The response object represents the HTTP response that an Express application sends back to the client. It provides methods to send data, JSON responses, status codes, headers, and cookies."
+
 Used to send response: status, json, send, cookie, redirect.
 
 Example:
@@ -70,12 +75,16 @@ req carries client request data, while res builds the server response. I use req
 3. ROUTING, HTTP METHODS AND STATUS CODES
 
 Routing:
+"Routing in Express.js refers to defining how an application responds to incoming client requests based on the HTTP method and URL path. It allows us to organize API endpoints and handle different client operations."
+
 app.get("/users", getUsers);
 app.post("/users", createUser);
 app.put("/users/:id", updateUser);
 app.delete("/users/:id", deleteUser);
 
 HTTP methods:
+"HTTP methods define the type of operation a client wants to perform on a resource available on the server. They specify whether the client wants to retrieve, create, update, or delete a resource."
+
 GET: read
 POST: create
 PUT: full update
@@ -108,6 +117,114 @@ Follow-up questions:
 
 Interview-ready answer:
 PUT replaces a resource and should be idempotent; PATCH applies partial changes. I use 400/422 for validation issues, 401 for unauthenticated requests and 403 for insufficient permissions.
+
+"GET is an HTTP method used to retrieve data from the server. It should not modify the server-side resource and is considered a safe and idempotent method."
+
+app.get("/employees", (req, res) => {
+
+    res.status(200).json({
+        message: "Employees fetched successfully"
+    });
+
+});
+Important: GET requests should not be used to modify server-side data.
+
+"POST is an HTTP method used to submit data to the server, commonly for creating a new resource or triggering a server-side operation."
+
+Important: POST is generally non-idempotent. Repeating the same request can create multiple resources unless the API implements duplicate prevention or idempotency.
+
+app.post("/employees", (req, res) => {
+
+    const employee = req.body;
+
+    res.status(201).json({
+        message: "Employee created successfully",
+        data: employee
+    });
+
+});
+
+"PUT is an HTTP method used to create or completely replace the state of a resource at a specific URL. It is an idempotent HTTP method."
+
+app.put("/employees/:id", (req, res) => {
+
+    const employeeId = req.params.id;
+
+    const updatedEmployee = req.body;
+
+    res.status(200).json({
+        message: "Employee replaced successfully",
+        id: employeeId,
+        data: updatedEmployee
+    });
+
+});
+
+
+"PATCH is an HTTP method used to apply partial modifications to an existing resource without replacing the entire resource."
+
+
+app.patch("/employees/:id", (req, res) => {
+
+    const employeeId = req.params.id;
+
+    const updates = req.body;
+
+    res.status(200).json({
+        message: "Employee updated successfully",
+        id: employeeId,
+        updates
+    });
+
+});
+Note: Actual partial-update behavior depends on the backend implementation.
+
+"DELETE is an HTTP method used to remove a specified resource from the server."
+
+app.delete("/employees/:id", (req, res) => {
+
+    const employeeId = req.params.id;
+
+    res.status(200).json({
+        message: "Employee deleted successfully",
+        id: employeeId
+    });
+
+});
+
+
+"HTTP status codes are three-digit numerical codes returned by the server to indicate the result of an HTTP request. They help clients understand whether a request was successful, redirected, invalid, or failed."
+
+3.1 Status Code Categories
+Category	Range	Meaning
+1xx	100–199	Informational
+2xx	200–299	Success
+3xx	300–399	Redirection
+4xx	400–499	Client Error
+5xx	500–599	Server Error
+
+
+3.2 Important Status Codes
+Code	Meaning	Real-Time Scenario
+200	OK	Successfully fetched data
+201	Created	Successfully registered user
+202	Accepted	Request accepted for asynchronous processing
+204	No Content	Successfully deleted resource
+301	Moved Permanently	Permanent redirect
+302	Found	Temporary redirect
+304	Not Modified	Cached resource is still valid
+400	Bad Request	Invalid request format
+401	Unauthorized	Missing or invalid authentication
+403	Forbidden	Insufficient permissions
+404	Not Found	Employee not found
+405	Method Not Allowed	Unsupported HTTP method
+409	Conflict	Duplicate email
+422	Unprocessable Content	Semantic validation error
+429	Too Many Requests	Rate limit exceeded
+500	Internal Server Error	Unexpected backend error
+502	Bad Gateway	Invalid upstream response
+503	Service Unavailable	Server temporarily unavailable
+504	Gateway Timeout	Upstream server timeout
 
 ====================================================================
 DAY 2: MIDDLEWARE AND ARCHITECTURE
