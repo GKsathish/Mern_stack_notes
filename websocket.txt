@@ -1,0 +1,663 @@
+40 ADDITIONAL MERN STACK INTERVIEW QUESTIONS & ANSWERS 4+ Years
+Experience | English Interview Answers + Simple Telugu Explanations
+
+This guide covers the 40 additional questions listed in the previous
+response. The answers are model interview answers. For
+project-experience questions, describe only work you actually
+implemented. For Ritzzy Games, keep your role clear: primarily
+React/TypeScript frontend, some basic APIs and MongoDB CRUD; the game
+backend was implemented separately in Go.
+
+============================================================ SECTION 1:
+REACT.JS – SCENARIO-BASED
+============================================================
+
+1.  Parent component re-renders. Why do child components also re-render?
+
+Interview Answer: “When a parent component re-renders, React normally
+executes its child components again as part of the rendering process. A
+child can avoid unnecessary re-rendering when it is wrapped with
+React.memo and its props remain shallowly equal. However, React.memo
+does not prevent re-renders caused by the child’s own state or consumed
+context changes. I would use React DevTools Profiler to identify
+expensive or unnecessary renders before applying memoization.”
+
+Telugu: Parent re-render ayithe child component function kuda normally
+execute avutundi. React.memo use chesthe props shallow comparison
+chestundi. Props same unte unnecessary child render avoid cheyyachu.
+Kani child own state/context change ayithe render avutundi.
+
+2.  How do you identify and fix memory leaks in React?
+
+Interview Answer: “I would inspect memory usage over time using browser
+DevTools and reproduce the user flow that causes memory growth. Common
+causes include subscriptions that are not cleaned up, timers that are
+not cleared, event listeners that remain attached, and asynchronous
+callbacks updating components after unmount. I would clean up effects by
+returning a cleanup function, unsubscribe from external sources, clear
+timers and abort requests where appropriate.”
+
+Example: useEffect(() => { const timer = setInterval(() => {
+console.log(“tick”); }, 1000);
+
+return () => clearInterval(timer); }, []);
+
+Telugu: Component unmount ayina tarvatha timer, event listener, socket
+subscription active ga unte memory leak avvachu. useEffect cleanup
+function lo clearInterval, removeEventListener, unsubscribe cheyyali.
+
+3.  How do you debug an infinite loop in useEffect?
+
+Interview Answer: “I would inspect the effect dependencies and identify
+which dependency changes after every render. A common issue is creating
+a new object or function during rendering and including it in the
+dependency array. I would move stable values outside the component when
+appropriate, use useMemo or useCallback only when needed, and ensure the
+effect updates only the state required by its purpose. I would not
+remove dependencies blindly because that can create stale values.”
+
+Example: const filters = useMemo(() => ({ status, page }), [status,
+page]);
+
+useEffect(() => { fetchTransactions(filters); }, [filters]);
+
+Telugu: useEffect lo state update chestunnam; aa state dependency lo
+undi; every render lo malli effect run avutundi. Dependency reference
+every render change avutunda check cheyyali. Object/function
+dependencies ni required ayithe stable ga maintain cheyyali.
+
+4.  An API call is still running when a component unmounts. How do you
+    handle it?
+
+Interview Answer: “I would cancel the request when the component no
+longer needs the result. With fetch, I can use AbortController and abort
+it in the effect cleanup. With Axios, I can use its AbortSignal support.
+I would also handle abort errors separately so they are not displayed as
+application failures.”
+
+Example: useEffect(() => { const controller = new AbortController();
+
+fetch(“/api/users”, { signal: controller.signal }) .then(response =>
+response.json()) .then(data => setUsers(data)) .catch(error => { if
+(error.name !== “AbortError”) { console.error(error); } });
+
+return () => controller.abort(); }, []);
+
+Telugu: Component unmount ayyaka API response avasaram lekapothe
+AbortController tho request cancel cheyyachu. Abort error ni normal API
+failure laga show cheyyakudadhu.
+
+5.  How do you execute multiple API calls in parallel?
+
+Interview Answer: “If the requests are independent, I would use
+Promise.all to execute them concurrently and wait until all succeed. If
+I need every result regardless of individual failures, I would use
+Promise.allSettled. If one request depends on another request’s result,
+I would execute them sequentially.”
+
+Example: const [profile, balance, transactions] = await Promise.all([
+getProfile(), getBalance(), getTransactions()]);
+
+Telugu: Independent APIs ayithe Promise.all use cheyyachu. One API fail
+ayithe Promise.all reject avutundi. Each API result success/failure
+separate ga kavali ante Promise.allSettled use cheyyali.
+
+6.  How do you prevent unnecessary Redux state updates?
+
+Interview Answer: “I would keep Redux state normalized and update only
+the specific slice or entity that has changed. I would use memoized
+selectors where derived calculations are expensive, avoid dispatching
+identical values unnecessarily, and select only the data a component
+needs. With Redux Toolkit, Immer helps write immutable updates, but I
+would still keep reducers focused and avoid broad state replacement.”
+
+Telugu: Required data matrame component select cheyyali. Same value ki
+unnecessary dispatch avoid cheyyali. Large state ni normalized ga
+maintain cheyyali. Derived calculations ki memoized selectors use
+cheyyachu.
+
+7.  How does createAsyncThunk work in Redux Toolkit?
+
+Interview Answer: “createAsyncThunk generates a thunk action for an
+asynchronous operation and automatically dispatches lifecycle actions:
+pending, fulfilled and rejected. I handle these in extraReducers to
+update loading, data and error state. It also provides a requestId and
+supports rejection with a custom payload.”
+
+Example: export const fetchUsers = createAsyncThunk( “users/fetchUsers”,
+async (_, { rejectWithValue }) => { try { const response = await
+axios.get(“/api/users”); return response.data; } catch (error) { return
+rejectWithValue(error.response?.data || “Request failed”); } } );
+
+Telugu: API start ayithe pending, success ayithe fulfilled, fail ayithe
+rejected action dispatch avutundi. extraReducers lo loading/data/error
+update chestam.
+
+8.  What is the difference between Redux Thunk and Redux Saga?
+
+Interview Answer: “Redux Thunk allows action creators to return
+functions and is straightforward for common asynchronous API calls.
+Redux Saga uses generator functions and effects to manage complex
+asynchronous workflows, cancellation, retries, and coordination between
+tasks. I would choose Thunk for simpler request flows and Saga when the
+application has complex background workflows or concurrency
+requirements.”
+
+Telugu: Thunk simple async API calls ki easy. Saga complex workflows,
+cancellation, retry, multiple async tasks coordinate cheyyadaniki
+useful. Project complexity batti choose cheyyali.
+
+9.  How would you structure a large React application?
+
+Interview Answer: “I prefer a feature-based structure so that
+components, hooks, API services, types and tests related to a feature
+stay together. Shared reusable components and utilities can live in
+common folders. I would separate UI components from API access and
+business logic, define clear routing and state boundaries, and keep
+feature modules independently maintainable.”
+
+Example structure: src/ app/ store.ts router.tsx features/ users/
+components/ hooks/ usersApi.ts usersSlice.ts types.ts tests/
+transactions/ components/ transactionsApi.ts types.ts shared/
+components/ hooks/ utils/ services/
+
+Telugu: Feature-wise folders maintain chesthe users feature code oka
+place lo untundi, transactions code oka place lo untundi. Shared
+components common folder lo pettali. App grow ayina maintain cheyyadam
+easy.
+
+10. Lazy loading is implemented, but the initial bundle is still large.
+    What would you do?
+
+Interview Answer: “I would inspect the production bundle using a bundle
+analyzer to identify large dependencies and duplicated packages. I would
+verify that route-level splitting is working, dynamically import heavy
+libraries only where required, remove unused dependencies and use
+tree-shakeable imports. I would also check whether source maps or
+development-only code are accidentally included. Finally, I would
+measure the compressed bundle size and real loading performance.”
+
+Telugu: Bundle analyzer tho large packages identify cheyyali. Heavy
+libraries dynamic import cheyyali. Unused packages/code remove cheyyali.
+Tree shaking work avutunda check cheyyali. Lazy loading okkate bundle
+size problem solve cheyyadu.
+
+============================================================ SECTION 2:
+JAVASCRIPT – PRACTICAL SCENARIOS
+============================================================
+
+11. How do you handle an unhandled Promise rejection?
+
+Interview Answer: “I handle expected failures close to the asynchronous
+operation using try/catch with async/await or a catch handler on the
+Promise. At the application boundary, I also log unexpected failures and
+ensure they do not become silent errors. In Node.js, I use centralized
+error handling for request flows, but I do not rely on an
+unhandled-rejection listener as a replacement for proper error
+handling.”
+
+Example: try { const result = await fetchData(); console.log(result); }
+catch (error) { logger.error(“Fetch failed”, error); }
+
+Telugu: Promise reject ayithe catch/try-catch lo handle cheyyali. Error
+ni log cheyyali and user ki meaningful message ivvali. Global handler
+meeda matrame depend avvakudadhu.
+
+12. Promise.all() vs Promise.allSettled()
+
+Interview Answer: “Promise.all resolves when every input Promise
+resolves, but rejects as soon as one input rejects. Promise.allSettled
+waits for all Promises to finish and returns each result with its
+status, either fulfilled or rejected. I use Promise.all when all results
+are required for the operation to succeed, and Promise.allSettled when I
+need to process independent results even if some fail.”
+
+Telugu: Promise.all lo okati fail ayina overall reject avutundi.
+Promise.allSettled lo anni complete ayyaka each result status vastundi.
+
+13. Explain debouncing and throttling with practical examples.
+
+Interview Answer: “Debouncing delays execution until the user has
+stopped triggering an event for a specified period. It is useful for
+search input, where I want to call the API after the user stops typing.
+Throttling limits execution to at most once during a defined interval.
+It is useful for scroll or resize handlers where frequent events should
+be controlled.”
+
+Telugu: Debounce: user typing stop chesina tarvatha API call. Throttle:
+frequent events vachina fixed interval ki okasari function execute.
+
+14. Where do you use closures in real applications?
+
+Interview Answer: “A closure occurs when a function retains access to
+variables from its lexical scope even after the outer function has
+completed. Closures are useful for encapsulating private state, creating
+function factories, implementing callbacks and maintaining values in
+event handlers. I use them carefully because long-lived closures can
+retain references and contribute to memory usage.”
+
+Example: function createCounter() { let count = 0; return function
+increment() { count += 1; return count; }; } const counter =
+createCounter(); counter(); // 1 counter(); // 2
+
+Telugu: Outer function complete ayina inner function ki outer variables
+access untundi. Private state/counter, callbacks lo use avutundi.
+
+15. What is event delegation?
+
+Interview Answer: “Event delegation is a technique where a single event
+listener is attached to a parent element instead of attaching listeners
+to every child. Events bubble from the target to the parent, so the
+parent can inspect event.target and handle the relevant child. It is
+useful for dynamic lists and reduces the number of event listeners.”
+
+Telugu: Prathi child ki listener add cheyyakunda parent ki one listener
+add chestam. Event bubbling valla child click parent ki reach avutundi.
+event.target tho clicked element identify chestam.
+
+16. Shallow copy vs deep copy?
+
+Interview Answer: “A shallow copy creates a new outer object but nested
+objects are still shared by reference. A deep copy recursively copies
+nested data so changes to the copy do not affect the original. For
+structured cloneable data, structuredClone can be used. The copying
+method should account for special types, circular references and
+unsupported values.”
+
+Telugu: Shallow copy lo outer object new, nested object same reference.
+Deep copy lo nested objects kuda independent copies. JSON
+stringify/parse every case ki safe kaadu; Date, undefined, circular
+references issues untayi.
+
+17. Explain microtasks and macrotasks in the event loop.
+
+Interview Answer: “Synchronous JavaScript runs first on the call stack.
+Once the stack is empty, the event loop processes microtasks such as
+Promise callbacks before moving to the next task from the task queue,
+such as a timer callback. In Node.js, there are additional event-loop
+phases and process.nextTick has its own priority behavior, so exact
+ordering should be explained in the Node.js context.”
+
+Telugu: First synchronous code. Tarvatha microtasks (Promise.then).
+Tarvatha next task/timer callback. Node.js lo process.nextTick and event
+loop phases kuda consider cheyyali.
+
+18. Large array processing makes the UI slow. How would you optimize it?
+
+Interview Answer: “I would first profile the operation and determine
+whether the bottleneck is computation or rendering. I would avoid
+repeated expensive work, use efficient algorithms and process data in
+chunks when appropriate. For large lists, I would use virtualization so
+only visible rows are rendered. For CPU-heavy work in the browser, I
+could move computation to a Web Worker to keep the main thread
+responsive.”
+
+Telugu: First profiling. Unnecessary loops/filter operations reduce
+cheyyali. Large list ki virtualization. Heavy CPU work ki Web Worker use
+cheyyachu.
+
+============================================================ SECTION 3:
+NODE.JS AND EXPRESS.JS
+============================================================
+
+19. Node.js is single-threaded. How does it handle multiple requests?
+
+Interview Answer: “JavaScript execution in a Node.js process generally
+runs on a single main thread, but Node.js can handle many concurrent I/O
+operations through the event loop and operating-system or libuv
+facilities. When an operation such as network or file I/O is pending,
+JavaScript does not need to block while waiting. Once the operation
+completes, its callback or continuation is scheduled for execution.
+CPU-intensive JavaScript can still block the event loop.”
+
+Telugu: Single main JS thread ante one request matrame ani kaadu. I/O
+wait time lo event loop other requests process cheyyagaladu. CPU-heavy
+synchronous code matram event loop block chestundi.
+
+20. What happens if the event loop is blocked?
+
+Interview Answer: “If the event loop is blocked by long-running
+synchronous JavaScript, the process cannot promptly handle other
+callbacks, timers or incoming requests. This increases latency and can
+make the application appear unresponsive. I would identify the blocking
+code through profiling and move CPU-intensive work to worker threads or
+background processing where appropriate.”
+
+Telugu: Long synchronous loop or heavy calculation run ayithe event loop
+busy ga untundi. Other requests delay avutayi. CPU-heavy task ni worker
+thread/background job ki move cheyyali.
+
+21. Explain Express middleware execution order.
+
+Interview Answer: “Express middleware executes in the order in which it
+is registered and matches the request path. Each middleware must either
+finish the response, pass control using next(), or pass an error using
+next(error). If middleware does not do any of these, the request can
+remain pending. Error-handling middleware has four parameters and is
+registered after the routes or middleware whose errors it should
+handle.”
+
+Example: app.use(express.json()); app.use(requestLogger);
+app.use(“/api/users”, userRoutes); app.use(errorHandler);
+
+Telugu: Middleware registration order important. next() call chesthe
+next middleware ki velthundi. Response send chesthe request complete.
+Error unte next(error).
+
+22. How do you implement centralized error handling?
+
+Interview Answer: “I would use a consistent error format and pass
+operational errors to a centralized Express error middleware. Route
+handlers can use async wrappers or appropriate async error forwarding.
+The error middleware logs the error with a request ID, maps known errors
+to suitable HTTP status codes and sends a safe response. In production,
+I would not expose stack traces or sensitive internal details.”
+
+Example: app.use((err, req, res, next) => { const statusCode =
+err.statusCode || 500;
+
+logger.error({ message: err.message, requestId: req.id });
+
+res.status(statusCode).json({ success: false, message: statusCode ===
+500 ? “Internal server error” : err.message }); });
+
+Telugu: Prathi route lo repeated error response code rayakunda
+centralized error middleware use chestam. Logs lo detailed error, client
+response lo safe message.
+
+23. How do you implement API rate limiting?
+
+Interview Answer: “I would apply rate limiting to control how many
+requests a client can make within a time window. For a single instance,
+an in-memory limiter may work for development, but in a multi-instance
+production environment I would use a shared store such as Redis so
+limits are consistent across instances. I would configure limits based
+on endpoint sensitivity and return HTTP 429 when the limit is exceeded.”
+
+Telugu: Same IP/user too many requests pampithe limit cheyyali. Multiple
+server instances unte Redis shared store use cheyyali. Limit exceed
+ayithe 429 Too Many Requests.
+
+24. How would you design refresh-token rotation?
+
+Interview Answer: “When a valid refresh token is used, the server issues
+a new access token and a new refresh token, and invalidates the previous
+refresh token. I would store refresh-token identifiers or hashed token
+values server-side so tokens can be revoked. If an already-used token is
+presented again, I would treat it as possible token reuse and revoke the
+relevant token family according to the security policy. Cookies should
+use secure attributes when cookie-based storage is chosen.”
+
+Telugu: Refresh token use ayyaka old token invalidate chesi new refresh
+token issue cheyyali. Server side tracking/revocation undali. Old token
+reuse ayithe suspicious ga treat cheyyali.
+
+25. How do you handle a 1GB file upload in Node.js?
+
+Interview Answer: “I would avoid buffering the entire file in
+application memory. I would use streaming or preferably direct multipart
+upload to object storage such as S3 using pre-signed URLs. The backend
+would authenticate the user, validate file metadata and permissions,
+issue a limited-lifetime upload authorization, and verify the completed
+upload. I would enforce file-size limits, allowed content types, malware
+scanning where required and cleanup of incomplete uploads.”
+
+Telugu: 1GB file ni full memory lo load cheyyakudadhu. Streaming or S3
+multipart upload use cheyyali. Backend permissions, size/type
+validation, upload completion verification handle cheyyali.
+
+26. Why use BullMQ or background queues?
+
+Interview Answer: “Queues allow long-running or retryable work to be
+processed outside the immediate HTTP request. Examples include sending
+emails, generating reports, processing files and scheduled tasks. The
+API can acknowledge the request quickly, while workers process jobs
+asynchronously. I would configure retries, backoff, job timeouts,
+idempotent processing and monitoring.”
+
+Telugu: API response fast ga ivvali, heavy work background lo process
+cheyyali ante queue use chestam. Email, reports, file processing
+examples. Retry and idempotency important.
+
+27. What is graceful shutdown in Node.js?
+
+Interview Answer: “Graceful shutdown means stopping the application from
+accepting new work while allowing existing requests and jobs to finish
+within a defined timeout. On SIGTERM or SIGINT, I would stop the HTTP
+server from accepting new connections, close database and queue
+connections, and exit after cleanup. I would also enforce a timeout so
+the process does not remain stuck indefinitely.”
+
+Telugu: Server stop cheyyalsinappudu sudden ga kill cheyyakunda new
+requests accept cheyyadam stop chesi existing requests complete
+avvadaniki time ivvali. DB/queue connections close cheyyali.
+
+28. How do you debug a Node.js memory leak?
+
+Interview Answer: “I would monitor heap usage and reproduce the memory
+growth pattern. I would capture heap snapshots and compare them to
+identify objects that remain referenced unexpectedly. Common causes
+include unbounded caches, global arrays, event listeners that are not
+removed, timers and retained closures. I would fix the reference
+retention and verify that memory stabilizes under repeated load.”
+
+Telugu: Heap usage continuously increase avutunda monitor cheyyali. Heap
+snapshots compare chesi objects references identify cheyyali. Unbounded
+cache, listeners, timers common causes.
+
+============================================================ SECTION 4:
+MONGODB AND DATABASE
+============================================================
+
+29. What is a compound index in MongoDB?
+
+Interview Answer: “A compound index is an index on multiple fields. It
+is useful when queries filter or sort using a combination of fields.
+Field order matters, so I would design the index based on actual query
+patterns and the equality-sort-range guideline where applicable. I would
+validate the index using explain output and monitor its impact on writes
+and storage.”
+
+Example: db.transactions.createIndex({ userId: 1, createdAt: -1 });
+
+Telugu: Multiple fields meeda create chese index compound index. userId
+filter and createdAt sort common ayithe suitable compound index help
+chestundi. Field order important.
+
+30. When would you use MongoDB aggregation?
+
+Interview Answer: “I would use aggregation when data needs to be
+filtered, grouped, joined or transformed inside the database. For
+example, a dashboard may need total transactions per day or total
+successful payments by provider. The pipeline can use stages such as
+$match, $group, $sort, $project and $lookup. I would place selective
+filtering early where appropriate and ensure supporting indexes exist.”
+
+Telugu: Dashboard reports, totals, grouping, joining data kosam
+aggregation use chestam. $match, $group, $sort, $project, $lookup common
+stages.
+
+31. populate() vs $lookup?
+
+Interview Answer: “Mongoose populate is an ODM feature that resolves
+referenced documents through Mongoose queries. MongoDB $lookup is an
+aggregation stage that performs a join-like operation within an
+aggregation pipeline. I would use populate for straightforward reference
+resolution and $lookup when the query needs database-side joining,
+filtering or transformation as part of an aggregation.”
+
+Telugu: populate Mongoose level feature. $lookup MongoDB aggregation
+stage. Simple referenced data ki populate; complex database-side
+join/aggregation ki lookup.
+
+32. Two users update a wallet at the same time. How do you prevent a
+    race condition?
+
+Interview Answer: “I would not read the balance in the application and
+then update it without concurrency protection. I would use an atomic
+conditional update that checks the available balance as part of the
+update, or use a transaction with appropriate concurrency handling. I
+would also use unique transaction references and an immutable ledger so
+each debit can be audited and duplicate operations can be prevented.”
+
+Example concept: Update wallet only where: { _id: userId, balance: {
+$gte: amount } } Then atomically decrement the balance.
+
+Telugu: First balance read chesi tarvatha update chesthe two requests
+same old balance chusi overspend cheyyachu. Balance condition and
+decrement same atomic update lo cheyyali. Ledger and unique transaction
+ID kuda important.
+
+33. When do you use MongoDB transactions?
+
+Interview Answer: “I use transactions when multiple database writes must
+succeed or fail together to preserve consistency, such as updating a
+wallet and inserting its ledger record. Transactions require a supported
+MongoDB deployment configuration, and they have performance costs, so I
+would not use them for every simple write. For external services, a
+database transaction cannot make the external call atomic; I would use a
+workflow such as a saga with explicit states and compensation.”
+
+Telugu: Multiple DB operations all success or all rollback avvali ante
+transaction use chestam. External payment provider ni MongoDB
+transaction control cheyyaledu. Daaniki saga/state workflow use
+cheyyali.
+
+34. Offset pagination vs cursor pagination?
+
+Interview Answer: “Offset pagination uses skip and limit, and it is
+simple for small or moderate datasets. On very large datasets, high skip
+values can become expensive and records may shift between pages when new
+data is inserted. Cursor pagination uses a stable indexed value, such as
+createdAt plus _id, to fetch the next set of records. It is often more
+efficient for deep pagination and frequently changing datasets.”
+
+Telugu: skip/limit simple but deep pages slow avvachu. Cursor pagination
+last record key based on next records fetch chestundi. Large datasets ki
+cursor pagination useful.
+
+============================================================ SECTION 5:
+RITZZY GAMES – PROJECT-SPECIFIC
+============================================================
+
+35. How do you send messages from React to Unity WebGL?
+
+Interview Answer: “In a Unity WebGL integration, the browser and Unity
+runtime can communicate through the JavaScript bridge exposed by the
+Unity build. From React, I would call the available Unity instance’s
+SendMessage method with the target GameObject name, method name and
+message payload. I would ensure that the Unity instance is initialized
+and ready before sending messages, and I would validate the payload
+contract on both sides.”
+
+Example concept: unityInstance.SendMessage(“GameManager”,
+“ReceiveMessage”, JSON.stringify(payload));
+
+Telugu: React/browser JavaScript nunchi Unity WebGL JavaScript bridge
+use chesi SendMessage call chestam. Unity ready ayyaka matrame message
+pampali. Exact GameObject and method names Unity build contract batti
+untayi.
+
+36. What if React sends a message before Unity is ready?
+
+Interview Answer: “I would maintain an explicit initialization state
+such as loading, ready or failed. Messages that require Unity should not
+be sent until the ready handshake is received. Depending on the
+requirement, I could queue a limited number of messages and flush them
+after readiness, or reject them with a clear state so the caller can
+retry. I would also handle initialization timeout and failure.”
+
+Telugu: Unity ready kakamundhu SendMessage call chesthe fail avvachu.
+GAME_READY handshake varaku wait cheyyali. Required messages queue
+cheyyachu or caller ki not-ready state return cheyyachu.
+
+37. How do you prevent Unity initialization from happening multiple
+    times?
+
+Interview Answer: “I would keep the Unity instance and initialization
+state in a stable reference, such as a React ref, rather than relying
+only on a render-local variable. Before initializing, I would check
+whether initialization is already in progress or an instance already
+exists. I would also handle cleanup and failure carefully, especially
+when the component unmounts or the game route changes.”
+
+Telugu: React re-render ayina initialization malli jaragakudadhu. useRef
+lo instance and initialization guard maintain cheyyali.
+loading/ready/failed states clear ga maintain cheyyali.
+
+38. How do you recover missed game events after WebSocket reconnect?
+
+Interview Answer: “I would track the last successfully processed event
+ID or sequence number. After reconnecting and re-authenticating, the
+client would request missed events from the backend if the server
+supports replay, or fetch the latest authoritative game state through an
+API. I would make event processing idempotent so duplicate events do not
+cause duplicate UI updates. The server should define event ordering and
+replay guarantees.”
+
+Telugu: Socket disconnect time lo events miss avvachu. Last processed
+event ID store chesi reconnect ayyaka missed events request cheyyali.
+Replay support lekapothe latest state REST API nunchi fetch cheyyali.
+Duplicate events avoid cheyyali.
+
+39. How do you control dashboard menus for different roles?
+
+Interview Answer: “I would keep role and permission information in a
+centralized configuration or permission model. The frontend can filter
+menu items based on the authenticated user’s permissions and protect
+routes for a consistent user experience. However, the backend must
+independently validate permissions for every protected API. I would
+prefer permission-based checks for sensitive actions rather than relying
+only on hard-coded role names.”
+
+Telugu: Role/menu config centralized ga maintain cheyyali. React lo menu
+filter and route guard UX kosam. Backend lo every API ki authorization
+compulsory. Frontend hide chesinanta matrana security kaadu.
+
+40. A Unity WebGL game remains on an infinite loading screen. How do you
+    debug it?
+
+Interview Answer: “I would check the browser console and Network tab
+first to identify failed build assets or JavaScript errors. I would
+verify build paths, file availability, MIME types, compression settings,
+WebAssembly support, CORS and server configuration. I would also inspect
+the Unity initialization promise and progress callbacks, and confirm
+that the ready event is received. On the React side, I would add a
+timeout, failure state and retry option rather than leaving the user on
+an infinite loader.”
+
+Telugu: Infinite loader ante React issue matrame ani assume
+cheyyakudadhu. Network assets, console errors, MIME/compression,
+WebAssembly, CORS, Unity init promise and GAME_READY handshake check
+cheyyali. Timeout and error UI provide cheyyali.
+
+============================================================ BONUS: HOW
+TO ANSWER A SCENARIO QUESTION
+============================================================
+
+Use this 7-step structure in interviews:
+
+1.  Problem: What exactly happened?
+2.  Impact: Which users or business flow are affected?
+3.  Investigation: Which logs, metrics, DevTools or API responses would
+    you check?
+4.  Root cause: What is the likely technical reason?
+5.  Fix: What change would you implement?
+6.  Validation: How would you verify the fix?
+7.  Prevention: What tests, monitoring or safeguards would you add?
+
+Useful interview phrases: - “First, I would reproduce the issue and
+identify the root cause.” - “I would check the browser Network tab and
+application logs.” - “I would measure before and after the
+optimization.” - “I would avoid introducing a retry that could duplicate
+a financial operation.” - “The backend should remain the source of
+truth.” - “I would validate the fix with regression tests.” - “I would
+monitor the application after deployment.”
+
+FINAL NOTE These are prepared model answers, not proof that every
+technique was used in your projects. In interviews, clearly separate: -
+What you personally implemented. - What your team or another service
+handled. - What you would design as a solution. For Ritzzy Games,
+explain your primary frontend contribution accurately and do not claim
+ownership of the Go game backend or Node.js implementation unless that
+matches your actual work.
