@@ -1,0 +1,920 @@
+
+SQL / MySQL — 5–7 DAYS COMPLETE INTERVIEW NOTES
+For 4+ Years MERN Stack Interview Preparation
+
+Topics selected for MERN full-stack interviews:
+SQL fundamentals, joins, aggregate functions, subqueries, normalization, indexes, transactions,
+stored procedures, views, triggers, query optimization, MySQL internals, database design and coding practice.
+
+Format:
+Definition -> Example -> Use case -> Internal working -> Follow-up questions -> Interview-ready answer
+
+====================================================================
+DAY 1: SQL AND MYSQL FUNDAMENTALS
+====================================================================
+
+1. WHAT IS SQL AND MYSQL?
+
+SQL:
+SQL means Structured Query Language. It is used to define, query, update and manage relational databases.
+
+MySQL:
+MySQL is a popular open-source relational database management system (RDBMS) that uses SQL.
+
+Example:
+CREATE DATABASE company;
+USE company;
+
+CREATE TABLE employees (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  salary DECIMAL(10,2),
+  department_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+Use case:
+Banking, e-commerce, ERP, HR systems, inventory systems, reporting applications.
+
+Internal working:
+Client sends SQL query to MySQL server. MySQL parses the query, validates syntax and permissions, creates an execution plan, retrieves data using storage engine such as InnoDB, and returns result set.
+
+Follow-up questions:
+1. Difference between SQL and MySQL?
+2. What is RDBMS?
+3. What is a relational database?
+4. What are advantages of SQL databases?
+
+Interview-ready answer:
+SQL is the language used to interact with relational databases, while MySQL is an RDBMS that implements SQL. Relational databases store structured data in tables with rows, columns, constraints and relationships.
+
+--------------------------------------------------------------------
+2. SQL COMMAND CATEGORIES
+
+DDL:
+Data Definition Language.
+CREATE, ALTER, DROP, TRUNCATE.
+
+DML:
+Data Manipulation Language.
+INSERT, UPDATE, DELETE.
+
+DQL:
+Data Query Language.
+SELECT.
+
+DCL:
+Data Control Language.
+GRANT, REVOKE.
+
+TCL:
+Transaction Control Language.
+BEGIN, COMMIT, ROLLBACK, SAVEPOINT.
+
+Example:
+CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(100));
+
+INSERT INTO users (id, name) VALUES (1, 'Ravi');
+
+SELECT * FROM users;
+
+UPDATE users SET name = 'Ravi Kumar' WHERE id = 1;
+
+DELETE FROM users WHERE id = 1;
+
+Use case:
+DDL defines structure, DML modifies data, DQL retrieves data, TCL manages transactions.
+
+Internal working:
+DDL changes database schema and is usually auto-committed. DML changes data and can be part of a transaction. DQL reads data.
+
+Follow-up questions:
+1. Difference between DDL and DML?
+2. Is TRUNCATE DDL or DML?
+3. Difference between DELETE and TRUNCATE?
+4. What is autocommit?
+
+Interview-ready answer:
+DDL defines or changes schema, DML modifies data, DQL reads data, and TCL controls transactions. DELETE removes selected rows and can be rolled back, while TRUNCATE removes all rows, resets auto-increment and is generally faster.
+
+--------------------------------------------------------------------
+3. DATA TYPES AND CONSTRAINTS
+
+Common MySQL data types:
+INT, BIGINT, DECIMAL, VARCHAR, TEXT, DATE, DATETIME, TIMESTAMP, BOOLEAN/TINYINT, JSON.
+
+Important constraints:
+PRIMARY KEY, FOREIGN KEY, UNIQUE, NOT NULL, DEFAULT, CHECK.
+
+Example:
+CREATE TABLE departments (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE employees (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  salary DECIMAL(10,2) CHECK (salary >= 0),
+  department_id INT,
+  FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+Use case:
+Ensure valid, consistent and reliable data.
+
+Internal working:
+Constraints are enforced by database engine during insert/update. Foreign key maintains referential integrity between related tables.
+
+Follow-up questions:
+1. Difference between VARCHAR and TEXT?
+2. Difference between DATETIME and TIMESTAMP?
+3. Why use DECIMAL for money?
+4. What is referential integrity?
+5. Difference between primary key and unique key?
+
+Interview-ready answer:
+I use VARCHAR for bounded strings, DECIMAL for money to avoid floating-point precision issues, and foreign keys to maintain relationships. A primary key uniquely identifies a row and cannot be null; a unique key prevents duplicates but can allow null depending on design.
+
+====================================================================
+DAY 2: SQL QUERIES, JOINS AND AGGREGATIONS
+====================================================================
+
+1. SELECT, WHERE, ORDER BY, LIMIT
+
+Example:
+SELECT id, name, salary
+FROM employees
+WHERE salary > 50000 AND status = 'ACTIVE'
+ORDER BY salary DESC
+LIMIT 10 OFFSET 20;
+
+Use case:
+Fetch filtered, sorted and paginated records.
+
+Internal working:
+MySQL filters rows using WHERE, sorts matching rows using ORDER BY, then applies LIMIT/OFFSET.
+
+Follow-up questions:
+1. Difference between WHERE and HAVING?
+2. How does LIMIT OFFSET pagination work?
+3. Why can OFFSET be slow?
+4. What is cursor-based pagination?
+
+Interview-ready answer:
+WHERE filters individual rows before grouping, while HAVING filters grouped results. OFFSET pagination can become slow for large page numbers because database still processes skipped rows; cursor-based pagination is better for large datasets.
+
+--------------------------------------------------------------------
+2. JOINS
+
+INNER JOIN:
+Returns matching rows from both tables.
+
+LEFT JOIN:
+Returns all rows from left table and matching rows from right table.
+
+RIGHT JOIN:
+Returns all rows from right table and matching rows from left table.
+
+FULL OUTER JOIN:
+Returns all rows from both tables.
+MySQL does not directly support FULL OUTER JOIN; emulate using LEFT JOIN UNION RIGHT JOIN.
+
+CROSS JOIN:
+Returns Cartesian product.
+
+SELF JOIN:
+Table joined with itself.
+
+Example:
+SELECT e.name, d.name AS department
+FROM employees e
+INNER JOIN departments d ON e.department_id = d.id;
+
+LEFT JOIN example:
+SELECT e.name, d.name AS department
+FROM employees e
+LEFT JOIN departments d ON e.department_id = d.id;
+
+Use case:
+Employee-department reports, orders-customers, products-categories.
+
+Internal working:
+MySQL matches rows using join condition. Join performance depends heavily on indexes on join columns.
+
+Follow-up questions:
+1. Difference between INNER JOIN and LEFT JOIN?
+2. How do you find employees without department?
+3. What is self join?
+4. How do you optimize joins?
+5. What is Cartesian product?
+
+Interview-ready answer:
+INNER JOIN returns only matching rows, while LEFT JOIN preserves all rows from the left table. To find employees without departments, I use LEFT JOIN and filter WHERE department.id IS NULL. Join columns should be indexed.
+
+--------------------------------------------------------------------
+3. AGGREGATE FUNCTIONS AND GROUP BY
+
+Aggregate functions:
+COUNT, SUM, AVG, MIN, MAX.
+
+Example:
+SELECT department_id,
+       COUNT(*) AS employee_count,
+       AVG(salary) AS average_salary,
+       MAX(salary) AS highest_salary
+FROM employees
+GROUP BY department_id
+HAVING AVG(salary) > 50000;
+
+Use case:
+Reports, dashboards, analytics, business summaries.
+
+Internal working:
+GROUP BY groups rows by column values. Aggregate functions calculate a single value per group. HAVING filters groups after aggregation.
+
+Follow-up questions:
+1. Difference between WHERE and HAVING?
+2. Can we use alias in HAVING?
+3. What is GROUP BY?
+4. Difference between COUNT(*) and COUNT(column)?
+5. What is ONLY_FULL_GROUP_BY?
+
+Interview-ready answer:
+WHERE filters rows before grouping; HAVING filters aggregated groups. COUNT(*) counts all rows including nulls, while COUNT(column) ignores null values in that column.
+
+--------------------------------------------------------------------
+4. SUBQUERIES AND CTEs
+
+Subquery:
+Query inside another query.
+
+Example:
+SELECT name, salary
+FROM employees
+WHERE salary > (
+  SELECT AVG(salary) FROM employees
+);
+
+Correlated subquery:
+Subquery references outer query column.
+
+Example:
+SELECT e.name
+FROM employees e
+WHERE e.salary > (
+  SELECT AVG(salary)
+  FROM employees
+  WHERE department_id = e.department_id
+);
+
+CTE:
+Common Table Expression using WITH.
+
+Example:
+WITH department_avg AS (
+  SELECT department_id, AVG(salary) AS avg_salary
+  FROM employees
+  GROUP BY department_id
+)
+SELECT e.name, e.salary, d.avg_salary
+FROM employees e
+JOIN department_avg d ON e.department_id = d.department_id
+WHERE e.salary > d.avg_salary;
+
+Use case:
+Complex reports, comparisons, hierarchical data, reusable query logic.
+
+Internal working:
+Non-correlated subquery may execute once; correlated subquery may execute per outer row, which can be slower. CTE improves readability and can be referenced multiple times.
+
+Follow-up questions:
+1. Difference between correlated and non-correlated subquery?
+2. CTE vs subquery?
+3. What is recursive CTE?
+4. How do you optimize subqueries?
+
+Interview-ready answer:
+I use CTEs for readable complex queries and joins instead of correlated subqueries where possible. Correlated subqueries can execute repeatedly, so I check EXPLAIN and rewrite them as JOIN when performance is poor.
+
+====================================================================
+DAY 3: DATABASE DESIGN AND NORMALIZATION
+====================================================================
+
+1. PRIMARY KEY, FOREIGN KEY AND RELATIONSHIPS
+
+Primary key:
+Uniquely identifies each row.
+
+Foreign key:
+Creates relationship between tables.
+
+One-to-one:
+User -> UserProfile
+
+One-to-many:
+Department -> Employees
+
+Many-to-many:
+Students <-> Courses through enrollment table.
+
+Example:
+CREATE TABLE enrollments (
+  student_id INT,
+  course_id INT,
+  enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (student_id, course_id),
+  FOREIGN KEY (student_id) REFERENCES students(id),
+  FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+
+Use case:
+HR systems, e-commerce, school management, inventory.
+
+Internal working:
+Foreign key ensures referenced value exists in parent table. Composite primary key uses multiple columns together.
+
+Follow-up questions:
+1. Can foreign key be null?
+2. What is composite primary key?
+3. How do you model many-to-many relationship?
+4. What happens on delete of parent row?
+
+Interview-ready answer:
+I model many-to-many relationships using a junction table containing foreign keys from both tables. Foreign-key actions such as CASCADE, SET NULL or RESTRICT define what happens when parent rows are deleted.
+
+--------------------------------------------------------------------
+2. NORMALIZATION
+
+Definition:
+Normalization organizes data to reduce redundancy and improve data integrity.
+
+1NF:
+Atomic values, no repeating groups.
+
+2NF:
+1NF + no partial dependency on composite primary key.
+
+3NF:
+2NF + no transitive dependency.
+
+Example:
+Bad:
+Order table contains customer_name and customer_email repeatedly.
+
+Normalized:
+customers table stores customer details.
+orders table stores customer_id.
+
+Use case:
+Transactional systems where data consistency is important.
+
+Internal working:
+Normalization splits data into related tables to avoid update, insert and delete anomalies.
+
+Trade-off:
+High normalization can require more joins and affect read performance. Denormalization may be used for reporting or read-heavy systems.
+
+Follow-up questions:
+1. Explain 1NF, 2NF and 3NF.
+2. What is denormalization?
+3. When would you denormalize?
+4. What are update anomalies?
+
+Interview-ready answer:
+Normalization reduces duplication and anomalies by organizing data into related tables. I normalize transactional data, but may denormalize reporting tables or caches when read performance is more important.
+
+--------------------------------------------------------------------
+3. ER DIAGRAM AND SCHEMA DESIGN
+
+ER diagram:
+Visual representation of entities, attributes and relationships.
+
+Example entities:
+User, Order, Product, Payment, Category.
+
+Relationships:
+User 1-N Order
+Order N-M Product through OrderItem
+Product N-1 Category
+
+Schema design process:
+1. Identify entities.
+2. Identify attributes.
+3. Identify relationships.
+4. Define primary/foreign keys.
+5. Apply normalization.
+6. Add constraints and indexes.
+
+Use case:
+Designing e-commerce, HR, banking, inventory systems.
+
+Interview-ready answer:
+“I start with business entities and relationships, define keys and constraints, normalize transactional data, then add indexes based on expected query patterns.”
+
+====================================================================
+DAY 4: INDEXES AND QUERY OPTIMIZATION
+====================================================================
+
+1. INDEXES
+
+Definition:
+Index is a data structure that improves speed of data retrieval operations.
+
+Types:
+Primary index, secondary index, unique index, composite index, full-text index.
+
+Example:
+CREATE INDEX idx_employee_department ON employees(department_id);
+
+CREATE INDEX idx_employee_status_created
+ON employees(status, created_at);
+
+Unique index:
+CREATE UNIQUE INDEX idx_user_email ON users(email);
+
+Use case:
+Search, filters, joins, sorting, unique constraints.
+
+Internal working:
+MySQL InnoDB uses B+Tree indexes. Index stores sorted keys with pointers to rows, allowing faster lookup than scanning every row.
+
+Clustered index:
+In InnoDB, primary key forms clustered index; actual row data is stored in order of primary key.
+
+Secondary index:
+Separate index structure that stores indexed column value and primary key reference.
+
+Follow-up questions:
+1. How does index improve performance?
+2. What is clustered vs non-clustered index?
+3. What is composite index?
+4. What is leftmost prefix rule?
+5. Do indexes improve write performance?
+
+Interview-ready answer:
+Indexes speed up reads by avoiding full table scans, but they consume storage and slow down writes because they must be maintained. For composite indexes, I follow the leftmost prefix rule.
+
+--------------------------------------------------------------------
+2. EXPLAIN AND QUERY OPTIMIZATION
+
+EXPLAIN:
+Shows how MySQL executes a query.
+
+Example:
+EXPLAIN
+SELECT * FROM employees
+WHERE department_id = 3
+ORDER BY created_at DESC;
+
+Important columns:
+type, possible_keys, key, rows, Extra.
+
+Good type values:
+const, eq_ref, ref, range.
+
+Bad type:
+ALL, meaning full table scan.
+
+Optimization techniques:
+- Index filtered/joined/sorted columns.
+- Avoid SELECT *.
+- Use LIMIT.
+- Avoid functions on indexed columns in WHERE.
+- Use covering indexes where possible.
+- Paginate efficiently.
+- Avoid N+1 queries.
+- Analyze slow query log.
+
+Example:
+Bad:
+WHERE YEAR(created_at) = 2026
+
+Better:
+WHERE created_at >= '2026-01-01'
+AND created_at < '2027-01-01'
+
+Use case:
+Slow dashboards, large reports, search APIs.
+
+Follow-up questions:
+1. What is EXPLAIN?
+2. What does type=ALL mean?
+3. What is covering index?
+4. Why is function on indexed column bad?
+5. How do you find slow queries?
+
+Interview-ready answer:
+I use EXPLAIN to inspect execution plan and identify full scans or missing indexes. I index selective filter, join and sort columns, avoid wrapping indexed columns in functions, and use covering indexes where appropriate.
+
+====================================================================
+DAY 5: TRANSACTIONS, LOCKS AND MYSQL INTERNALS
+====================================================================
+
+1. ACID PROPERTIES
+
+Atomicity:
+All operations in transaction succeed or all fail.
+
+Consistency:
+Database remains valid according to constraints and rules.
+
+Isolation:
+Concurrent transactions do not interfere unexpectedly.
+
+Durability:
+Committed data survives crashes.
+
+Example:
+START TRANSACTION;
+
+UPDATE accounts
+SET balance = balance - 1000
+WHERE id = 1;
+
+UPDATE accounts
+SET balance = balance + 1000
+WHERE id = 2;
+
+COMMIT;
+
+If failure occurs:
+ROLLBACK;
+
+Use case:
+Money transfer, order placement, inventory reduction.
+
+Internal working:
+InnoDB provides ACID transactions using undo logs, redo logs, locking and crash recovery. MySQL InnoDB default isolation level is REPEATABLE READ. [web:2]
+
+Follow-up questions:
+1. Explain ACID.
+2. What happens if system crashes after COMMIT?
+3. What is rollback?
+4. What is savepoint?
+
+Interview-ready answer:
+ACID ensures reliable transactions: atomicity prevents partial updates, consistency preserves rules, isolation controls concurrent access, and durability ensures committed data survives failures.
+
+--------------------------------------------------------------------
+2. TRANSACTION ISOLATION LEVELS
+
+Levels:
+READ UNCOMMITTED
+READ COMMITTED
+REPEATABLE READ
+SERIALIZABLE
+
+Problems:
+Dirty read: reading uncommitted data.
+Non-repeatable read: same row gives different values in same transaction.
+Phantom read: new matching rows appear in repeated range query.
+
+MySQL InnoDB:
+Default isolation level is REPEATABLE READ. [web:2]
+
+Example:
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+START TRANSACTION;
+SELECT * FROM accounts WHERE id = 1;
+COMMIT;
+
+Use case:
+Banking, inventory, order processing.
+
+Internal working:
+Higher isolation gives more consistency but may reduce concurrency. InnoDB uses MVCC and locking mechanisms to implement isolation. [web:2]
+
+Follow-up questions:
+1. Explain isolation levels.
+2. What is dirty read?
+3. What is phantom read?
+4. What is MySQL default isolation level?
+5. What is MVCC?
+
+Interview-ready answer:
+Isolation levels balance consistency and concurrency. MySQL InnoDB defaults to REPEATABLE READ, which prevents dirty and non-repeatable reads; SERIALIZABLE provides strongest isolation but reduces concurrency. [web:2]
+
+--------------------------------------------------------------------
+3. LOCKS AND DEADLOCKS
+
+Shared lock:
+Allows reading; multiple transactions can hold it.
+
+Exclusive lock:
+Required for update/delete; blocks other locks.
+
+Row-level lock:
+Locks specific rows.
+
+Table-level lock:
+Locks entire table.
+
+Gap lock:
+Locks gap between index records to prevent inserts.
+
+Deadlock:
+Two or more transactions wait for locks held by each other.
+
+Example:
+Transaction A locks row 1 and waits for row 2.
+Transaction B locks row 2 and waits for row 1.
+
+Prevention:
+- Access rows in consistent order.
+- Keep transactions short.
+- Use indexes.
+- Avoid unnecessary locking reads.
+- Retry on deadlock.
+
+Use case:
+Concurrent payments, inventory updates, booking systems.
+
+Internal working:
+InnoDB uses row-level locking and detects deadlocks, rolling back one transaction. [web:3]
+
+Follow-up questions:
+1. What is deadlock?
+2. How do you prevent deadlock?
+3. Difference between shared and exclusive lock?
+4. What is gap lock?
+5. What is optimistic vs pessimistic locking?
+
+Interview-ready answer:
+Deadlocks occur when transactions wait on each other’s locks. I prevent them by keeping transactions short, accessing rows consistently, using indexes and retrying deadlock errors.
+
+--------------------------------------------------------------------
+4. MYSQL INTERNALS: INNODB, BUFFER POOL, REDO AND UNDO LOGS
+
+InnoDB:
+Default MySQL storage engine supporting ACID transactions, row-level locking and crash recovery. [web:4]
+
+Buffer pool:
+Memory area caching data and index pages to reduce disk I/O.
+
+Redo log:
+Records changes for crash recovery.
+
+Undo log:
+Supports rollback and MVCC.
+
+Use case:
+High-concurrency transactional applications.
+
+Internal working:
+Queries first check buffer pool. If page is not present, MySQL reads from disk. Changes are recorded in redo log for durability; undo information enables rollback and consistent reads.
+
+Follow-up questions:
+1. What is InnoDB?
+2. What is buffer pool?
+3. What is redo log?
+4. What is undo log?
+5. InnoDB vs MyISAM?
+
+Interview-ready answer:
+InnoDB is MySQL’s transactional storage engine with ACID support, row-level locking and crash recovery. Buffer pool caches pages, redo log ensures durability, and undo log supports rollback and MVCC. [web:4]
+
+====================================================================
+DAY 6: ADVANCED SQL AND MYSQL OBJECTS
+====================================================================
+
+1. VIEWS
+
+Definition:
+View is virtual table based on SQL query.
+
+Example:
+CREATE VIEW active_employees AS
+SELECT id, name, email, department_id
+FROM employees
+WHERE status = 'ACTIVE';
+
+Use case:
+Simplify complex queries, restrict column access, reusable reporting logic.
+
+Internal working:
+Normal view stores query definition, not data. Materialized view stores result set, but MySQL does not support materialized views natively.
+
+Follow-up questions:
+1. What is view?
+2. Can we update view?
+3. What is materialized view?
+4. View vs table?
+
+Interview-ready answer:
+A view is a saved query presented as a virtual table. It simplifies access and can improve security by exposing selected columns, but it does not store data unless materialized.
+
+--------------------------------------------------------------------
+2. STORED PROCEDURES AND FUNCTIONS
+
+Stored procedure:
+Set of SQL statements stored in database.
+
+Example:
+DELIMITER //
+CREATE PROCEDURE GetEmployeesByDepartment(IN deptId INT)
+BEGIN
+  SELECT * FROM employees WHERE department_id = deptId;
+END //
+DELIMITER ;
+
+CALL GetEmployeesByDepartment(3);
+
+Function:
+Returns single value.
+
+Example:
+CREATE FUNCTION GetEmployeeCount(deptId INT)
+RETURNS INT
+READS SQL DATA
+BEGIN
+  DECLARE total INT;
+  SELECT COUNT(*) INTO total FROM employees WHERE department_id = deptId;
+  RETURN total;
+END;
+
+Use case:
+Reusable business logic, batch operations, reporting.
+
+Trade-off:
+Business logic in database can be harder to test, version and scale compared with application-layer logic.
+
+Follow-up questions:
+1. Procedure vs function?
+2. When should we use stored procedures?
+3. What are drawbacks of stored procedures?
+4. Where should business logic live?
+
+Interview-ready answer:
+Stored procedures are useful for database-heavy batch operations, but I keep core business logic in application services for testability, version control and scalability.
+
+--------------------------------------------------------------------
+3. TRIGGERS
+
+Definition:
+Trigger is database object that automatically executes on INSERT, UPDATE or DELETE.
+
+Example:
+CREATE TRIGGER after_employee_insert
+AFTER INSERT ON employees
+FOR EACH ROW
+INSERT INTO audit_logs (entity, entity_id, action, created_at)
+VALUES ('employee', NEW.id, 'INSERT', NOW());
+
+Use case:
+Audit logging, derived data updates, enforcement rules.
+
+Trade-off:
+Triggers can hide logic, complicate debugging and affect performance.
+
+Follow-up questions:
+1. What is trigger?
+2. BEFORE vs AFTER trigger?
+3. When should triggers be avoided?
+4. Trigger vs application-level event?
+
+Interview-ready answer:
+Triggers automate database-side actions, but I use them sparingly. For business workflows, application events or queues are usually easier to test, monitor and maintain.
+
+--------------------------------------------------------------------
+4. WINDOW FUNCTIONS
+
+Definition:
+Window functions perform calculations across a set of rows while retaining individual rows.
+
+Functions:
+ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, SUM OVER.
+
+Example:
+SELECT name,
+       department_id,
+       salary,
+       RANK() OVER (
+         PARTITION BY department_id
+         ORDER BY salary DESC
+       ) AS salary_rank
+FROM employees;
+
+Use case:
+Ranking, top-N per group, running totals, comparisons with previous/next rows.
+
+Internal working:
+PARTITION BY divides rows into groups; ORDER BY determines calculation order. Unlike GROUP BY, window functions do not collapse rows.
+
+Follow-up questions:
+1. Difference between GROUP BY and window function?
+2. ROW_NUMBER vs RANK vs DENSE_RANK?
+3. What is LAG and LEAD?
+4. How do you find second highest salary?
+
+Interview-ready answer:
+Window functions calculate values across related rows without collapsing them. I use ROW_NUMBER for unique ranking, RANK for gaps in ranking, and LAG/LEAD for previous or next row comparisons.
+
+====================================================================
+DAY 7: SQL CODING PRACTICE
+====================================================================
+
+1. SECOND HIGHEST SALARY
+
+SELECT MAX(salary) AS second_highest_salary
+FROM employees
+WHERE salary < (
+  SELECT MAX(salary) FROM employees
+);
+
+Using window function:
+SELECT salary
+FROM (
+  SELECT salary,
+         DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+  FROM employees
+) ranked
+WHERE rnk = 2;
+
+Interview-ready answer:
+I can solve it using a subquery or DENSE_RANK window function. DENSE_RANK handles duplicate salaries correctly.
+
+--------------------------------------------------------------------
+2. DUPLICATE EMAILS
+
+SELECT email, COUNT(*) AS total
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+Delete duplicates keeping lowest id:
+DELETE u1 FROM users u1
+JOIN users u2
+  ON u1.email = u2.email
+ AND u1.id > u2.id;
+
+Interview-ready answer:
+I find duplicates using GROUP BY and HAVING, then delete extra rows while preserving the earliest record.
+
+--------------------------------------------------------------------
+3. TOP 3 EMPLOYEES PER DEPARTMENT
+
+SELECT *
+FROM (
+  SELECT name,
+         department_id,
+         salary,
+         ROW_NUMBER() OVER (
+           PARTITION BY department_id
+           ORDER BY salary DESC
+         ) AS rn
+  FROM employees
+) ranked
+WHERE rn <= 3;
+
+Interview-ready answer:
+I use ROW_NUMBER partitioned by department and ordered by salary, then filter ranks 1 to 3.
+
+--------------------------------------------------------------------
+4. EMPLOYEES WITHOUT DEPARTMENT
+
+SELECT e.*
+FROM employees e
+LEFT JOIN departments d
+  ON e.department_id = d.id
+WHERE d.id IS NULL;
+
+Interview-ready answer:
+LEFT JOIN preserves employees without matching department; filtering NULL department id returns unmatched employees.
+
+--------------------------------------------------------------------
+5. MONTHLY SALES REPORT
+
+SELECT
+  DATE_FORMAT(order_date, '%Y-%m') AS month,
+  SUM(amount) AS total_sales,
+  COUNT(*) AS total_orders
+FROM orders
+WHERE status = 'COMPLETED'
+GROUP BY DATE_FORMAT(order_date, '%Y-%m')
+ORDER BY month;
+
+Interview-ready answer:
+I group completed orders by month and aggregate sales amount and order count for reporting.
+
+====================================================================
+QUICK REVISION: MOST ASKED SQL/MYSQL ANSWERS
+====================================================================
+
+1. SQL is query language; MySQL is relational database management system.
+2. DELETE removes selected rows; TRUNCATE removes all rows and resets auto-increment.
+3. WHERE filters rows; HAVING filters groups.
+4. INNER JOIN returns matching rows; LEFT JOIN preserves left-table rows.
+5. Primary key uniquely identifies row and cannot be null.
+6. Foreign key maintains relationship between tables.
+7. Normalization reduces redundancy; denormalization improves read performance.
+8. Index improves read speed but adds storage and write overhead.
+9. Composite index follows leftmost prefix rule.
+10. EXPLAIN reveals query execution plan and index usage.
+11. ACID means atomicity, consistency, isolation and durability.
+12. MySQL InnoDB default isolation level is REPEATABLE READ. [web:2]
+13. Deadlock occurs when transactions wait on each other’s locks.
+14. InnoDB supports row-level locking, transactions and crash recovery. [web:4]
+15. Window functions analyze rows without collapsing them like GROUP BY.

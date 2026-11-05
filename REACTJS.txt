@@ -1,0 +1,1840 @@
+
+REACT.JS — 10–12 DAYS COMPLETE INTERVIEW NOTES
+For 4+ Years MERN Stack Interview Preparation
+
+Format for every topic:
+Definition -> Example -> Use case -> Internal working -> Follow-up questions -> Interview-ready answer
+
+====================================================================
+DAY 1: REACT FUNDAMENTALS
+====================================================================
+
+1. WHAT IS REACT?
+
+Definition:
+React is an open-source JavaScript library used to build fast, reusable, component-based user interfaces, especially single-page applications.
+
+Example:
+function Welcome() {
+  return <h1>Hello React</h1>;
+}
+
+Use case:
+Dashboards, admin panels, e-commerce websites, social media feeds, employee management systems.
+
+Internal working:
+React builds a component tree. When state or props change, React calculates the new UI using the Virtual DOM, compares it with the previous Virtual DOM, and updates only the changed parts of the real DOM. This process is called reconciliation.
+
+Follow-up questions:
+1. Is React a framework or library?
+2. Why is React popular?
+3. What is declarative UI?
+4. What is component-based architecture?
+
+Interview-ready answer:
+React is a component-based JavaScript library for building user interfaces. It uses a Virtual DOM and reconciliation to update only the required parts of the UI, which improves performance and developer productivity.
+
+--------------------------------------------------------------------
+2. SPA VS MPA
+
+Definition:
+SPA means Single Page Application. MPA means Multi Page Application.
+
+SPA:
+- One HTML page is loaded initially.
+- JavaScript updates the UI without full page reload.
+- Routing is handled on the client side.
+- Example: React, Angular, Vue applications.
+
+MPA:
+- Every navigation loads a new HTML page from the server.
+- Browser refreshes the entire page.
+- Example: Traditional websites, many PHP or server-rendered websites.
+
+Example:
+React Router changes the component based on URL without reloading the page.
+
+Use case:
+SPA is useful for dashboards, admin panels and interactive apps.
+MPA is useful for content-heavy websites where SEO and simple server rendering are important.
+
+Internal working:
+In SPA, the browser downloads JavaScript. The router intercepts URL changes, renders the matching component, and calls APIs for data. The page does not fully reload.
+
+Follow-up questions:
+1. What are advantages and disadvantages of SPA?
+2. How does SEO work in SPA?
+3. What is client-side routing?
+4. When would you choose MPA over SPA?
+
+Interview-ready answer:
+An SPA loads once and updates the UI through JavaScript without full page reloads. An MPA loads a new page for every route. I use SPA for interactive applications and MPA or SSR when SEO and initial content delivery are critical.
+
+--------------------------------------------------------------------
+3. COMPONENTS AND JSX
+
+Definition:
+A component is a reusable, independent piece of UI. JSX is JavaScript XML syntax that lets us write HTML-like code inside JavaScript.
+
+Example:
+function UserCard({ name, email }) {
+  return (
+    <div>
+      <h2>{name}</h2>
+      <p>{email}</p>
+    </div>
+  );
+}
+
+Use case:
+Buttons, cards, navbar, forms, tables, modals and pages are commonly built as components.
+
+Internal working:
+Browsers do not understand JSX directly. Babel or a modern bundler converts JSX into React.createElement calls. React uses these calls to create JavaScript objects describing the UI, then renders them into the DOM.
+
+Example transformation:
+<h1>Hello</h1>
+becomes approximately:
+React.createElement("h1", null, "Hello");
+
+Follow-up questions:
+1. What is the difference between functional and class components?
+2. Can JSX contain if statements directly?
+3. Why should JSX have one parent element?
+4. What is Babel?
+
+Interview-ready answer:
+Components are reusable UI building blocks. JSX is syntax sugar for React.createElement, which describes UI as JavaScript objects. Babel compiles JSX into browser-compatible JavaScript.
+
+--------------------------------------------------------------------
+4. PROPS VS STATE
+
+Definition:
+Props are read-only inputs passed from parent to child. State is mutable data managed inside a component.
+
+Example:
+function Parent() {
+  const [count, setCount] = useState(0);
+  return <Child count={count} />;
+}
+
+function Child({ count }) {
+  return <h2>Count: {count}</h2>;
+}
+
+Use case:
+Props: reusable components, configuration, data passing.
+State: counters, form values, modal visibility, loading state.
+
+Internal working:
+When props or state change, React schedules a re-render of the affected component. Child components re-render when they receive new props or when their own state/context changes.
+
+Follow-up questions:
+1. Can a child modify props?
+2. What is prop drilling?
+3. What is lifting state up?
+4. When should state be moved to a parent?
+
+Interview-ready answer:
+Props are immutable inputs from parent to child, while state is component-owned mutable data. If multiple components need the same data, we lift the state to their closest common parent and pass it down through props.
+
+--------------------------------------------------------------------
+5. ONE-WAY DATA FLOW
+
+Definition:
+In React, data flows from parent to child through props. Child components do not directly change parent data.
+
+Example:
+function Parent() {
+  const [value, setValue] = useState("");
+  return <Input value={value} onChange={setValue} />;
+}
+
+Use case:
+Predictable data flow, easier debugging, controlled components.
+
+Internal working:
+Parent passes data and callback functions to children. Child calls the callback; parent updates state; React re-renders parent and children with updated props.
+
+Follow-up questions:
+1. How does a child update parent state?
+2. Why is one-way data flow useful?
+3. What is two-way binding?
+
+Interview-ready answer:
+React follows one-way data flow: parent sends props down, and children request changes through callbacks. This makes data changes predictable and easier to debug.
+
+====================================================================
+DAY 2: REACT FUNDAMENTALS CONTINUED
+====================================================================
+
+1. CONDITIONAL RENDERING
+
+Definition:
+Conditional rendering means showing different UI based on a condition.
+
+Example:
+{isLoggedIn ? <Dashboard /> : <Login />}
+
+{error && <p className="error">{error}</p>}
+
+Use case:
+Show loading spinner, error message, empty state, admin-only UI, authenticated pages.
+
+Internal working:
+JavaScript expressions inside JSX are evaluated during render. false, null and undefined render nothing in JSX.
+
+Follow-up questions:
+1. Difference between && and ternary operator in JSX?
+2. Why does 0 render in JSX?
+3. How do you avoid rendering nothing accidentally?
+
+Interview-ready answer:
+I use ternary operators for either/or UI and && for show-or-hide UI. I ensure conditions return Boolean values because values like 0 can accidentally render in JSX.
+
+--------------------------------------------------------------------
+2. LISTS AND KEYS
+
+Definition:
+Lists are rendered using map(). Keys are unique identifiers given to list items so React can identify each item.
+
+Example:
+{users.map(user => (
+  <li key={user.id}>{user.name}</li>
+))}
+
+Use case:
+Employee lists, product lists, tables, notifications, comments.
+
+Internal working:
+During reconciliation, React uses keys to match old and new elements. Keys help React understand whether an item was added, removed, reordered or updated.
+
+Important:
+Do not use array index as key if the list can reorder, insert or delete items.
+
+Follow-up questions:
+1. Why are keys important?
+2. Why should index not be used as key?
+3. What happens if keys are duplicated?
+4. How do keys affect state preservation?
+
+Interview-ready answer:
+Keys help React identify list items during reconciliation. Stable unique keys prevent unnecessary DOM updates and preserve component state correctly. I avoid index keys for dynamic or reorderable lists.
+
+--------------------------------------------------------------------
+3. CONTROLLED VS UNCONTROLLED COMPONENTS
+
+Definition:
+In controlled components, form data is controlled by React state. In uncontrolled components, form data is handled by the DOM itself, usually using refs.
+
+Controlled example:
+const [name, setName] = useState("");
+<input value={name} onChange={e => setName(e.target.value)} />
+
+Uncontrolled example:
+const nameRef = useRef();
+<input ref={nameRef} />
+
+Use case:
+Controlled: validation, conditional fields, live search, dependent dropdowns.
+Uncontrolled: simple forms, file inputs, integrating non-React libraries.
+
+Internal working:
+Controlled inputs update React state on every change, causing re-render. Uncontrolled inputs store value in the DOM; React reads it only when needed using ref.
+
+Follow-up questions:
+1. Which is better for validation?
+2. How do you get file input value?
+3. What is defaultValue?
+4. What are disadvantages of controlled components?
+
+Interview-ready answer:
+Controlled components keep form values in React state and are best for validation and dynamic UI. Uncontrolled components rely on DOM refs and are useful for simple forms or file inputs.
+
+--------------------------------------------------------------------
+4. COMPOSITION, LIFTING STATE AND PROP DRILLING
+
+Definition:
+Composition means building complex UI from smaller components. Lifting state means moving shared state to the closest common parent. Prop drilling means passing props through multiple intermediate components.
+
+Example:
+function App() {
+  const [user, setUser] = useState(null);
+  return <Layout user={user} />;
+}
+
+Use case:
+Shared user data, theme, filters, selected items.
+
+Internal working:
+React does not automatically share state between siblings. The common parent owns the state and passes data/callbacks downward.
+
+Problem:
+If props pass through many unnecessary components, code becomes harder to maintain. Context API, component composition or state libraries can reduce this.
+
+Follow-up questions:
+1. How do you avoid prop drilling?
+2. When should you use Context API?
+3. What is component composition?
+
+Interview-ready answer:
+I lift shared state to the closest common parent. For deep prop drilling, I use composition, Context API or a state management library depending on the complexity.
+
+--------------------------------------------------------------------
+5. FRAGMENTS AND SYNTHETIC EVENTS
+
+Definition:
+Fragment lets us group multiple elements without adding an extra DOM node. SyntheticEvent is React's cross-browser wrapper around native browser events.
+
+Example:
+<>
+  <h1>Title</h1>
+  <p>Description</p>
+</>
+
+<button onClick={(e) => console.log(e.target)}>Click</button>
+
+Use case:
+Fragments: avoid unnecessary div wrappers in tables and lists.
+Synthetic events: handle clicks, inputs, keyboard events consistently.
+
+Internal working:
+React attaches event listeners at the root container and uses event delegation. SyntheticEvent normalizes browser differences and provides a consistent API.
+
+Follow-up questions:
+1. What is event delegation?
+2. Difference between synthetic event and native event?
+3. Is e.persist still needed?
+4. What is event pooling?
+
+Interview-ready answer:
+Fragments group JSX without adding extra DOM nodes. SyntheticEvent is React's normalized event system built on event delegation, providing consistent behavior across browsers.
+
+====================================================================
+DAY 3: IMPORTANT HOOKS
+====================================================================
+
+1. useState
+
+Definition:
+useState adds local state to functional components.
+
+Example:
+const [count, setCount] = useState(0);
+setCount(prev => prev + 1);
+
+Use case:
+Counters, form fields, toggles, loading flags, modal visibility.
+
+Internal working:
+React stores state per component instance. Calling setter schedules a re-render. React batches multiple state updates where possible.
+
+Functional update:
+setCount(prev => prev + 1)
+is safer when next value depends on previous value.
+
+Follow-up questions:
+1. What is batching?
+2. What is lazy initialization?
+3. Does useState cause immediate re-render?
+4. What happens if we set the same value again?
+
+Interview-ready answer:
+useState manages local component state. I use functional updates when the new state depends on the previous state, especially inside event handlers or async operations.
+
+--------------------------------------------------------------------
+2. useEffect
+
+Definition:
+useEffect runs side effects after render, such as API calls, subscriptions, timers and DOM operations.
+
+Example:
+useEffect(() => {
+  fetch("/api/users")
+    .then(res => res.json())
+    .then(setUsers);
+}, []);
+
+Use case:
+Fetching data, updating document title, timers, event listeners, subscriptions.
+
+Internal working:
+After React commits UI to the DOM, effects run asynchronously. The dependency array decides when the effect re-runs. The cleanup function runs before the next effect execution and when the component unmounts.
+
+Dependency array:
+[] -> run once after mount
+[dep] -> run when dep changes
+No array -> run after every render
+
+Follow-up questions:
+1. Why does useEffect run twice in Strict Mode?
+2. What is cleanup function?
+3. What causes infinite loops in useEffect?
+4. Difference between useEffect and useLayoutEffect?
+
+Interview-ready answer:
+useEffect handles side effects after render. I always provide correct dependencies and cleanup functions to prevent memory leaks, duplicate requests and stale data.
+
+--------------------------------------------------------------------
+3. useLayoutEffect VS useEffect
+
+Definition:
+useEffect runs asynchronously after paint. useLayoutEffect runs synchronously after DOM mutations but before the browser paints.
+
+Example:
+useLayoutEffect(() => {
+  console.log("Measure DOM before paint");
+}, []);
+
+Use case:
+useLayoutEffect: measuring DOM elements, preventing visual flicker.
+useEffect: API calls, subscriptions, most side effects.
+
+Internal working:
+useLayoutEffect blocks painting until it completes. It should be used sparingly because it can affect performance.
+
+Follow-up questions:
+1. When should useLayoutEffect be avoided?
+2. What is paint?
+3. Can useLayoutEffect cause performance issues?
+
+Interview-ready answer:
+I use useEffect for most side effects. I use useLayoutEffect only when I need to read or modify DOM layout before the browser paints, such as measuring an element to avoid flicker.
+
+--------------------------------------------------------------------
+4. useRef
+
+Definition:
+useRef returns a mutable object with a current property. It can hold a DOM reference or any mutable value without causing re-render.
+
+Example:
+const inputRef = useRef();
+<input ref={inputRef} />
+
+button onClick={() => inputRef.current.focus()}
+
+Use case:
+Focus input, scroll to element, store timer ID, store previous value, access DOM.
+
+Internal working:
+Updating ref.current does not trigger re-render. Refs persist across renders for the same component instance.
+
+Follow-up questions:
+1. Difference between useRef and useState?
+2. Can useRef hold objects?
+3. What is forwardRef?
+4. When should refs be used?
+
+Interview-ready answer:
+useRef stores mutable values or DOM references without triggering re-render. I use it for DOM access, timers and values that should persist but do not affect UI.
+
+--------------------------------------------------------------------
+5. useMemo
+
+Definition:
+useMemo memoizes the result of an expensive calculation between renders.
+
+Example:
+const filtered = useMemo(() => {
+  return users.filter(u => u.department === department);
+}, [users, department]);
+
+Use case:
+Filtering large lists, heavy calculations, stable object references.
+
+Internal working:
+React stores the previous result and dependencies. If dependencies are unchanged, it returns the cached result instead of recalculating.
+
+Follow-up questions:
+1. Does useMemo always improve performance?
+2. What happens with wrong dependencies?
+3. Difference between useMemo and useCallback?
+
+Interview-ready answer:
+useMemo caches a calculated value. I use it only for expensive calculations or when stable object references are needed; otherwise it adds unnecessary complexity.
+
+--------------------------------------------------------------------
+6. useCallback
+
+Definition:
+useCallback memoizes a function reference between renders.
+
+Example:
+const handleClick = useCallback(() => {
+  console.log("Clicked");
+}, []);
+
+Use case:
+Passing callbacks to memoized child components, preventing unnecessary child renders.
+
+Internal working:
+Without useCallback, a new function is created on every render. With useCallback, React returns the same function reference until dependencies change.
+
+Follow-up questions:
+1. Why does React.memo need useCallback?
+2. What are dependencies in useCallback?
+3. Does useCallback improve all apps?
+
+Interview-ready answer:
+useCallback keeps the same function reference across renders. I use it with React.memo when a child would otherwise re-render due to a new callback reference.
+
+--------------------------------------------------------------------
+7. React.memo
+
+Definition:
+React.memo is a higher-order component that prevents a component from re-rendering if its props have not changed.
+
+Example:
+const UserCard = React.memo(function UserCard({ name }) {
+  return <h2>{name}</h2>;
+});
+
+Use case:
+Large lists, expensive child components, dashboards.
+
+Internal working:
+React performs shallow comparison of previous and next props. If props are equal, it skips rendering the child.
+
+Limitation:
+It does not prevent re-render caused by the component's own state or context changes.
+
+Follow-up questions:
+1. Does React.memo do deep comparison?
+2. How to customize comparison?
+3. When should we not use React.memo?
+
+Interview-ready answer:
+React.memo prevents unnecessary child renders by shallow-comparing props. I use it for expensive components and combine it with useCallback or useMemo when function or object props are involved.
+
+====================================================================
+DAY 4: ADVANCED HOOKS
+====================================================================
+
+1. CUSTOM HOOKS
+
+Definition:
+A custom hook is a JavaScript function whose name starts with use and which uses built-in React hooks to share reusable logic.
+
+Example:
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+
+    fetch(url)
+      .then(res => res.json())
+      .then(result => {
+        if (active) setData(result);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [url]);
+
+  return { data, loading };
+}
+
+Use case:
+Fetching APIs, debouncing, local storage, media queries, authentication, form handling.
+
+Internal working:
+Custom hooks do not create separate React state systems. Each component calling the custom hook gets its own independent state and effects.
+
+Follow-up questions:
+1. Can custom hooks call other custom hooks?
+2. Why must custom hook names start with use?
+3. How do you prevent stale responses?
+4. Difference between custom hook and utility function?
+
+Interview-ready answer:
+Custom hooks reuse stateful logic across components. Each caller receives independent state, and I handle cleanup or cancellation to avoid stale updates.
+
+--------------------------------------------------------------------
+2. useReducer
+
+Definition:
+useReducer is an alternative to useState for managing complex state logic using actions and a reducer function.
+
+Example:
+const [state, dispatch] = useReducer(reducer, { count: 0 });
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "INCREMENT":
+      return { count: state.count + 1 };
+    default:
+      return state;
+  }
+}
+
+Use case:
+Cart, forms with multiple fields, complex state transitions, undo/redo.
+
+Internal working:
+dispatch sends an action to the reducer. The reducer returns new state. React re-renders the component with updated state.
+
+Follow-up questions:
+1. When do you choose useReducer over useState?
+2. Can reducer be async?
+3. What is an action?
+4. How is useReducer related to Redux?
+
+Interview-ready answer:
+useReducer centralizes state update logic in a pure reducer function. I use it when multiple related state values or complex transitions make useState difficult to manage.
+
+--------------------------------------------------------------------
+3. useContext
+
+Definition:
+useContext lets a component read data from a React Context without passing props through every level.
+
+Example:
+const ThemeContext = createContext();
+
+<ThemeContext.Provider value="dark">
+  <Child />
+</ThemeContext.Provider>
+
+const theme = useContext(ThemeContext);
+
+Use case:
+Theme, authenticated user, language, app configuration.
+
+Internal working:
+Provider supplies context value. Any consumer below it can read that value. When provider value changes, all consuming components re-render.
+
+Follow-up questions:
+1. Does Context replace Redux?
+2. What is context performance issue?
+3. How do you avoid unnecessary re-renders with Context?
+4. Can Context hold functions?
+
+Interview-ready answer:
+useContext provides global-ish data without prop drilling. It is best for low-frequency global data such as theme or auth. For frequently changing server data or complex state, Redux Toolkit or RTK Query is usually better.
+
+--------------------------------------------------------------------
+4. useId, useTransition AND useDeferredValue
+
+useId:
+Generates unique IDs for accessibility and form labels.
+
+const id = useId();
+<label htmlFor={id}>Email</label>
+<input id={id} />
+
+useTransition:
+Marks state updates as non-urgent so UI remains responsive.
+
+const [isPending, startTransition] = useTransition();
+startTransition(() => setSearch(value));
+
+useDeferredValue:
+Delays updating a value while keeping the UI responsive.
+
+const deferredSearch = useDeferredValue(search);
+
+Use case:
+Large lists, search filters, heavy rendering, concurrent UI.
+
+Internal working:
+These hooks support React concurrent rendering. Urgent updates such as typing happen immediately, while expensive updates can be deferred.
+
+Follow-up questions:
+1. Difference between useTransition and useDeferredValue?
+2. What is concurrent rendering?
+3. When should useId be used?
+
+Interview-ready answer:
+useId creates stable unique IDs, useTransition marks updates as non-urgent, and useDeferredValue lets React render with an older value while calculating a newer one. They improve responsiveness in heavy UIs.
+
+--------------------------------------------------------------------
+5. RULES OF HOOKS AND STALE CLOSURES
+
+Rules of Hooks:
+1. Call hooks only at the top level.
+2. Do not call hooks inside conditions, loops or nested functions.
+3. Call hooks only in React functions or custom hooks.
+
+Stale closure:
+A callback remembers old state or props because it was created during an earlier render.
+
+Example problem:
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCount(count + 1);
+  }, 1000);
+  return () => clearInterval(timer);
+}, []);
+
+Correct:
+setCount(prev => prev + 1);
+
+Use case:
+Avoiding incorrect timer values, event listener bugs, async race conditions.
+
+Internal working:
+Each render creates its own function scope. If a callback captures state from an old render, it may use outdated data unless dependencies or functional updates are handled correctly.
+
+Follow-up questions:
+1. Why do stale closures happen?
+2. How do you fix stale state in setInterval?
+3. What are common useEffect mistakes?
+
+Interview-ready answer:
+Stale closures occur when callbacks capture old render values. I fix them using functional state updates, correct dependency arrays, refs or cleanup logic.
+
+====================================================================
+DAY 5: REACT INTERNALS
+====================================================================
+
+1. VIRTUAL DOM
+
+Definition:
+Virtual DOM is a lightweight JavaScript representation of the real DOM maintained by React.
+
+Use case:
+Efficient UI updates in dynamic applications.
+
+Internal working:
+1. State or props change.
+2. React creates a new Virtual DOM tree.
+3. React compares it with previous tree using diffing.
+4. React calculates minimum DOM operations.
+5. React updates only required real DOM nodes.
+
+Follow-up questions:
+1. Is Virtual DOM faster than real DOM always?
+2. What is diffing?
+3. What is reconciliation?
+
+Interview-ready answer:
+Virtual DOM helps React minimize direct DOM operations. React diffs the new and previous Virtual DOM trees and applies only required changes to the real DOM.
+
+--------------------------------------------------------------------
+2. RECONCILIATION AND REACT FIBER
+
+Definition:
+Reconciliation is the process of comparing the previous and new component trees to determine UI changes. React Fiber is React's reconciliation engine.
+
+Use case:
+Efficient updates, prioritized rendering, interruptible work.
+
+Internal working:
+Fiber breaks rendering work into small units. It can pause, prioritize, abort or resume work. This enables concurrent rendering features such as transitions and deferred values.
+
+Follow-up questions:
+1. What is Fiber?
+2. What is interruptible rendering?
+3. What is priority in React?
+4. How does Fiber improve performance?
+
+Interview-ready answer:
+Fiber is React's reconciliation architecture. It makes rendering work incremental and prioritizable, allowing React to keep urgent interactions responsive while processing larger updates.
+
+--------------------------------------------------------------------
+3. RENDER PHASE VS COMMIT PHASE
+
+Definition:
+Render phase calculates what UI should look like. Commit phase applies changes to the real DOM.
+
+Render phase:
+- Component functions run.
+- New Virtual DOM is created.
+- Should be pure and side-effect free.
+
+Commit phase:
+- React updates the real DOM.
+- useEffect runs after commit.
+- Refs are attached.
+
+Use case:
+Understanding where side effects should run and why render must be pure.
+
+Follow-up questions:
+1. Why should render be pure?
+2. Where do API calls belong?
+3. When does useEffect run?
+
+Interview-ready answer:
+During render, React calculates UI and must not perform side effects. After commit, React updates the DOM and runs effects such as API calls, subscriptions and timers.
+
+--------------------------------------------------------------------
+4. WHY COMPONENTS RE-RENDER
+
+Reasons:
+1. Component's own state changes.
+2. Parent re-renders and passes new props.
+3. Context value changes.
+4. Redux/store subscription changes.
+5. New object, array or function references are created.
+
+Example:
+Parent re-renders and creates:
+onClick={() => doSomething()}
+This creates a new function reference every render, causing memoized children to re-render.
+
+Use case:
+Performance optimization and debugging.
+
+Internal working:
+React re-renders a component to calculate new UI. Re-render does not always mean real DOM update; React may find no DOM changes after diffing.
+
+Follow-up questions:
+1. Does parent re-render always update DOM?
+2. How do you identify unnecessary re-renders?
+3. How do you prevent child re-renders?
+
+Interview-ready answer:
+Components re-render due to state, props, context or store changes. I use React Profiler to identify unnecessary renders, then apply memoization, stable references, state splitting or component composition.
+
+--------------------------------------------------------------------
+5. KEYS, COMPONENT IDENTITY AND STATE PRESERVATION
+
+Definition:
+Keys identify elements across renders. Component identity decides whether React preserves or recreates component state.
+
+Example:
+{items.map(item => (
+  <Item key={item.id} item={item} />
+))}
+
+Use case:
+Dynamic lists, tabs, forms, modals.
+
+Internal working:
+If key changes, React unmounts the old component and mounts a new one, resetting its state. If key remains same, React updates the existing component and preserves state.
+
+Follow-up questions:
+1. Why does changing key reset state?
+2. When is changing key useful?
+3. What happens with duplicate keys?
+
+Interview-ready answer:
+Keys define element identity. Changing a key tells React to destroy and recreate the component, which resets state. This is useful to reset forms or reload a component intentionally.
+
+--------------------------------------------------------------------
+6. STRICT MODE AND CONCURRENT RENDERING
+
+Definition:
+StrictMode is a development-only tool that highlights unsafe patterns. Concurrent rendering lets React prepare multiple UI versions and prioritize urgent updates.
+
+StrictMode behavior:
+In development, React may render components twice and run effects twice to expose side-effect issues.
+
+Use case:
+Detecting impure renders, missing cleanup, unsafe lifecycle patterns.
+
+Internal working:
+Concurrent rendering allows React to interrupt rendering work, prioritize user interactions and discard outdated renders.
+
+Follow-up questions:
+1. Does StrictMode affect production?
+2. Why do effects run twice in development?
+3. What is a transition?
+
+Interview-ready answer:
+StrictMode helps detect unsafe patterns in development by double-invoking some functions and effects. Concurrent rendering allows React to prioritize urgent UI updates and defer expensive work.
+
+====================================================================
+DAY 6: ROUTING AND FORMS
+====================================================================
+
+1. REACT ROUTER BASICS
+
+Definition:
+React Router enables client-side routing in React applications.
+
+Example:
+<BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/users" element={<Users />} />
+  </Routes>
+</BrowserRouter>
+
+Use case:
+Multi-page-like navigation in SPA, dashboards, admin panels.
+
+Internal working:
+React Router listens to browser URL changes using the History API. It matches the current URL with defined routes and renders the matching component without reloading the page.
+
+Follow-up questions:
+1. Difference between BrowserRouter and HashRouter?
+2. What is client-side routing?
+3. What is nested routing?
+
+Interview-ready answer:
+React Router maps URL paths to React components. BrowserRouter uses the History API for clean URLs, while HashRouter uses URL hash values.
+
+--------------------------------------------------------------------
+2. useNavigate, useParams, useLocation
+
+useNavigate:
+Programmatically navigate.
+
+const navigate = useNavigate();
+navigate("/dashboard");
+
+useParams:
+Read dynamic route parameters.
+
+const { id } = useParams();
+
+useLocation:
+Read current location, search params and state.
+
+const location = useLocation();
+
+Use case:
+Login redirect, edit page, query filters, breadcrumbs.
+
+Internal working:
+These hooks read routing context provided by React Router and re-render components when route-related data changes.
+
+Follow-up questions:
+1. How do you pass data through navigation?
+2. Difference between params and query params?
+3. How do you redirect after login?
+
+Interview-ready answer:
+I use useNavigate for programmatic navigation, useParams for dynamic route values, and useLocation for current path, search parameters and navigation state.
+
+--------------------------------------------------------------------
+3. NESTED AND PROTECTED ROUTES
+
+Nested routes:
+<Routes>
+  <Route path="/dashboard" element={<Dashboard />}>
+    <Route path="profile" element={<Profile />} />
+  </Route>
+</Routes>
+
+Protected route:
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/login" />;
+}
+
+Use case:
+Admin panels, role-based access, authenticated dashboards.
+
+Internal working:
+ProtectedRoute checks authentication before rendering children. If authentication fails, it redirects using Navigate.
+
+Follow-up questions:
+1. Where should auth token be stored?
+2. How do you handle role-based routes?
+3. What happens on page refresh?
+
+Interview-ready answer:
+I wrap private routes with a ProtectedRoute component that checks authentication or role before rendering. For security-sensitive authorization, the backend must also validate every request.
+
+--------------------------------------------------------------------
+4. FORMS, VALIDATION, MULTI-STEP FORMS AND FILE UPLOADS
+
+Controlled form example:
+const [form, setForm] = useState({ name: "", email: "" });
+
+const handleChange = e => {
+  setForm(prev => ({
+    ...prev,
+    [e.target.name]: e.target.value
+  }));
+};
+
+Validation:
+const errors = {};
+if (!form.name.trim()) errors.name = "Name is required";
+if (!/\S+@\S+\.\S+/.test(form.email)) errors.email = "Invalid email";
+
+File upload:
+const fileRef = useRef();
+<input type="file" ref={fileRef} />
+
+const formData = new FormData();
+formData.append("file", fileRef.current.files[0]);
+
+fetch("/api/upload", {
+  method: "POST",
+  body: formData
+});
+
+Use case:
+Registration, profile update, product creation, document upload.
+
+Internal working:
+Controlled inputs update state on change. Validation can run on change, blur or submit. File uploads use FormData because files cannot be sent as normal JSON.
+
+Follow-up questions:
+1. How do you handle validation errors?
+2. Difference between client-side and server-side validation?
+3. How do you upload multiple files?
+4. How do you show upload progress?
+
+Interview-ready answer:
+I manage form values in state, validate on blur or submit, and display field-level errors. For files, I use FormData and send it to the backend; client-side validation improves UX, but server-side validation is mandatory for security.
+
+====================================================================
+DAY 7: STATE MANAGEMENT
+====================================================================
+
+1. LOCAL VS GLOBAL STATE
+
+Local state:
+Used by one component or a small component tree.
+Example: modal open/close, input value.
+
+Global state:
+Shared across many components.
+Example: authenticated user, theme, cart, permissions.
+
+Use case:
+Choose local state first. Move to global state only when multiple distant components need the same data.
+
+Internal working:
+Local state lives in component. Global state lives in Context, Redux store, Zustand, Jotai or similar external store.
+
+Follow-up questions:
+1. When should you use Redux?
+2. Is Context global state?
+3. What is server state?
+
+Interview-ready answer:
+I keep state local when possible. I use global state only for data shared across distant components. Server data is often better handled by RTK Query, React Query or SWR because it needs caching, refetching and synchronization.
+
+--------------------------------------------------------------------
+2. CONTEXT API
+
+Definition:
+Context API provides a way to pass data through the component tree without prop drilling.
+
+Example:
+const AuthContext = createContext();
+
+function App() {
+  const [user, setUser] = useState(null);
+  return (
+    <AuthContext.Provider value={{ user, setUser }}>
+      <Routes />
+    </AuthContext.Provider>
+  );
+}
+
+Use case:
+Theme, language, current user, feature flags.
+
+Internal working:
+Provider stores context value. Consumers subscribe to it. When value changes, all consumers re-render.
+
+Follow-up questions:
+1. What are Context limitations?
+2. How do you split contexts?
+3. Can Context cause performance issues?
+
+Interview-ready answer:
+Context avoids prop drilling for global values. I split contexts by concern and avoid putting frequently changing data in a large context because every consumer re-renders when the value changes.
+
+--------------------------------------------------------------------
+3. REDUX DATA FLOW
+
+Definition:
+Redux is a predictable state container. Redux Toolkit is the official recommended way to write Redux logic.
+
+Flow:
+UI dispatches action -> Reducer processes action -> Store updates state -> Subscribed UI re-renders.
+
+Example:
+dispatch(increment());
+
+Use case:
+Cart, permissions, complex client state, cross-component communication.
+
+Internal working:
+Redux store holds application state. Actions describe what happened. Reducers are pure functions returning new state. UI subscribes to store slices using selectors.
+
+Follow-up questions:
+1. Why is Redux called predictable?
+2. Can reducers mutate state?
+3. What is Immer?
+4. What is single source of truth?
+
+Interview-ready answer:
+Redux keeps application state in one store and updates it through dispatched actions handled by pure reducers. Redux Toolkit uses Immer internally, allowing readable mutation-like syntax while producing immutable updates.
+
+--------------------------------------------------------------------
+4. configureStore AND createSlice
+
+Example:
+const store = configureStore({
+  reducer: {
+    users: userSlice.reducer
+  }
+});
+
+const userSlice = createSlice({
+  name: "users",
+  initialState: { users: [], loading: false, error: null },
+  reducers: {
+    setUser(state, action) {
+      state.users = action.payload;
+    }
+  }
+});
+
+Use case:
+Central store setup, feature-based state organization.
+
+Internal working:
+configureStore sets up Redux store, DevTools and default middleware. createSlice generates action creators and action types automatically from reducer functions.
+
+Follow-up questions:
+1. What does createSlice generate?
+2. Why is configureStore recommended over createStore?
+3. What middleware does Redux Toolkit include?
+
+Interview-ready answer:
+configureStore creates the Redux store with sensible defaults, including Redux DevTools and thunk middleware. createSlice combines reducers, actions and action types in one feature-based file.
+
+====================================================================
+DAY 8: ASYNC REDUX AND SERVER STATE
+====================================================================
+
+1. createAsyncThunk
+
+Definition:
+createAsyncThunk creates Redux actions for async operations and generates pending, fulfilled and rejected lifecycle actions.
+
+Example:
+export const fetchUsers = createAsyncThunk(
+  "users/fetchUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch("/api/users");
+      if (!response.ok) {
+        const error = await response.json();
+        return rejectWithValue(error.message);
+      }
+      return response.json();
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+Use case:
+Fetch users, login, create product, upload file.
+
+Internal working:
+When dispatched, createAsyncThunk dispatches pending action, runs the async function, then dispatches fulfilled or rejected based on result.
+
+Generated actions:
+users/fetchUsers/pending
+users/fetchUsers/fulfilled
+users/fetchUsers/rejected
+
+Important:
+"users/fetchUsers" is not an API URL. It is an action type prefix. The actual API URL is inside fetch() or axios call.
+
+Follow-up questions:
+1. What is rejectWithValue?
+2. Can we change the action prefix?
+3. What happens if prefix is duplicated?
+4. Where is API URL defined?
+
+Interview-ready answer:
+createAsyncThunk handles async Redux logic and automatically generates pending, fulfilled and rejected actions. I use rejectWithValue to send custom error payloads, and the actual HTTP request happens inside the payload creator function.
+
+--------------------------------------------------------------------
+2. extraReducers
+
+Example:
+extraReducers: builder => {
+  builder
+    .addCase(fetchUsers.pending, state => {
+      state.loading = true;
+    })
+    .addCase(fetchUsers.fulfilled, (state, action) => {
+      state.loading = false;
+      state.users = action.payload;
+    })
+    .addCase(fetchUsers.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+}
+
+Use case:
+Handle async thunk lifecycle states.
+
+Internal working:
+extraReducers respond to actions defined outside the slice, especially thunk lifecycle actions.
+
+Follow-up questions:
+1. Difference between reducers and extraReducers?
+2. Can extraReducers handle actions from other slices?
+3. What is builder callback notation?
+
+Interview-ready answer:
+reducers handle actions created by the same slice, while extraReducers handle external actions such as async thunk lifecycle actions.
+
+--------------------------------------------------------------------
+3. REDUX THUNK VS REDUX SAGA
+
+Redux Thunk:
+- Simple middleware.
+- Allows action creators to return functions.
+- Good for most API calls.
+
+Redux Saga:
+- Uses generator functions.
+- Good for complex async flows.
+- Supports takeLatest, takeEvery, debounce, cancellation and orchestration.
+
+Use case:
+Thunk: normal CRUD APIs.
+Saga: complex workflows, retry logic, background tasks.
+
+Follow-up questions:
+1. What is a generator function?
+2. What is takeLatest?
+3. When would you choose Saga?
+
+Interview-ready answer:
+Thunk is simpler and sufficient for most async API calls. Saga is useful for complex side-effect management such as cancellation, retries, debouncing and multi-step workflows.
+
+--------------------------------------------------------------------
+4. RTK QUERY
+
+Definition:
+RTK Query is a data fetching and caching tool built into Redux Toolkit.
+
+Example:
+const api = createApi({
+  reducerPath: "api",
+  baseQuery: fetchBaseQuery({ baseUrl: "/api" }),
+  endpoints: builder => ({
+    getUsers: builder.query({
+      query: () => "users"
+    })
+  })
+});
+
+Use case:
+Server data fetching, caching, refetching, request deduplication.
+
+Internal working:
+RTK Query creates a cache entry based on endpoint and query arguments. Components using the same query share cached data and in-flight requests.
+
+Follow-up questions:
+1. Difference between Redux and RTK Query?
+2. What is stale time?
+3. How does RTK Query prevent duplicate requests?
+4. What is invalidation?
+
+Interview-ready answer:
+RTK Query manages server state with caching, deduplication and refetching. Unlike regular Redux, it reduces boilerplate for API calls and automatically shares identical requests through cache keys.
+
+--------------------------------------------------------------------
+5. SERVER STATE VS CLIENT STATE AND OPTIMISTIC UPDATES
+
+Server state:
+Data owned by backend.
+Example: users, products, orders.
+
+Client state:
+Data owned by UI.
+Example: modal visibility, selected tab, theme.
+
+Optimistic update:
+UI updates immediately before server confirms, then rolls back if request fails.
+
+Example flow:
+1. User likes a post.
+2. UI increases like count immediately.
+3. API request is sent.
+4. If API fails, UI reverts and shows error.
+
+Use case:
+Likes, cart updates, todo completion, drag-and-drop ordering.
+
+Internal working:
+Optimistic updates improve perceived performance but require rollback and cache reconciliation logic.
+
+Follow-up questions:
+1. What are risks of optimistic updates?
+2. How do you roll back failed updates?
+3. When should optimistic updates be avoided?
+
+Interview-ready answer:
+Optimistic updates improve perceived speed by updating UI before server confirmation. I use them only when failure is rare and rollback logic is clear; otherwise I wait for server confirmation.
+
+====================================================================
+DAY 9: PERFORMANCE OPTIMIZATION
+====================================================================
+
+1. LAZY LOADING, SUSPENSE AND CODE SPLITTING
+
+Definition:
+Lazy loading loads components only when needed. Code splitting divides a large JavaScript bundle into smaller chunks. Suspense shows fallback UI while a lazy component loads.
+
+Example:
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+
+<Suspense fallback={<p>Loading...</p>}>
+  <Dashboard />
+</Suspense>
+
+Use case:
+Route-level loading for large pages, charts, editors, admin modules.
+
+Internal working:
+Dynamic import creates a chunk boundary. Bundlers such as Webpack or Vite generate separate JavaScript chunks. When the component is needed, browser downloads that chunk; React.lazy resolves it and Suspense displays fallback until ready.
+
+Follow-up questions:
+1. Can React.lazy work without Suspense?
+2. Difference between lazy loading and code splitting?
+3. What happens if chunk loading fails?
+4. Where should lazy loading be used?
+
+Interview-ready answer:
+Code splitting creates smaller bundles, lazy loading requests them only when needed, and Suspense shows loading UI. I apply route-level lazy loading for large pages and heavy components.
+
+--------------------------------------------------------------------
+2. VIRTUALIZATION, PAGINATION AND INFINITE SCROLL
+
+Virtualization:
+Renders only visible rows instead of thousands of DOM nodes.
+
+Pagination:
+Fetches data page by page.
+
+Infinite scroll:
+Fetches more data automatically when user reaches bottom.
+
+Example:
+const { data } = useInfiniteQuery(...);
+
+Use case:
+Large employee tables, product listings, chat history, social feeds.
+
+Internal working:
+Virtualization calculates visible viewport and renders only visible plus buffer items. Pagination uses page/limit query parameters. Infinite scroll commonly uses IntersectionObserver to detect when sentinel element enters viewport.
+
+Follow-up questions:
+1. Difference between pagination and infinite scroll?
+2. What is IntersectionObserver?
+3. Can virtualization and infinite scroll be combined?
+4. What is overscan?
+
+Interview-ready answer:
+Virtualization limits DOM rendering, pagination controls page-based data fetching, and infinite scroll loads more data on scroll. For very large feeds, I combine infinite scroll with virtualization.
+
+--------------------------------------------------------------------
+3. AVOID RE-RENDERS AND BUNDLE OPTIMIZATION
+
+Techniques:
+- React.memo for expensive child components.
+- useMemo for expensive calculations.
+- useCallback for stable function references.
+- Proper state placement.
+- Component splitting.
+- Route-level code splitting.
+- Tree shaking.
+- Image optimization.
+- Production build.
+
+React Profiler:
+Identifies which components render, how often, and how long they take.
+
+Use case:
+Slow dashboards, large tables, frequent state updates.
+
+Internal working:
+Profiler records render timings. Tree shaking removes unused exports during bundling. Minification removes unnecessary characters and shortens identifiers.
+
+Follow-up questions:
+1. How do you find slow components?
+2. Does React.memo always help?
+3. What is tree shaking?
+4. What is code splitting?
+
+Interview-ready answer:
+I first measure using React Profiler and browser performance tools. Then I optimize only actual bottlenecks using memoization, state restructuring, code splitting, tree shaking and asset optimization.
+
+--------------------------------------------------------------------
+4. DEBOUNCED SEARCH, REQUEST DEDUPLICATION AND SKELETON LOADERS
+
+Debouncing:
+Delays API call until user stops typing.
+
+Example:
+useEffect(() => {
+  const timer = setTimeout(() => {
+    if (search) fetchResults(search);
+  }, 500);
+
+  return () => clearTimeout(timer);
+}, [search]);
+
+Request deduplication:
+Prevents multiple identical API requests by sharing one request or cached result.
+
+Skeleton loader:
+Shows placeholder UI matching final content structure.
+
+Use case:
+Search boxes, autocomplete, dashboards, product lists.
+
+Internal working:
+Debounce uses timer cleanup to cancel previous pending calls. RTK Query or React Query deduplicates requests using cache keys. Skeletons improve perceived performance.
+
+Follow-up questions:
+1. Difference between debounce and throttle?
+2. How do you cancel outdated API requests?
+3. What is AbortController?
+4. Difference between spinner and skeleton?
+
+Interview-ready answer:
+Debouncing reduces frequent calls, request deduplication avoids duplicate identical calls, and skeleton loaders improve perceived performance. For stale responses, I use AbortController or request cancellation.
+
+====================================================================
+DAY 10: ERROR HANDLING AND TESTING
+====================================================================
+
+1. ERROR BOUNDARIES VS TRY/CATCH
+
+Definition:
+Error Boundary is a React component that catches rendering errors in its child tree. try/catch handles JavaScript errors in normal code execution.
+
+Example:
+class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error(error, info);
+  }
+
+  render() {
+    return this.state.hasError
+      ? <h1>Something went wrong</h1>
+      : this.props.children;
+  }
+}
+
+Use case:
+Prevent full app crash due to one broken component.
+
+Important:
+Error Boundaries do not catch errors in event handlers, async code, server-side rendering or errors thrown in the Error Boundary itself.
+
+Follow-up questions:
+1. Can Error Boundary catch API errors?
+2. How do you handle async errors?
+3. Can functional components be Error Boundaries?
+
+Interview-ready answer:
+Error Boundaries catch rendering errors in child components, while try/catch handles synchronous JavaScript errors. For async/API errors, I handle them in thunks, query hooks or async functions and show user-friendly error UI.
+
+--------------------------------------------------------------------
+2. ASYNC ERROR HANDLING
+
+Example:
+try {
+  const response = await fetch("/api/users");
+  if (!response.ok) throw new Error("Request failed");
+  const data = await response.json();
+} catch (error) {
+  setError(error.message);
+}
+
+Use case:
+API failures, network errors, validation failures, timeout handling.
+
+Internal working:
+Awaited promise rejection moves control to catch block. In Redux, rejected thunk actions can carry error payload through rejectWithValue.
+
+Follow-up questions:
+1. How do you handle multiple API failures?
+2. What is retry strategy?
+3. How do you show global vs local errors?
+
+Interview-ready answer:
+I handle expected API errors locally and unexpected errors globally through interceptors, Error Boundaries or global error state. I also add retry and timeout strategies for critical requests.
+
+--------------------------------------------------------------------
+3. JEST AND REACT TESTING LIBRARY
+
+Definition:
+Jest is a JavaScript testing framework. React Testing Library tests React components the way users interact with them.
+
+Example:
+test("increments counter", async () => {
+  render(<Counter />);
+  await userEvent.click(screen.getByRole("button", { name: /increment/i }));
+  expect(screen.getByText(/count: 1/i)).toBeInTheDocument();
+});
+
+Use case:
+Unit tests, integration tests, component behavior testing.
+
+Testing types:
+Unit test: tests one function or component.
+Integration test: tests multiple components/modules together.
+E2E test: tests complete user flow, often with Cypress or Playwright.
+
+Internal working:
+RTL renders component into a test DOM, queries elements by accessible roles/text, simulates user events, and asserts resulting UI.
+
+Follow-up questions:
+1. Difference between unit and integration testing?
+2. Why query by role instead of test ID?
+3. How do you mock API calls?
+4. What is userEvent?
+
+Interview-ready answer:
+I use Jest as the test runner and React Testing Library to test components from the user's perspective. I prefer accessible queries, mock network requests, and test behavior rather than implementation details.
+
+--------------------------------------------------------------------
+4. MOCK APIS AND TESTING REDUX
+
+Mock API approaches:
+- MSW: Mock Service Worker.
+- Jest mocks for fetch/axios.
+- Test fixtures.
+
+Redux testing:
+Test reducers, action creators, thunks and connected components.
+
+Example:
+jest.mock("../api", () => ({
+  fetchUsers: jest.fn().mockResolvedValue([{ id: 1, name: "John" }])
+}));
+
+Use case:
+Reliable tests without depending on real backend.
+
+Internal working:
+Mocks replace real implementations during tests. MSW intercepts network requests at service-worker/network level, making tests closer to real behavior.
+
+Follow-up questions:
+1. Why use MSW over mocking fetch?
+2. How do you test async thunk?
+3. How do you test loading and error states?
+
+Interview-ready answer:
+I mock APIs using MSW or Jest mocks, then test loading, success and error states. For Redux, I test reducer transitions and async thunk behavior with mocked API responses.
+
+====================================================================
+DAY 11: ADVANCED REACT PATTERNS
+====================================================================
+
+1. HOC, RENDER PROPS AND COMPOUND COMPONENTS
+
+HOC:
+A function that takes a component and returns an enhanced component.
+
+const WithAuth = Component => props => {
+  const user = useAuth();
+  return user ? <Component {...props} /> : <Login />;
+};
+
+Render props:
+A component receives a function as prop and calls it to render UI.
+
+<DataProvider render={data => <List data={data} />} />
+
+Compound components:
+Multiple components work together while sharing implicit state.
+
+<Tabs>
+  <Tabs.List />
+  <Tabs.Panel />
+</Tabs>
+
+Use case:
+HOC: auth, logging, permissions.
+Render props: reusable data-fetching or mouse-tracking logic.
+Compound components: Tabs, Accordion, Select, Modal.
+
+Follow-up questions:
+1. Are HOCs still commonly used?
+2. What are drawbacks of HOCs?
+3. What is headless component?
+
+Interview-ready answer:
+HOCs wrap components to reuse logic, render props share render logic through functions, and compound components provide flexible APIs. In modern React, custom hooks often replace HOCs and render props for logic reuse.
+
+--------------------------------------------------------------------
+2. PORTALS AND REFS
+
+Portal:
+Renders children into a different DOM node.
+
+createPortal(
+  <Modal />,
+  document.getElementById("modal-root")
+);
+
+Use case:
+Modals, tooltips, dropdowns, toast notifications.
+
+Internal working:
+Portal changes DOM placement but keeps React context and event bubbling behavior within React tree.
+
+Refs:
+Provide direct access to DOM nodes or mutable values.
+
+Follow-up questions:
+1. Why use portal for modal?
+2. Does portal affect CSS?
+3. What is forwardRef?
+
+Interview-ready answer:
+Portals render UI outside the parent DOM hierarchy, which helps avoid overflow or z-index issues in modals and tooltips while preserving React context.
+
+--------------------------------------------------------------------
+3. SSR VS CSR, HYDRATION, NEXT.JS AND RSC
+
+CSR:
+Browser downloads JavaScript, then React renders UI.
+
+SSR:
+Server sends rendered HTML, then React hydrates it.
+
+Hydration:
+React attaches event listeners and makes server-rendered HTML interactive.
+
+Next.js:
+React framework providing SSR, SSG, ISR, API routes, routing and optimizations.
+
+React Server Components:
+Components that render on the server and send UI description to client without shipping their JavaScript to browser.
+
+Use case:
+SSR: SEO, faster first contentful paint.
+CSR: highly interactive dashboards.
+Next.js: production React applications.
+
+Follow-up questions:
+1. What is hydration mismatch?
+2. Difference between SSR and SSG?
+3. What are benefits of Server Components?
+4. When do you choose Next.js?
+
+Interview-ready answer:
+CSR renders in browser after JavaScript loads, while SSR sends pre-rendered HTML and hydrates it. Next.js provides SSR, SSG and routing; Server Components reduce client JavaScript by rendering parts of UI on the server.
+
+====================================================================
+DAY 12: ACCESSIBILITY, SECURITY AND CODING TASKS
+====================================================================
+
+1. ACCESSIBILITY
+
+Definition:
+Accessibility ensures applications are usable by everyone, including users with disabilities.
+
+Best practices:
+- Use semantic HTML.
+- Use alt text for images.
+- Use labels for inputs.
+- Maintain keyboard navigation.
+- Use aria attributes only when necessary.
+- Ensure color contrast.
+
+Example:
+<label htmlFor="email">Email</label>
+<input id="email" type="email" />
+
+Use case:
+Forms, modals, navigation, data tables.
+
+Follow-up questions:
+1. What is ARIA?
+2. What is keyboard accessibility?
+3. How do you test accessibility?
+
+Interview-ready answer:
+I use semantic HTML, proper labels, keyboard support and accessible roles. ARIA is used only when native HTML cannot express the behavior.
+
+--------------------------------------------------------------------
+2. XSS PREVENTION
+
+Definition:
+XSS means Cross-Site Scripting, where malicious scripts are injected into a web page.
+
+React protection:
+React escapes values rendered using JSX by default.
+
+Danger:
+dangerouslySetInnerHTML can introduce XSS if content is untrusted.
+
+Safe approach:
+- Do not render raw HTML from user input.
+- Sanitize HTML using libraries such as DOMPurify.
+- Validate and encode data on server.
+- Use Content Security Policy.
+
+Example:
+<p>{userComment}</p> // Safe
+<div dangerouslySetInnerHTML={{ __html: userComment }} /> // Risky
+
+Follow-up questions:
+1. How does React prevent XSS?
+2. When is dangerouslySetInnerHTML safe?
+3. What is CSP?
+
+Interview-ready answer:
+React escapes JSX-rendered strings by default, preventing most XSS. I avoid dangerouslySetInnerHTML with untrusted data and sanitize any required HTML on both client and server.
+
+--------------------------------------------------------------------
+3. CODING TASK: SEARCHABLE PAGINATED LIST
+
+Requirements:
+- Search input.
+- Debounced API request.
+- Pagination.
+- Loading and error states.
+- Avoid stale responses.
+
+Approach:
+1. Store search and page in state or URL query params.
+2. Debounce search input.
+3. Fetch data with page, limit and search parameters.
+4. Cancel previous request using AbortController.
+5. Render list, pagination controls, loading skeleton and error message.
+
+Example:
+useEffect(() => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    fetch(`/api/users?search=${search}&page=${page}`, {
+      signal: controller.signal
+    })
+      .then(res => res.json())
+      .then(setData)
+      .catch(err => {
+        if (err.name !== "AbortError") setError(err.message);
+      });
+  }, 500);
+
+  return () => {
+    clearTimeout(timer);
+    controller.abort();
+  };
+}, [search, page]);
+
+Interview-ready answer:
+I implement debounced search with pagination, cancel outdated requests using AbortController, and handle loading, empty, error and last-page states.
+
+--------------------------------------------------------------------
+4. CODING TASK: MODAL, TABS, ACCORDION, MULTI-STEP FORM
+
+Modal:
+- Portal.
+- Escape key close.
+- Focus trap.
+- Backdrop click close.
+- Body scroll lock.
+
+Tabs:
+- Active tab state.
+- Keyboard navigation.
+- Accessible roles.
+
+Accordion:
+- Open/close state.
+- Single or multiple expansion.
+- Smooth transition.
+
+Multi-step form:
+- Step state.
+- Field validation per step.
+- Preserve values between steps.
+- Final submit to API.
+
+Interview-ready answer:
+For reusable UI components, I manage minimal state, support keyboard accessibility, use portals where needed, and validate each step before allowing navigation.
+
+--------------------------------------------------------------------
+5. CODING TASK: PROTECTED ROUTE AND REDUX CART
+
+Protected route:
+- Check token/user.
+- Redirect unauthenticated users.
+- Preserve intended route.
+- Validate authorization on backend.
+
+Redux cart:
+- Add item.
+- Increase/decrease quantity.
+- Remove item.
+- Calculate total price.
+- Persist cart in localStorage.
+
+Example:
+const cartSlice = createSlice({
+  name: "cart",
+  initialState: { items: [] },
+  reducers: {
+    addToCart(state, action) {
+      const item = state.items.find(i => i.id === action.payload.id);
+      if (item) item.quantity += 1;
+      else state.items.push({ ...action.payload, quantity: 1 });
+    }
+  }
+});
+
+Interview-ready answer:
+I implement protected routes with authentication checks and redirects. For cart, I use Redux Toolkit slices with immutable updates, selectors for derived totals, and persistence where required.
+
+--------------------------------------------------------------------
+6. CODING TASK: PROFILE AND OPTIMIZE SLOW COMPONENT
+
+Steps:
+1. Reproduce slow behavior.
+2. Use React Profiler to identify expensive renders.
+3. Check unnecessary re-renders.
+4. Apply React.memo/useMemo/useCallback only where useful.
+5. Split large components.
+6. Move state closer to usage.
+7. Use virtualization for long lists.
+8. Apply code splitting for heavy pages.
+9. Optimize images and dependencies.
+10. Re-measure after changes.
+
+Interview-ready answer:
+I do not optimize blindly. I profile the component, identify unnecessary renders or expensive calculations, then apply targeted solutions such as memoization, state restructuring, virtualization and code splitting.
+
+====================================================================
+QUICK REVISION: MOST ASKED ANSWERS
+====================================================================
+
+1. React is a component-based UI library using Virtual DOM and reconciliation.
+2. Props flow down; state is managed within components.
+3. Keys must be stable and unique for lists.
+4. useEffect handles side effects after render and requires cleanup.
+5. useMemo caches values; useCallback caches function references.
+6. React.memo prevents child re-render when props do not change.
+7. Context avoids prop drilling but can cause broad re-renders.
+8. Redux Toolkit is the modern way to write Redux.
+9. createAsyncThunk generates pending, fulfilled and rejected actions.
+10. RTK Query manages server state with caching and request deduplication.
+11. Code splitting creates chunks; lazy loading loads them when needed.
+12. Virtualization renders only visible items.
+13. Debouncing delays execution until inactivity.
+14. Error Boundaries catch rendering errors; try/catch handles normal JS errors.
+15. React Testing Library tests UI from the user's perspective.
+16. Next.js supports SSR, SSG, routing and performance optimizations.
+17. React escapes JSX content by default to reduce XSS risk.
+18. Always validate and authorize on the backend; frontend checks are UX only.

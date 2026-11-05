@@ -1,0 +1,706 @@
+
+MONGODB AND MONGOOSE — 6–8 DAYS COMPLETE INTERVIEW NOTES
+For 4+ Years MERN Stack Interview Preparation
+
+====================================================================
+DAY 1: MONGODB FUNDAMENTALS
+====================================================================
+
+1. MONGODB VS SQL
+
+MongoDB:
+NoSQL document database.
+Data stored as JSON-like documents called BSON.
+
+SQL:
+Relational database.
+Data stored in tables with rows and columns.
+
+MongoDB example:
+{
+  "_id": ObjectId("..."),
+  "name": "Ravi",
+  "email": "ravi@test.com",
+  "roles": ["user"]
+}
+
+Use case:
+MongoDB for flexible schemas, rapid development, document-oriented data.
+SQL for strong relational integrity and complex joins.
+
+Internal working:
+MongoDB stores documents in collections inside databases. BSON supports richer data types than JSON, such as ObjectId, Date and Decimal128.
+
+Follow-up questions:
+1. When would you choose MongoDB over SQL?
+2. What is BSON?
+3. Does MongoDB support joins?
+4. What is schema-less database?
+
+Interview-ready answer:
+MongoDB is a document database using BSON, suitable for flexible and hierarchical data. SQL is better for highly relational data requiring strict constraints and complex joins. MongoDB supports joins through $lookup but they are generally more expensive than relational joins.
+
+--------------------------------------------------------------------
+2. DATABASE, COLLECTION, DOCUMENT AND BSON
+
+Database:
+Container for collections.
+
+Collection:
+Group of documents, similar to table.
+
+Document:
+Basic data unit, similar to row.
+
+BSON:
+Binary JSON format used internally by MongoDB.
+
+Example:
+use ecommerce;
+db.users.insertOne({ name: "Ravi", age: 25 });
+
+Use case:
+Users, products, orders, logs, analytics events.
+
+Internal working:
+Documents are stored in BSON. Each document has a unique _id by default, usually ObjectId.
+
+Follow-up questions:
+1. What is ObjectId structure?
+2. Can collection contain different document shapes?
+3. What is capped collection?
+4. What is document size limit?
+
+Interview-ready answer:
+MongoDB stores flexible BSON documents in collections. Each document has an _id; ObjectId includes timestamp, random value and counter, which helps approximate creation order.
+
+--------------------------------------------------------------------
+3. CRUD OPERATIONS
+
+Create:
+db.users.insertOne({ name: "Ravi" });
+db.users.insertMany([{ name: "A" }, { name: "B" }]);
+
+Read:
+db.users.find({ age: { $gte: 18 } });
+db.users.findOne({ name: "Ravi" });
+
+Update:
+db.users.updateOne(
+  { name: "Ravi" },
+  { $set: { age: 26 } }
+);
+
+Delete:
+db.users.deleteOne({ name: "Ravi" });
+
+Use case:
+User management, product catalog, order processing.
+
+Internal working:
+MongoDB performs operations at document level. updateOne modifies first matching document; updateMany modifies all matching documents.
+
+Follow-up questions:
+1. Difference between updateOne and replaceOne?
+2. What is upsert?
+3. Difference between deleteOne and deleteMany?
+4. What is _id?
+
+Interview-ready answer:
+I use insertOne/insertMany for creation, find/findOne for reads, updateOne/updateMany with operators for partial updates, and deleteOne/deleteMany for removal. Upsert inserts a document if no match is found.
+
+====================================================================
+DAY 2: QUERIES AND DATA MODELING
+====================================================================
+
+1. QUERY, COMPARISON AND LOGICAL OPERATORS
+
+Comparison:
+$eq, $ne, $gt, $gte, $lt, $lte, $in, $nin
+
+Logical:
+$and, $or, $not, $nor
+
+Example:
+db.users.find({
+  age: { $gte: 18, $lte: 40 },
+  status: "active",
+  $or: [{ role: "admin" }, { role: "manager" }]
+});
+
+Use case:
+Search, filters, reports, admin dashboards.
+
+Internal working:
+MongoDB evaluates query predicates against documents. Proper indexes reduce scanned documents.
+
+Follow-up questions:
+1. Difference between $in and $or?
+2. What is query selectivity?
+3. How do you search text fields?
+4. What is regex performance issue?
+
+Interview-ready answer:
+I use comparison and logical operators for filtering. For performance, I ensure filters are selective and supported by indexes; leading wildcard regex queries can cause collection scans.
+
+--------------------------------------------------------------------
+2. PROJECTION, SORTING AND PAGINATION
+
+Projection:
+Returns selected fields.
+
+db.users.find({}, { name: 1, email: 1, _id: 0 });
+
+Sorting:
+db.users.find().sort({ createdAt: -1 });
+
+Pagination:
+db.users.find()
+  .sort({ createdAt: -1 })
+  .skip(20)
+  .limit(10);
+
+Use case:
+User lists, product listings, admin tables.
+
+Internal working:
+Projection reduces network transfer and memory usage. skip/limit pagination can become slow for high page numbers because MongoDB still scans skipped documents.
+
+Follow-up questions:
+1. Why is skip slow for large page numbers?
+2. What is cursor-based pagination?
+3. What is projection?
+4. How do you paginate efficiently?
+
+Interview-ready answer:
+For small datasets, skip/limit is fine. For large datasets, I prefer cursor-based pagination using a sortable unique field such as _id or createdAt with a last-seen cursor.
+
+--------------------------------------------------------------------
+3. EMBEDDING VS REFERENCING
+
+Embedding:
+Store related data inside same document.
+
+{
+  "name": "Ravi",
+  "address": {
+    "city": "Hyderabad",
+    "pincode": "500001"
+  }
+}
+
+Referencing:
+Store ObjectId of related document.
+
+{
+  "name": "Ravi",
+  "departmentId": ObjectId("...")
+}
+
+Use case:
+Embedding: one-to-few, frequently read together, bounded data.
+Referencing: large or independently changing data.
+
+Internal working:
+Embedding improves read performance but can cause large documents and duplication. Referencing keeps documents smaller but may require additional queries or $lookup.
+
+Follow-up questions:
+1. What is 16MB document limit?
+2. When should we embed data?
+3. What is data duplication?
+4. What is two-way referencing?
+
+Interview-ready answer:
+I embed data that is accessed together and bounded in size, such as user address. I reference large or independently managed entities such as department, category or orders.
+
+--------------------------------------------------------------------
+4. RELATIONSHIPS IN MONGODB
+
+One-to-one:
+User -> Profile
+
+One-to-many:
+User -> Orders
+
+Many-to-many:
+Students <-> Courses
+
+Example:
+{
+  "userId": ObjectId("..."),
+  "courseIds": [ObjectId("..."), ObjectId("...")]
+}
+
+Use case:
+E-commerce, education platforms, employee management.
+
+Internal working:
+Relationships are modeled through embedded arrays or ObjectId references. Application or aggregation queries resolve references.
+
+Follow-up questions:
+1. How do you model many-to-many relationship?
+2. What is $lookup?
+3. What are tradeoffs of embedding arrays?
+4. How do you avoid unbounded arrays?
+
+Interview-ready answer:
+For many-to-many relationships, I usually store ObjectIds in arrays or a separate mapping collection. I avoid unbounded embedded arrays because they can hit document size and performance limits.
+
+====================================================================
+DAY 3: INDEXES AND PERFORMANCE
+====================================================================
+
+1. INDEX TYPES
+
+Single-field index:
+db.users.createIndex({ email: 1 });
+
+Compound index:
+db.users.createIndex({ status: 1, createdAt: -1 });
+
+Unique index:
+db.users.createIndex({ email: 1 }, { unique: true });
+
+TTL index:
+Automatically deletes documents after expiry.
+
+db.sessions.createIndex({ createdAt: 1 }, { expireAfterSeconds: 3600 });
+
+Multikey index:
+Indexes array fields.
+
+Text index:
+Supports text search.
+
+Use case:
+Email lookup, status filters, sorting, session expiry, search.
+
+Internal working:
+Indexes store ordered representations of field values, allowing MongoDB to locate matching documents without scanning entire collection.
+
+Follow-up questions:
+1. What is compound index?
+2. What is index prefix?
+3. What is TTL index?
+4. What is multikey index?
+
+Interview-ready answer:
+Indexes improve read performance by avoiding collection scans. Compound indexes follow prefix rules, TTL indexes auto-expire documents, and multikey indexes support array fields.
+
+--------------------------------------------------------------------
+2. ESR RULE AND EXPLAIN
+
+ESR:
+Equality -> Sort -> Range.
+
+Example query:
+db.orders.find({
+  status: "paid",
+  createdAt: { $gte: startDate }
+}).sort({ createdAt: -1 });
+
+Better index:
+{ status: 1, createdAt: -1 }
+
+explain:
+db.users.find({ email: "ravi@test.com" }).explain("executionStats");
+
+Use case:
+Slow query analysis, index design.
+
+Internal working:
+explain shows whether query used index scan or collection scan, keys examined, documents examined and execution time.
+
+Follow-up questions:
+1. What is COLLSCAN?
+2. What is IXSCAN?
+3. What is index selectivity?
+4. What is covered query?
+
+Interview-ready answer:
+I use explain executionStats to check whether queries use IXSCAN instead of COLLSCAN. I design indexes using ESR: equality fields first, then sort fields, then range fields.
+
+--------------------------------------------------------------------
+3. SLOW QUERY OPTIMIZATION AND INDEX OVERHEAD
+
+Optimization steps:
+1. Identify slow queries using profiler/logs.
+2. Run explain.
+3. Check scanned documents vs returned documents.
+4. Add or modify indexes.
+5. Use projection.
+6. Paginate efficiently.
+7. Avoid unnecessary $lookup.
+
+Index overhead:
+Indexes improve reads but consume storage and slow down writes because each write must update relevant indexes.
+
+Use case:
+Large collections, reporting APIs, search endpoints.
+
+Follow-up questions:
+1. Should we index every field?
+2. What is write amplification?
+3. How do you find unused indexes?
+4. What is query planner?
+
+Interview-ready answer:
+I index fields based on real query patterns, not blindly. Too many indexes increase storage and write cost, so I monitor usage and remove unused indexes.
+
+====================================================================
+DAY 4: AGGREGATION FRAMEWORK
+====================================================================
+
+1. AGGREGATION BASICS
+
+Definition:
+Aggregation framework processes documents through multiple stages to transform and analyze data.
+
+Common stages:
+$match, $project, $group, $sort, $limit, $skip.
+
+Example:
+db.orders.aggregate([
+  { $match: { status: "paid" } },
+  { $group: { _id: "$userId", total: { $sum: "$amount" } } },
+  { $sort: { total: -1 } },
+  { $limit: 10 }
+]);
+
+Use case:
+Sales reports, dashboards, analytics, top customers.
+
+Internal working:
+Each stage receives documents from previous stage and outputs transformed documents. $match early reduces documents processed by later stages.
+
+Follow-up questions:
+1. Why put $match first?
+2. Difference between $match and $project?
+3. What is $group?
+4. What is aggregation pipeline?
+
+Interview-ready answer:
+Aggregation is a multi-stage data processing pipeline. I filter early with $match, shape data with $project, and aggregate using $group for reports and analytics.
+
+--------------------------------------------------------------------
+2. UNWIND, LOOKUP, ADDFIELDS, FACET AND COND
+
+$unwind:
+Splits array into separate documents.
+
+$lookup:
+Performs left outer join with another collection.
+
+$addFields:
+Adds computed fields.
+
+$facet:
+Runs multiple sub-pipelines in one query.
+
+$cond:
+Conditional expression.
+
+Example:
+db.orders.aggregate([
+  { $unwind: "$items" },
+  {
+    $lookup: {
+      from: "products",
+      localField: "items.productId",
+      foreignField: "_id",
+      as: "product"
+    }
+  },
+  { $unwind: "$product" }
+]);
+
+Use case:
+Order reports, product analytics, category-wise sales.
+
+Internal working:
+$unwind creates one document per array element. $lookup performs join but can be expensive on large collections without proper indexes.
+
+Follow-up questions:
+1. What does $unwind do?
+2. When is $lookup expensive?
+3. What is $facet used for?
+4. How do you calculate conditional sum?
+
+Interview-ready answer:
+I use $unwind for array analysis, $lookup for joins, $addFields for computed values, and $facet to return multiple report sections in one aggregation. I index foreign/local fields used in $lookup.
+
+====================================================================
+DAY 5: MONGOOSE
+====================================================================
+
+1. MONGODB DRIVER VS MONGOOSE
+
+MongoDB Driver:
+Official low-level driver for Node.js.
+
+Mongoose:
+ODM library providing schemas, validation, middleware, population and model methods.
+
+Example:
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, unique: true }
+});
+
+const User = mongoose.model("User", userSchema);
+
+Use case:
+Mongoose for structured application data; driver for advanced/custom operations.
+
+Internal working:
+Mongoose wraps MongoDB driver. Schemas define document structure, validation and behavior.
+
+Follow-up questions:
+1. Is Mongoose mandatory?
+2. What is ODM?
+3. What are Mongoose drawbacks?
+4. When would you use raw driver?
+
+Interview-ready answer:
+Mongoose is an ODM that adds schema, validation, hooks and population over MongoDB driver. For complex aggregations or performance-critical queries, I may use the native driver directly.
+
+--------------------------------------------------------------------
+2. CRUD, VALIDATION AND MIDDLEWARE
+
+Create:
+await User.create({ name: "Ravi", email: "ravi@test.com" });
+
+Read:
+await User.find({ status: "active" });
+
+Update:
+await User.updateOne({ _id: id }, { $set: { status: "inactive" } });
+
+Delete:
+await User.deleteOne({ _id: id });
+
+Middleware:
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+Use case:
+Hashing passwords, timestamps, soft delete, audit logs.
+
+Internal working:
+Mongoose middleware runs around operations such as save, validate, remove and update. Query middleware differs from document middleware.
+
+Follow-up questions:
+1. Difference between pre and post middleware?
+2. Document middleware vs query middleware?
+3. When does save middleware run?
+4. How do you implement soft delete?
+
+Interview-ready answer:
+I use Mongoose middleware for cross-cutting logic such as password hashing and timestamps. For soft delete, I add a deletedAt field and filter it in queries or use a plugin.
+
+--------------------------------------------------------------------
+3. POPULATE, LEAN, SELECT AND UPDATE METHODS
+
+populate:
+Replaces referenced ObjectId with actual document.
+
+await Order.find().populate("userId", "name email");
+
+lean:
+Returns plain JavaScript object instead of Mongoose document.
+
+await User.find().lean();
+
+select:
+Chooses fields.
+
+await User.find().select("name email");
+
+findOneAndUpdate:
+Atomic update and returns document.
+
+updateOne:
+Updates document without returning full document.
+
+save:
+Loads document, modifies and saves; triggers middleware/validation.
+
+Use case:
+Performance tuning, API response shaping, related data fetching.
+
+Internal working:
+populate executes additional query or $lookup-like operation. lean improves performance by skipping document hydration and change tracking.
+
+Follow-up questions:
+1. What is document hydration?
+2. When should lean be used?
+3. Difference between save and updateOne?
+4. What is populate performance issue?
+
+Interview-ready answer:
+I use lean for read-only APIs, select/projection to reduce data transfer, and populate carefully because it can create extra queries. For simple updates, updateOne/findOneAndUpdate is more efficient than loading and saving a document.
+
+--------------------------------------------------------------------
+4. TRANSACTIONS, SESSIONS AND CONCURRENCY
+
+Transaction:
+Group of operations that succeed or fail together.
+
+const session = await mongoose.startSession();
+await session.withTransaction(async () => {
+  await Order.create([{ userId, amount }], { session });
+  await Inventory.updateOne(
+    { productId },
+    { $inc: { stock: -1 } },
+    { session }
+  );
+});
+await session.endSession();
+
+Use case:
+Payments, wallet transfers, inventory reduction, order creation.
+
+Internal working:
+Transactions require replica set or sharded cluster. Operations in a transaction share a session and commit or abort together.
+
+Follow-up questions:
+1. Does MongoDB support ACID?
+2. When do you need transactions?
+3. What is optimistic concurrency?
+4. What is version key in Mongoose?
+
+Interview-ready answer:
+Single-document operations are atomic in MongoDB. For multi-document consistency, such as order plus inventory update, I use transactions with sessions on a replica set. For concurrent updates, I use versioning or conditional updates.
+
+====================================================================
+DAY 6: MONGODB PRODUCTION AND CODING
+====================================================================
+
+1. REPLICA SETS, SHARDING, READ PREFERENCE AND CONCERNS
+
+Replica set:
+Group of MongoDB servers with one primary and secondary nodes.
+
+Sharding:
+Distributes data across multiple servers.
+
+Read preference:
+primary, primaryPreferred, secondary, secondaryPreferred, nearest.
+
+Read/write concern:
+Controls durability and consistency guarantees.
+
+Use case:
+High availability, horizontal scaling, analytics workloads.
+
+Internal working:
+Replica sets provide failover through elections. Sharding distributes collections using shard key. Read preference controls which node serves reads.
+
+Follow-up questions:
+1. What is shard key?
+2. What is primary and secondary node?
+3. What is read concern majority?
+4. What is eventual consistency?
+
+Interview-ready answer:
+Replica sets provide high availability, while sharding provides horizontal scaling. Shard key selection is critical because poor shard keys cause hotspots and inefficient queries.
+
+--------------------------------------------------------------------
+2. CHANGE STREAMS, BACKUP AND SECURITY
+
+Change streams:
+Listen to real-time data changes.
+
+const changeStream = User.watch();
+
+changeStream.on("change", change => {
+  console.log(change.operationType);
+});
+
+Backup:
+mongodump, mongorestore, cloud snapshots.
+
+Security:
+Authentication, TLS, network access control, role-based users, encryption.
+
+Use case:
+Real-time dashboards, cache invalidation, audit logs.
+
+Internal working:
+Change streams use replica set oplog. Security relies on authentication, authorization, TLS and restricted network access.
+
+Follow-up questions:
+1. What is oplog?
+2. How do you secure MongoDB?
+3. What is role-based access in MongoDB?
+4. How do you back up MongoDB?
+
+Interview-ready answer:
+I use change streams for real-time reactions to data changes, restrict network access, enable authentication/TLS, use least-privilege roles, and maintain regular backups with tested restore procedures.
+
+--------------------------------------------------------------------
+3. CODING: CRUD, PAGINATION AND SEARCH API
+
+Controller:
+exports.getUsers = async (req, res, next) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Math.min(Number(req.query.limit) || 10, 50);
+    const search = req.query.search?.trim();
+
+    const filter = search
+      ? { name: { $regex: search, $options: "i" } }
+      : {};
+
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select("name email status")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      User.countDocuments(filter)
+    ]);
+
+    res.json({
+      success: true,
+      data: users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+Interview-ready answer:
+I implement pagination with page/limit, whitelist searchable fields, use projection and lean for performance, and return total count with pagination metadata.
+
+--------------------------------------------------------------------
+4. CODING: DUPLICATE PREVENTION AND TRANSACTION HISTORY
+
+Duplicate prevention:
+- Unique index on email/phone.
+- Handle MongoServerError code 11000.
+- Check-before-insert is not enough due to race conditions.
+
+userSchema.index({ email: 1 }, { unique: true });
+
+Transaction history schema:
+const transactionSchema = new mongoose.Schema({
+  userId: { type: ObjectId, ref: "User", required: true },
+  amount: { type: Number, required: true },
+  type: { type: String, enum: ["CREDIT", "DEBIT"] },
+  status: { type: String, enum: ["PENDING", "SUCCESS", "FAILED"] },
+  referenceId: { type: String, unique: true }
+});
+
+Interview-ready answer:
+I prevent duplicates using database-level unique indexes and handle duplicate-key errors. For transaction history, I store immutable records with userId, amount, type, status and unique reference ID for idempotency.

@@ -1,0 +1,1040 @@
+
+SYSTEM DESIGN — 5–7 DAYS COMPLETE INTERVIEW NOTES
+For 4+ Years MERN Stack Interview Preparation
+
+Format:
+Definition -> Example -> Use case -> Internal working -> Follow-up questions -> Interview-ready answer
+
+====================================================================
+DAY 1: SYSTEM DESIGN FUNDAMENTALS
+====================================================================
+
+1. MONOLITH VS MICROSERVICES
+
+Monolith:
+Entire application is built and deployed as one codebase and one service.
+
+Microservices:
+Application is divided into small independent services, each owning specific business capability.
+
+Monolith example:
+Single Node.js/Express service containing auth, users, orders, payments and notifications.
+
+Microservices example:
+Auth service, user service, order service, payment service and notification service deployed separately.
+
+Use case:
+Monolith: early-stage products, small teams, simple deployment.
+Microservices: large teams, independent scaling, complex domains.
+
+Internal working:
+In monolith, all modules share one process/database and deploy together. In microservices, services communicate through REST, gRPC or message queues and may own separate databases.
+
+Trade-offs:
+Monolith advantages: simple development, easy debugging, fewer network calls.
+Monolith disadvantages: difficult scaling, tight coupling, large deployments.
+
+Microservices advantages: independent deployment, technology flexibility, fault isolation.
+Microservices disadvantages: distributed complexity, network latency, data consistency challenges.
+
+Follow-up questions:
+1. When would you choose monolith over microservices?
+2. What is distributed monolith?
+3. How do microservices communicate?
+4. What is database-per-service pattern?
+
+Interview-ready answer:
+I start with a modular monolith for smaller products and split into microservices only when team size, scaling needs or deployment independence justify the operational complexity. Each microservice should own its data and communicate through well-defined APIs or events.
+
+--------------------------------------------------------------------
+2. CLIENT-SERVER AND THREE-TIER ARCHITECTURE
+
+Client-server:
+Client sends request; server processes it and returns response.
+
+Three-tier architecture:
+1. Presentation tier: React frontend.
+2. Application tier: Node.js/Express API.
+3. Data tier: MongoDB, PostgreSQL, Redis, etc.
+
+Example:
+React -> Express API -> MongoDB
+
+Use case:
+Most MERN applications, admin dashboards, e-commerce platforms.
+
+Internal working:
+Browser renders React UI and calls APIs. Express validates requests, applies business logic and reads/writes database. Database stores persistent data.
+
+Follow-up questions:
+1. What is presentation layer?
+2. Why separate business logic from UI?
+3. What is N-tier architecture?
+4. Where should validation happen?
+
+Interview-ready answer:
+In a typical MERN system, React is the presentation tier, Node/Express is the application tier, and MongoDB/Redis are the data tier. Business rules and authorization must live in the backend, not only in the UI.
+
+--------------------------------------------------------------------
+3. HORIZONTAL VS VERTICAL SCALING
+
+Vertical scaling:
+Increase resources of one server: CPU, RAM, disk.
+
+Horizontal scaling:
+Add more servers/instances behind a load balancer.
+
+Example:
+Vertical: upgrade API server from 4 GB to 16 GB RAM.
+Horizontal: run 5 Node.js API instances behind Nginx/ALB.
+
+Use case:
+Vertical for quick improvement; horizontal for high availability and large-scale growth.
+
+Internal working:
+Horizontal scaling requires stateless application servers or externalized session/state storage such as Redis. Load balancer distributes traffic across instances.
+
+Trade-offs:
+Vertical scaling has hardware limits and single point of failure.
+Horizontal scaling improves availability but adds complexity in deployment, caching, sessions and data consistency.
+
+Follow-up questions:
+1. Why should API servers be stateless?
+2. What is stateful vs stateless service?
+3. How do you scale WebSocket servers?
+4. What is auto-scaling?
+
+Interview-ready answer:
+I prefer horizontally scaled stateless API instances behind a load balancer. Session data, cache and file storage are externalized to Redis/object storage so any instance can serve any request.
+
+--------------------------------------------------------------------
+4. LOAD BALANCER, REVERSE PROXY AND CDN
+
+Load balancer:
+Distributes incoming traffic across multiple backend servers.
+
+Reverse proxy:
+Sits in front of backend servers and forwards client requests.
+
+CDN:
+Content Delivery Network serves static assets from edge locations closer to users.
+
+Examples:
+Load balancer: AWS ALB, Nginx, HAProxy.
+Reverse proxy: Nginx, Envoy.
+CDN: CloudFront, Cloudflare, Akamai.
+
+Use case:
+High traffic APIs, global users, static assets, image/video delivery.
+
+Internal working:
+Load balancer uses algorithms such as round robin, least connections or IP hash. Reverse proxy can handle TLS termination, compression, routing and caching. CDN caches static content at edge locations.
+
+Follow-up questions:
+1. Difference between load balancer and reverse proxy?
+2. What is TLS termination?
+3. What CDN caching strategy would you use?
+4. What is sticky session?
+
+Interview-ready answer:
+A reverse proxy forwards requests and can handle TLS, compression and routing; a load balancer specifically distributes traffic across healthy backend instances. I use CDN for static assets and a load balancer for horizontally scaled API services.
+
+====================================================================
+DAY 2: CACHING, DATA SCALING AND MESSAGING
+====================================================================
+
+1. CACHING
+
+Definition:
+Caching stores frequently accessed data in a faster layer to reduce database load and latency.
+
+Cache layers:
+Browser cache, CDN cache, API cache, Redis cache, database buffer cache.
+
+Example:
+Redis cache for product details:
+GET /products/:id
+1. Check Redis.
+2. If miss, fetch MongoDB.
+3. Store result in Redis with TTL.
+4. Return response.
+
+Use case:
+Product pages, user profiles, configuration, search suggestions, dashboard metrics.
+
+Internal working:
+Cache-aside pattern: application checks cache first; on miss, reads database and populates cache. TTL prevents stale data. Write-through writes to cache and DB together; write-behind delays DB write.
+
+Cache problems:
+- Stale data.
+- Cache stampede.
+- Hot keys.
+- Cache eviction.
+
+Follow-up questions:
+1. What is cache-aside pattern?
+2. What is TTL?
+3. How do you prevent cache stampede?
+4. When should you not cache data?
+5. What is cache invalidation?
+
+Interview-ready answer:
+I use cache-aside with Redis and TTL for read-heavy, slowly changing data. For cache stampede, I use locks, single-flight requests or early expiration with background refresh. Highly personal, frequently changing or compliance-sensitive data needs careful caching rules.
+
+--------------------------------------------------------------------
+2. REPLICATION
+
+Definition:
+Replication maintains copies of the same data on multiple servers for availability and read scaling.
+
+Example:
+MongoDB replica set:
+Primary handles writes.
+Secondaries replicate data.
+If primary fails, an election selects a new primary.
+
+Use case:
+High availability, disaster recovery, read scaling.
+
+Internal working:
+Primary records operations in oplog. Secondary nodes apply oplog entries asynchronously. Clients can read from primary or secondaries depending on read preference and consistency needs.
+
+Trade-offs:
+Replication improves availability but introduces replication lag and eventual consistency for secondary reads.
+
+Follow-up questions:
+1. What is replication lag?
+2. What is primary vs secondary?
+3. What is read-your-own-writes problem?
+4. What is failover?
+
+Interview-ready answer:
+Replication copies data to multiple nodes for fault tolerance. I read critical user-specific data from primary or use read concern/primary preferred to avoid stale reads after writes.
+
+--------------------------------------------------------------------
+3. SHARDING
+
+Definition:
+Sharding distributes data across multiple database servers using a shard key.
+
+Example:
+Shard users by userId or region:
+- Shard 1: users A-H
+- Shard 2: users I-P
+- Shard 3: users Q-Z
+
+Use case:
+Very large collections, high write throughput, global applications.
+
+Internal working:
+A router/query router directs requests to correct shards using shard key. Data is divided into chunks distributed across shards.
+
+Shard key selection:
+- High cardinality.
+- Even distribution.
+- Matches common query pattern.
+- Avoids hotspots.
+
+Bad shard key example:
+Low-cardinality field such as status.
+
+Follow-up questions:
+1. What is shard key?
+2. What is hotspot problem?
+3. What is resharding?
+4. How does sharding affect transactions?
+
+Interview-ready answer:
+Sharding horizontally partitions data across servers. I choose a high-cardinality shard key aligned with frequent queries to distribute load evenly and avoid hotspots.
+
+--------------------------------------------------------------------
+4. MESSAGE QUEUES AND API GATEWAYS
+
+Message queue:
+Decouples producers and consumers using asynchronous messaging.
+
+Examples:
+RabbitMQ, Kafka, AWS SQS, BullMQ.
+
+API gateway:
+Single entry point that routes client requests to backend services.
+
+Examples:
+Kong, AWS API Gateway, Nginx, Express Gateway.
+
+Use case:
+Queues: emails, notifications, reports, image processing, order events.
+API gateway: authentication, routing, rate limiting, logging.
+
+Internal working:
+Producer publishes job/event to queue; consumer processes independently. API gateway validates token, applies rate limits and routes request to correct service.
+
+Follow-up questions:
+1. Why use message queue?
+2. What is at-least-once delivery?
+3. How do you make consumer idempotent?
+4. What is event-driven architecture?
+
+Interview-ready answer:
+Message queues decouple services and absorb traffic spikes. Since many queues provide at-least-once delivery, consumers must be idempotent using unique event IDs or transaction reference keys.
+
+--------------------------------------------------------------------
+5. RATE LIMITING, FAULT TOLERANCE AND HIGH AVAILABILITY
+
+Rate limiting:
+Controls number of requests per user/IP/API key.
+
+Fault tolerance:
+System continues operating during partial failures.
+
+High availability:
+System remains accessible with minimal downtime.
+
+Techniques:
+- Rate limiting.
+- Retries with backoff.
+- Circuit breaker.
+- Timeouts.
+- Health checks.
+- Redundancy.
+- Auto-scaling.
+- Graceful shutdown.
+
+Use case:
+Public APIs, payment systems, third-party integrations.
+
+Internal working:
+Rate limiter tracks request counts in Redis/memory. Circuit breaker stops calling failing dependency temporarily, allowing recovery. Health checks remove unhealthy instances from load balancer.
+
+Follow-up questions:
+1. What is circuit breaker?
+2. What is graceful degradation?
+3. What is single point of failure?
+4. How do you achieve 99.9% availability?
+
+Interview-ready answer:
+I design for failure using timeouts, retries with exponential backoff, circuit breakers, redundancy and health checks. Rate limiting protects services from abuse, while graceful degradation keeps core functionality available when non-critical dependencies fail.
+
+--------------------------------------------------------------------
+6. OBSERVABILITY
+
+Definition:
+Observability is the ability to understand internal system state using logs, metrics and traces.
+
+Three pillars:
+1. Logs: detailed event records.
+2. Metrics: numerical indicators such as latency, error rate, CPU.
+3. Traces: request flow across services.
+
+Tools:
+Winston/Pino for logs, Prometheus/Grafana for metrics, OpenTelemetry/Jaeger for tracing.
+
+Use case:
+Debugging production issues, monitoring SLAs, identifying slow services.
+
+Internal working:
+Each request receives correlation ID. Logs, metrics and traces are tagged with that ID so engineers can trace one request across API, database, cache and third-party services.
+
+Follow-up questions:
+1. Difference between logging, monitoring and tracing?
+2. What is correlation ID?
+3. What are golden signals?
+4. What is SLA, SLO and SLI?
+
+Interview-ready answer:
+Observability combines structured logs, metrics and distributed traces. I propagate a correlation ID across services so any production issue can be traced end-to-end and measured against latency, traffic, errors and saturation.
+
+====================================================================
+DAY 3: DESIGN EXERCISE METHOD
+====================================================================
+
+1. HOW TO ANSWER SYSTEM DESIGN QUESTION
+
+Steps:
+1. Clarify functional requirements.
+2. Clarify non-functional requirements.
+3. Estimate scale.
+4. Define API design.
+5. Design database schema.
+6. Draw high-level architecture.
+7. Discuss caching, scaling and security.
+8. Discuss failures and trade-offs.
+9. Mention monitoring and improvements.
+
+Example clarification questions:
+- How many users?
+- Read-heavy or write-heavy?
+- What is expected latency?
+- Do we need real-time updates?
+- What is consistency requirement?
+- What is availability target?
+
+Interview-ready answer:
+“I would first clarify functional and non-functional requirements, estimate traffic and data size, then design APIs, data model and architecture. Finally, I would discuss caching, scaling, security, failure handling and observability trade-offs.”
+
+--------------------------------------------------------------------
+2. EMPLOYEE MANAGEMENT SYSTEM
+
+Requirements:
+- Admin can create/update/delete employees.
+- Employees can view/update profile.
+- Role-based access.
+- Search, filter and paginate employees.
+- Attendance and department reports.
+
+API design:
+POST /api/v1/auth/login
+GET /api/v1/employees
+GET /api/v1/employees/:id
+POST /api/v1/employees
+PUT /api/v1/employees/:id
+DELETE /api/v1/employees/:id
+GET /api/v1/reports/attendance
+
+Database schema:
+Employee:
+{
+  _id,
+  name,
+  email,
+  passwordHash,
+  role,
+  departmentId,
+  status,
+  createdAt
+}
+
+Department:
+{
+  _id,
+  name,
+  headId
+}
+
+Attendance:
+{
+  _id,
+  employeeId,
+  date,
+  checkIn,
+  checkOut,
+  status
+}
+
+Architecture:
+React admin dashboard -> API Gateway/Load Balancer -> Express API -> MongoDB -> Redis cache.
+
+Security:
+JWT authentication, RBAC, bcrypt password hashing, input validation, audit logs.
+
+Performance:
+Indexes on email, departmentId, status, createdAt. Redis cache for department list and dashboard aggregates. Pagination for employee list.
+
+Failure handling:
+Retry transient DB errors, circuit breaker for email/notification service, graceful shutdown, health checks.
+
+Interview-ready answer:
+“I would build a layered employee management system with React frontend, Express API and MongoDB. I would use JWT plus RBAC, indexes for search and reporting, Redis for dashboard aggregates, pagination for large employee lists, and centralized logging/monitoring.”
+
+--------------------------------------------------------------------
+3. E-COMMERCE SYSTEM
+
+Requirements:
+- Browse products.
+- Search/filter/sort products.
+- Product details.
+- Cart.
+- Checkout and payment.
+- Order tracking.
+- Inventory management.
+
+API design:
+GET /api/v1/products
+GET /api/v1/products/:id
+POST /api/v1/cart/items
+POST /api/v1/orders
+POST /api/v1/payments/webhook
+GET /api/v1/orders/:id
+
+Database schema:
+Product:
+{
+  _id,
+  name,
+  description,
+  price,
+  categoryId,
+  images,
+  stock,
+  rating
+}
+
+Cart:
+{
+  _id,
+  userId,
+  items: [
+    {
+      productId,
+      quantity,
+      priceAtAddTime
+    }
+  ]
+}
+
+Order:
+{
+  _id,
+  userId,
+  items,
+  totalAmount,
+  paymentStatus,
+  orderStatus,
+  createdAt
+}
+
+Architecture:
+React -> CDN -> API Gateway -> Product/Order/Payment services -> MongoDB/PostgreSQL -> Redis -> Payment gateway -> Queue.
+
+Performance:
+CDN for product images, Redis for product details and category filters, Elasticsearch for advanced search, pagination and indexes for product listing.
+
+Inventory consistency:
+Use DB transaction or atomic conditional update:
+Inventory.updateOne(
+  { productId, stock: { $gte: quantity } },
+  { $inc: { stock: -quantity } }
+)
+
+Failure handling:
+Payment webhook idempotency, order status tracking, retry queue, compensation/refund flow.
+
+Interview-ready answer:
+“I would separate product browsing, cart, order and payment concerns. Product reads would use CDN and Redis caching, while order creation would validate stock atomically and publish events to payment/notification services. Payment webhooks would be signature-verified and idempotent.”
+
+====================================================================
+DAY 4: AUTH, PAYMENTS AND REAL-TIME SYSTEMS
+====================================================================
+
+1. AUTHENTICATION SYSTEM
+
+Requirements:
+- Register/login.
+- JWT access and refresh tokens.
+- Password reset.
+- Email verification.
+- Role-based access.
+- Secure session handling.
+
+API design:
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
+POST /api/v1/auth/forgot-password
+POST /api/v1/auth/reset-password
+
+Database schema:
+User:
+{
+  _id,
+  name,
+  email,
+  passwordHash,
+  role,
+  isEmailVerified,
+  tokenVersion
+}
+
+RefreshToken:
+{
+  _id,
+  userId,
+  tokenHash,
+  expiresAt,
+  revoked
+}
+
+Security:
+- bcrypt password hashing.
+- Short-lived access token.
+- HTTP-only secure refresh cookie.
+- Refresh token rotation.
+- Rate limiting on login.
+- Account lockout/temporary delay after repeated failures.
+- Email verification.
+
+Interview-ready answer:
+“I would use short-lived JWT access tokens and rotating refresh tokens stored securely. Passwords would be hashed with bcrypt, login endpoints rate-limited, and sensitive actions protected by RBAC and audit logs.”
+
+--------------------------------------------------------------------
+2. PAYMENT PROCESSING SYSTEM
+
+Requirements:
+- Create payment order.
+- Redirect user to payment gateway.
+- Handle payment success/failure webhook.
+- Prevent duplicate payments.
+- Maintain transaction history.
+- Support refunds.
+
+API design:
+POST /api/v1/payments/initiate
+POST /api/v1/payments/webhook
+GET /api/v1/payments/:id
+POST /api/v1/payments/:id/refund
+
+Database schema:
+Payment:
+{
+  _id,
+  userId,
+  orderId,
+  gatewayPaymentId,
+  amount,
+  currency,
+  status,
+  idempotencyKey,
+  createdAt
+}
+
+Transaction:
+{
+  _id,
+  paymentId,
+  type,
+  amount,
+  status,
+  gatewayReference,
+  createdAt
+}
+
+Architecture:
+React checkout -> Express API -> Payment gateway -> Webhook endpoint -> Queue -> Order/Notification services.
+
+Important rules:
+- Never trust client-side payment success alone.
+- Verify webhook signature.
+- Use idempotency key.
+- Store transaction status transitions.
+- Process webhooks asynchronously.
+- Reconcile with payment gateway reports.
+
+Interview-ready answer:
+“I would treat payment confirmation as asynchronous. The API creates a pending payment, redirects to gateway, verifies webhook signature, checks duplicate event/reference IDs, updates transaction status and publishes an event for order fulfillment.”
+
+--------------------------------------------------------------------
+3. REAL-TIME CHAT SYSTEM
+
+Requirements:
+- One-to-one and group chat.
+- Online/offline status.
+- Message delivery/read receipts.
+- Message history.
+- Typing indicator.
+- Push notifications.
+
+API and realtime design:
+REST:
+POST /api/v1/conversations
+GET /api/v1/conversations/:id/messages
+
+WebSocket:
+Client connects to WebSocket server.
+Events:
+message.send
+message.delivered
+message.read
+typing.start
+
+Database schema:
+Conversation:
+{
+  _id,
+  participants: [userId],
+  lastMessageAt
+}
+
+Message:
+{
+  _id,
+  conversationId,
+  senderId,
+  content,
+  createdAt,
+  deliveredTo: [],
+  readBy: []
+}
+
+Architecture:
+React -> WebSocket gateway -> Chat service -> Redis pub/sub -> MongoDB message store -> Notification service.
+
+Scaling WebSockets:
+Use Redis pub/sub so a message sent through one WebSocket server reaches users connected to other servers.
+
+Interview-ready answer:
+“I would use WebSockets for real-time messaging and Redis pub/sub to scale across multiple socket servers. Messages would be persisted in MongoDB, while presence and typing state would remain in Redis with TTL.”
+
+--------------------------------------------------------------------
+4. NOTIFICATION SYSTEM
+
+Requirements:
+- Send email, SMS, push notification.
+- Support multiple channels.
+- Retry failed notifications.
+- Avoid duplicate notifications.
+- Track delivery status.
+
+Architecture:
+Order/Payment service -> Queue -> Notification worker -> Email/SMS/Push providers -> Delivery status DB.
+
+Database schema:
+Notification:
+{
+  _id,
+  userId,
+  type,
+  channel,
+  payload,
+  status,
+  attempts,
+  sentAt,
+  error
+}
+
+Interview-ready answer:
+“I would decouple notification sending using a queue. Workers send email/SMS/push notifications, record delivery status, retry transient failures with exponential backoff, and use idempotency keys to avoid duplicates.”
+
+====================================================================
+DAY 5: URL SHORTENER, FILE UPLOAD AND DASHBOARDS
+====================================================================
+
+1. URL SHORTENER
+
+Requirements:
+- Create short URL.
+- Redirect short URL to original URL.
+- Support custom alias.
+- Track clicks.
+- Handle high read traffic.
+
+API design:
+POST /api/v1/urls
+GET /:shortCode
+
+Database schema:
+Url:
+{
+  _id,
+  originalUrl,
+  shortCode,
+  userId,
+  createdAt,
+  expiresAt
+}
+
+ClickEvent:
+{
+  _id,
+  shortCode,
+  timestamp,
+  ip,
+  userAgent,
+  country
+}
+
+Short code generation:
+- Base62 encoding of auto-increment ID or random string.
+- Ensure uniqueness using unique index.
+- Cache popular short codes in Redis.
+
+Redirect flow:
+1. User opens short URL.
+2. API checks Redis cache.
+3. If miss, fetch MongoDB.
+4. Increment click count asynchronously.
+5. Redirect using 301 or 302.
+
+301 vs 302:
+301: permanent redirect, browser may cache.
+302: temporary redirect, better for analytics.
+
+Interview-ready answer:
+“I would generate unique Base62 short codes, store mappings in MongoDB, cache popular redirects in Redis, and record click analytics asynchronously through a queue. I would use 302 redirects when click tracking is important.”
+
+--------------------------------------------------------------------
+2. FILE UPLOAD SERVICE
+
+Requirements:
+- Upload images/videos/documents.
+- Validate file type and size.
+- Generate thumbnails.
+- Serve files securely.
+- Support large files.
+
+Architecture:
+React -> Presigned URL -> S3/Cloud Storage -> Upload event queue -> Media processing worker -> CDN.
+
+Direct upload flow:
+1. Client requests presigned URL from API.
+2. API validates user and file metadata.
+3. Client uploads directly to S3.
+4. S3 event triggers processing queue.
+5. Worker generates thumbnail/metadata.
+6. CDN serves file.
+
+Database schema:
+File:
+{
+  _id,
+  userId,
+  fileName,
+  mimeType,
+  size,
+  storageKey,
+  status,
+  url
+}
+
+Security:
+- Validate MIME type and extension.
+- Limit file size.
+- Use presigned URLs with short expiry.
+- Store files in object storage, not API server disk.
+- Serve through CDN/private signed URLs.
+
+Interview-ready answer:
+“For scalable uploads, I avoid streaming files through API servers. I issue short-lived presigned URLs so clients upload directly to object storage, then process files asynchronously and serve them via CDN.”
+
+--------------------------------------------------------------------
+3. ANALYTICS DASHBOARD
+
+Requirements:
+- Track page views, clicks, users.
+- Aggregate daily/weekly/monthly reports.
+- Support filters.
+- Handle high write volume.
+- Provide near real-time dashboards.
+
+Architecture:
+React -> Event collector API -> Kafka/Queue -> Stream processor -> Analytics DB -> Dashboard API -> React dashboard.
+
+Database options:
+MongoDB time-series collections, ClickHouse, BigQuery, Redshift.
+
+Schema:
+AnalyticsEvent:
+{
+  _id,
+  userId,
+  event,
+  page,
+  timestamp,
+  properties,
+  sessionId
+}
+
+DailySummary:
+{
+  _id,
+  date,
+  metric,
+  value
+}
+
+Interview-ready answer:
+“I would ingest raw events asynchronously through a queue/streaming pipeline, store raw events for audit and pre-aggregate daily summaries for fast dashboard queries. Dashboards would read precomputed data instead of scanning raw events.”
+
+--------------------------------------------------------------------
+4. INVENTORY DASHBOARD
+
+Requirements:
+- Track stock levels.
+- Update stock on orders.
+- Show low-stock alerts.
+- Support warehouse-wise inventory.
+- Prevent overselling.
+
+Schema:
+Inventory:
+{
+  _id,
+  productId,
+  warehouseId,
+  stock,
+  reservedStock,
+  updatedAt
+}
+
+StockMovement:
+{
+  _id,
+  productId,
+  warehouseId,
+  type,
+  quantity,
+  referenceId,
+  createdAt
+}
+
+Consistency:
+Use atomic update:
+Inventory.updateOne(
+  {
+    productId,
+    warehouseId,
+    stock: { $gte: quantity }
+  },
+  {
+    $inc: { stock: -quantity, reservedStock: quantity }
+  }
+)
+
+Interview-ready answer:
+“I would maintain inventory and stock movement collections. Order creation would reserve stock using atomic conditional updates, while asynchronous workers would publish low-stock alerts and reconcile inventory with orders.”
+
+--------------------------------------------------------------------
+5. LIVE TRANSACTION MONITORING
+
+Requirements:
+- Monitor transactions in real time.
+- Detect failed/suspicious transactions.
+- Show live metrics.
+- Support alerts.
+- Maintain audit trail.
+
+Architecture:
+Payment service -> Event stream/Kafka -> Monitoring service -> Redis/WebSocket -> React dashboard.
+
+Data model:
+TransactionEvent:
+{
+  _id,
+  transactionId,
+  userId,
+  amount,
+  status,
+  riskScore,
+  timestamp
+}
+
+Alert:
+{
+  _id,
+  transactionId,
+  rule,
+  severity,
+  status,
+  createdAt
+}
+
+Interview-ready answer:
+“I would stream transaction events to a monitoring pipeline, compute rolling metrics and risk scores, persist important events, and push live alerts to dashboard via WebSocket. Rules would flag high-value, duplicate or abnormal transactions.”
+
+====================================================================
+DAY 6: CROSS-CUTTING DESIGN TOPICS
+====================================================================
+
+1. API DESIGN BEST PRACTICES
+
+- Use resource-based URLs.
+- Use plural nouns: /users, /orders.
+- Use proper HTTP methods.
+- Version APIs: /api/v1.
+- Paginate list endpoints.
+- Use consistent error format.
+- Validate all inputs.
+- Use idempotency keys for unsafe repeated operations.
+- Return only required fields.
+- Document APIs using OpenAPI/Swagger.
+
+Example:
+GET /api/v1/products?search=phone&page=1&limit=20&sortBy=price&order=asc
+
+Interview-ready answer:
+“I design APIs around resources, use proper HTTP semantics, version breaking changes, paginate collections and return consistent success/error envelopes with field-level validation errors.”
+
+--------------------------------------------------------------------
+2. DATABASE DESIGN BEST PRACTICES
+
+- Model data based on access patterns.
+- Avoid unbounded embedded arrays.
+- Use references for large/independent entities.
+- Add indexes for frequent queries.
+- Use pagination.
+- Use transactions only where necessary.
+- Maintain audit/history where required.
+- Use unique constraints for business invariants.
+
+Example:
+For e-commerce:
+Product, Category, User, Cart, Order, Payment, Inventory collections.
+
+Interview-ready answer:
+“I design schemas around application access patterns. I embed bounded read-together data, reference large or independently changing entities, and enforce invariants such as unique email or payment reference at the database level.”
+
+--------------------------------------------------------------------
+3. SECURITY DESIGN
+
+- Authentication using JWT/OAuth.
+- Authorization using RBAC/ABAC.
+- HTTPS everywhere.
+- Input validation and output encoding.
+- Rate limiting.
+- Secure cookies.
+- Secrets in environment/secret manager.
+- Least privilege DB users.
+- Audit logs.
+- Dependency vulnerability scanning.
+
+Interview-ready answer:
+“Security must be enforced at backend. I use HTTPS, strong authentication, role-based authorization, validated inputs, rate limiting, secure secrets management and audit logging.”
+
+--------------------------------------------------------------------
+4. SCALABILITY AND FAILURE TRADE-OFFS
+
+Scaling techniques:
+- Stateless API instances.
+- Load balancing.
+- Auto-scaling.
+- Caching.
+- Database replication/sharding.
+- Queues.
+- CDN.
+- Read replicas.
+
+Failure handling:
+- Health checks.
+- Retries.
+- Circuit breaker.
+- Fallback responses.
+- Graceful shutdown.
+- Dead-letter queues.
+
+Trade-offs:
+Caching improves speed but can serve stale data.
+Microservices improve isolation but increase operational complexity.
+Eventual consistency improves scalability but may show temporary stale data.
+
+Interview-ready answer:
+“I scale stateless services horizontally and use caching, replication, sharding and queues where needed. Every design decision has trade-offs; I choose based on consistency, latency, availability and operational complexity requirements.”
+
+====================================================================
+QUICK REVISION: SYSTEM DESIGN ANSWERS
+====================================================================
+
+1. Start with requirements, scale, API, data model, architecture, caching, security and failures.
+2. Prefer stateless API servers for horizontal scaling.
+3. Use load balancer for distributing traffic and reverse proxy for routing/TLS.
+4. Use CDN for static assets and global delivery.
+5. Use Redis for hot data with TTL and cache invalidation strategy.
+6. Use replication for availability and sharding for very large datasets.
+7. Use queues to decouple heavy or asynchronous work.
+8. Make queue consumers idempotent.
+9. Use JWT access tokens with secure refresh-token rotation.
+10. Never trust client-side payment success; verify webhooks.
+11. Use atomic updates/transactions for inventory and payment consistency.
+12. Use WebSocket + Redis pub/sub for scalable real-time features.
+13. Use object storage and presigned URLs for file uploads.
+14. Use pre-aggregated data for analytics dashboards.
+15. Add correlation IDs, structured logs, metrics and traces for observability.

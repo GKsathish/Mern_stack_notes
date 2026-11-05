@@ -1,0 +1,771 @@
+
+NODE.JS — 7–9 DAYS COMPLETE INTERVIEW NOTES
+For 4+ Years MERN Stack Interview Preparation
+
+Format:
+Definition -> Example -> Use case -> Internal working -> Follow-up questions -> Interview-ready answer
+
+====================================================================
+DAY 1: NODE.JS ARCHITECTURE
+====================================================================
+
+1. WHAT IS NODE.JS?
+
+Definition:
+Node.js is a JavaScript runtime built on Chrome's V8 engine that allows JavaScript to run outside the browser, mainly for server-side and tooling applications.
+
+Example:
+console.log("Node.js server running");
+
+Use case:
+REST APIs, real-time apps, microservices, CLI tools, streaming services, background workers.
+
+Internal working:
+Node.js combines V8 JavaScript engine, libuv, C++ bindings and core modules. V8 executes JavaScript, while libuv handles asynchronous I/O, event loop and thread pool operations.
+
+Follow-up questions:
+1. Is Node.js a framework or runtime?
+2. Why is Node.js single-threaded?
+3. What is V8?
+4. What is libuv?
+
+Interview-ready answer:
+Node.js is a JavaScript runtime, not a framework. It uses V8 to execute JavaScript and libuv to provide asynchronous, non-blocking I/O through an event-driven architecture.
+
+--------------------------------------------------------------------
+2. V8 AND LIBUV
+
+V8:
+V8 is Google's open-source JavaScript engine. It compiles JavaScript into machine code using JIT compilation.
+
+libuv:
+libuv is a C library providing asynchronous I/O, event loop, timers, thread pool and cross-platform abstraction.
+
+Use case:
+V8 executes business logic; libuv manages network, file system, DNS and timer operations.
+
+Internal working:
+V8 parses and compiles JavaScript. libuv maintains event loops and queues. For some blocking operations such as file system tasks, DNS lookups and crypto operations, libuv uses a thread pool.
+
+Follow-up questions:
+1. Does Node.js use multiple threads?
+2. What operations use libuv thread pool?
+3. What is JIT compilation?
+4. Is V8 part of Node.js only?
+
+Interview-ready answer:
+Node.js JavaScript execution is single-threaded, but libuv uses a thread pool for certain blocking I/O and CPU-heavy native operations. V8 executes JavaScript while libuv manages asynchronous system-level work.
+
+--------------------------------------------------------------------
+3. SINGLE-THREADED JAVASCRIPT VS CONCURRENT I/O
+
+Definition:
+Node.js executes JavaScript on one main thread, but it can handle many I/O operations concurrently using asynchronous callbacks, promises and the event loop.
+
+Example:
+fs.readFile("file.txt", (err, data) => {
+  console.log("File read completed");
+});
+
+console.log("Next line executes immediately");
+
+Use case:
+API servers handling thousands of concurrent requests, chat applications, streaming services.
+
+Internal working:
+When an async operation starts, Node.js does not wait for it. It registers a callback and continues executing other code. Once the OS or thread pool completes the operation, callback is placed into a queue and executed by event loop.
+
+Follow-up questions:
+1. How can single thread handle multiple requests?
+2. What happens during CPU-intensive work?
+3. What is blocking code?
+4. How do you handle heavy computation?
+
+Interview-ready answer:
+Node.js handles concurrency through asynchronous I/O, not by running JavaScript in multiple threads. CPU-heavy tasks block the event loop, so I move them to Worker Threads, child processes or external services.
+
+--------------------------------------------------------------------
+4. EVENT-DRIVEN AND NON-BLOCKING I/O
+
+Definition:
+Event-driven architecture means program flow is determined by events such as requests, timers, file completion or messages. Non-blocking I/O means the program does not wait for I/O operations to finish.
+
+Example:
+const EventEmitter = require("events");
+const emitter = new EventEmitter();
+
+emitter.on("userCreated", user => {
+  console.log("User created:", user.name);
+});
+
+emitter.emit("userCreated", { name: "Ravi" });
+
+Use case:
+HTTP servers, WebSockets, message queues, file processing, real-time notifications.
+
+Internal working:
+Node.js registers listeners for events. When an event occurs, corresponding callbacks are invoked. Non-blocking operations return immediately and notify through callbacks, promises or streams.
+
+Follow-up questions:
+1. What is blocking vs non-blocking code?
+2. What is callback hell?
+3. How do promises improve async code?
+4. What is event-driven programming?
+
+Interview-ready answer:
+Node.js uses event-driven, non-blocking I/O. Instead of waiting for database or file operations, it registers callbacks and continues processing other requests, improving throughput for I/O-heavy applications.
+
+====================================================================
+DAY 2: EVENT LOOP, THREADS AND PROCESSES
+====================================================================
+
+1. EVENT LOOP PHASES AND QUEUES
+
+Definition:
+The event loop is the mechanism that allows Node.js to perform non-blocking operations on a single thread by processing callbacks in phases.
+
+Main phases:
+1. Timers: executes setTimeout and setInterval callbacks.
+2. Pending callbacks: executes some system-level callbacks.
+3. Poll: retrieves new I/O events and executes I/O callbacks.
+4. Check: executes setImmediate callbacks.
+5. Close callbacks: executes close events.
+
+Queues:
+- Microtask queue: process.nextTick and Promise callbacks.
+- Macrotask queues: timers, I/O, setImmediate.
+
+Example:
+console.log("1");
+
+setTimeout(() => console.log("4"), 0);
+
+Promise.resolve().then(() => console.log("3"));
+
+process.nextTick(() => console.log("2"));
+
+Output:
+1
+2
+3
+4
+
+Use case:
+Understanding execution order, avoiding race conditions, debugging async behavior.
+
+Internal working:
+After each event loop phase, Node.js processes microtasks. process.nextTick has higher priority than Promise microtasks. Timers and setImmediate are macrotasks.
+
+Follow-up questions:
+1. Difference between process.nextTick and Promise.then?
+2. Difference between setTimeout(fn, 0) and setImmediate?
+3. What is starvation of event loop?
+4. Where do Promise callbacks execute?
+
+Interview-ready answer:
+The event loop processes phases and drains microtasks between them. process.nextTick callbacks run before Promise callbacks, and setImmediate usually runs after I/O polling, whereas setTimeout with 0 depends on timer phase timing.
+
+--------------------------------------------------------------------
+2. THREAD POOL, WORKER THREADS AND CHILD PROCESSES
+
+Thread pool:
+libuv maintains a pool of threads, by default four, used for operations such as fs I/O, DNS lookup and some crypto operations.
+
+Worker Threads:
+Run JavaScript in separate threads for CPU-intensive tasks.
+
+const { Worker } = require("worker_threads");
+new Worker("./heavy-task.js");
+
+Child Processes:
+Create separate Node.js processes.
+
+const { fork } = require("child_process");
+fork("./worker.js");
+
+Use case:
+Worker Threads: image processing, hashing, data transformation.
+Child Processes: isolated tasks, shell commands, CPU-heavy services.
+
+Internal working:
+Worker Threads share memory options and communicate through message passing or SharedArrayBuffer. Child processes have separate memory and communicate through IPC.
+
+Follow-up questions:
+1. Difference between Worker Threads and child processes?
+2. When should we use cluster module?
+3. What is IPC?
+4. How many threads does libuv use by default?
+
+Interview-ready answer:
+I use Worker Threads for CPU-bound JavaScript work and child processes for isolated tasks or external commands. Worker Threads are lighter and can share memory, while child processes provide stronger isolation.
+
+--------------------------------------------------------------------
+3. CLUSTER MODULE
+
+Definition:
+Cluster module allows a Node.js application to create multiple worker processes that share the same server port.
+
+Example:
+const cluster = require("cluster");
+const http = require("http");
+
+if (cluster.isPrimary) {
+  for (let i = 0; i < 4; i++) cluster.fork();
+} else {
+  http.createServer((req, res) => res.end("OK")).listen(3000);
+}
+
+Use case:
+Utilizing multiple CPU cores, improving API throughput.
+
+Internal working:
+Primary process manages worker processes. Workers handle incoming requests. The OS distributes connections among workers.
+
+Follow-up questions:
+1. Difference between cluster and PM2?
+2. How many workers should we create?
+3. What happens if a worker crashes?
+4. Is cluster useful for CPU-bound apps?
+
+Interview-ready answer:
+Cluster creates multiple Node processes to use all CPU cores for I/O-heavy APIs. I usually create workers equal to CPU cores and use PM2 or Kubernetes for production process management and restarts.
+
+--------------------------------------------------------------------
+4. NODE.JS VS BROWSER JAVASCRIPT
+
+Node.js:
+- Runs on server.
+- Has fs, http, os, path, process modules.
+- No window or document.
+- Uses CommonJS and ES Modules.
+
+Browser:
+- Runs in browser.
+- Has window, document, localStorage.
+- Cannot directly access file system.
+- Uses DOM APIs.
+
+Use case:
+Node.js for backend, CLI and build tools; browser JavaScript for UI.
+
+Internal working:
+Both use V8 in Chrome-based environments, but runtime APIs differ. Node.js adds server-side modules and libuv, while browsers provide DOM, fetch and web APIs.
+
+Follow-up questions:
+1. What is global object in Node.js?
+2. Difference between global and window?
+3. Can Node.js access DOM?
+4. What is process object?
+
+Interview-ready answer:
+Node.js and browser JavaScript share the language but differ in runtime APIs. Node.js provides server APIs such as fs, http and process, while browsers provide DOM, window and web storage APIs.
+
+====================================================================
+DAY 3: MODULES, EVENTS AND STREAMS
+====================================================================
+
+1. COMMONJS VS ES MODULES
+
+CommonJS:
+const fs = require("fs");
+module.exports = { start };
+
+ES Modules:
+import fs from "fs";
+export function start() {}
+
+Use case:
+CommonJS is traditional Node.js style; ES Modules are modern standard and widely used with React/Next.js.
+
+Internal working:
+CommonJS loads modules synchronously using require and caches them after first load. ES Modules use static import/export analysis, enabling tree shaking and asynchronous loading.
+
+Module caching:
+A module is executed only once; subsequent require calls return cached exports.
+
+Follow-up questions:
+1. Difference between require and import?
+2. What is module caching?
+3. What is tree shaking?
+4. Can CommonJS and ESM be used together?
+
+Interview-ready answer:
+CommonJS uses require/module.exports and loads synchronously, while ES Modules use import/export and support static analysis and tree shaking. Node caches modules after first load.
+
+--------------------------------------------------------------------
+2. EVENTEMITTER AND CUSTOM EVENTS
+
+Definition:
+EventEmitter is a Node.js core class used to create and handle custom events.
+
+Example:
+const EventEmitter = require("events");
+
+class OrderService extends EventEmitter {
+  createOrder(order) {
+    this.emit("orderCreated", order);
+  }
+}
+
+const service = new OrderService();
+service.on("orderCreated", order => console.log(order.id));
+
+Use case:
+Order created events, logging, notifications, decoupling modules.
+
+Internal working:
+EventEmitter stores listeners in a map. emit invokes registered listeners synchronously by default.
+
+Follow-up questions:
+1. Is EventEmitter synchronous?
+2. What is memory leak warning in EventEmitter?
+3. Difference between on and once?
+4. How do you remove listeners?
+
+Interview-ready answer:
+EventEmitter enables pub-sub style communication inside Node.js. Listeners run synchronously unless the handler performs async work; I remove listeners properly to prevent memory leaks.
+
+--------------------------------------------------------------------
+3. BUFFER AND FILE SYSTEM MODULE
+
+Buffer:
+Temporary memory area used to handle binary data.
+
+const buffer = Buffer.from("hello");
+console.log(buffer.toString());
+
+File System module:
+const fs = require("fs/promises");
+
+await fs.readFile("data.txt", "utf-8");
+await fs.writeFile("output.txt", "Hello");
+
+Use case:
+File uploads, image processing, logs, CSV/PDF processing.
+
+Internal working:
+Buffer stores raw binary data outside V8 heap. fs module communicates with OS through libuv, often using thread pool for file operations.
+
+Follow-up questions:
+1. What is Buffer?
+2. Difference between readFile and createReadStream?
+3. What is encoding?
+4. Why is fs asynchronous by default?
+
+Interview-ready answer:
+Buffer handles binary data such as files and network packets. For small files I may use readFile, but for large files I use streams to avoid loading entire file into memory.
+
+--------------------------------------------------------------------
+4. STREAMS: READABLE, WRITABLE, DUPLEX AND TRANSFORM
+
+Readable:
+Source of data.
+fs.createReadStream("large.mp4")
+
+Writable:
+Destination for data.
+fs.createWriteStream("copy.mp4")
+
+Duplex:
+Both readable and writable.
+Net socket.
+
+Transform:
+Modifies data while streaming.
+zlib.createGzip()
+
+Use case:
+Large file upload/download, video streaming, CSV processing, compression.
+
+Internal working:
+Streams process data in chunks instead of loading entire data into memory. This reduces memory usage and improves performance for large data.
+
+Follow-up questions:
+1. Why are streams memory efficient?
+2. What is chunk?
+3. What is stream backpressure?
+4. Difference between pipe and pipeline?
+
+Interview-ready answer:
+Streams process data in chunks, making them ideal for large files and network I/O. I use pipeline because it properly handles errors and cleanup across streams.
+
+--------------------------------------------------------------------
+5. PIPE, PIPELINE AND BACKPRESSURE
+
+pipe:
+Connects readable stream to writable stream.
+
+readStream.pipe(writeStream);
+
+pipeline:
+Connects multiple streams and handles errors properly.
+
+const { pipeline } = require("stream/promises");
+await pipeline(readStream, gzipStream, writeStream);
+
+Backpressure:
+When writable stream cannot consume data as fast as readable stream produces it.
+
+Use case:
+File copy, compression, upload proxying, ETL jobs.
+
+Internal working:
+Backpressure is handled by pausing readable stream until writable stream drains. pipe has weaker error handling; pipeline forwards errors and cleans up streams.
+
+Follow-up questions:
+1. Why is pipeline preferred?
+2. What causes backpressure?
+3. How do you handle stream errors?
+4. What is highWaterMark?
+
+Interview-ready answer:
+I prefer pipeline over pipe because it propagates errors and closes streams correctly. Backpressure occurs when consumer is slower than producer; Node streams pause and resume internally to manage it.
+
+====================================================================
+DAY 4: ERRORS AND PRODUCTION RELIABILITY
+====================================================================
+
+1. CALLBACKS, PROMISES AND ASYNC/AWAIT
+
+Callback:
+fs.readFile("file.txt", (err, data) => {});
+
+Promise:
+fs.promises.readFile("file.txt");
+
+async/await:
+const data = await fs.promises.readFile("file.txt", "utf-8");
+
+Use case:
+Modern Node.js code should prefer async/await with proper error handling.
+
+Internal working:
+Callbacks are basic async pattern. Promises represent future values. async/await is syntax sugar over promises, making asynchronous code look synchronous.
+
+Follow-up questions:
+1. What is callback hell?
+2. How do you handle multiple promises?
+3. Difference between Promise.all and Promise.allSettled?
+4. What happens if await is not handled with try/catch?
+
+Interview-ready answer:
+I use async/await with try/catch for readable error handling. For parallel independent tasks, I use Promise.all; for partial failures, Promise.allSettled.
+
+--------------------------------------------------------------------
+2. OPERATIONAL VS PROGRAMMER ERRORS
+
+Operational error:
+Expected runtime failure, such as DB down, invalid input, network timeout.
+
+Programmer error:
+Bug in code, such as undefined variable, wrong logic or invalid API usage.
+
+Use case:
+Operational errors should be handled and returned safely. Programmer errors should be fixed and may require process restart.
+
+Internal working:
+Operational errors are caught and mapped to proper HTTP responses. Programmer errors should fail fast and be logged for debugging.
+
+Follow-up questions:
+1. How do you handle database connection failure?
+2. Should you restart process on programmer error?
+3. What is fail-fast principle?
+
+Interview-ready answer:
+I distinguish expected operational failures from coding bugs. Operational errors return controlled responses, while programmer errors are logged, monitored and often require process restart to avoid inconsistent state.
+
+--------------------------------------------------------------------
+3. UNHANDLED REJECTIONS AND CUSTOM ERROR CLASSES
+
+Unhandled rejection:
+Promise rejection without catch handler.
+
+process.on("unhandledRejection", reason => {
+  console.error(reason);
+});
+
+Custom error:
+class AppError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
+Use case:
+Consistent API error responses, domain-specific errors, centralized error middleware.
+
+Internal working:
+Custom errors extend Error and add metadata such as status code or error code. Global handlers catch unexpected failures, log them and shut down safely if needed.
+
+Follow-up questions:
+1. Difference between uncaughtException and unhandledRejection?
+2. Should server continue after uncaughtException?
+3. How do you create custom error class?
+4. What is centralized error handling?
+
+Interview-ready answer:
+I create custom AppError classes with status codes and use centralized error middleware. Unexpected uncaught exceptions or unhandled rejections are logged and may trigger graceful shutdown because process state can be unreliable.
+
+--------------------------------------------------------------------
+4. GRACEFUL SHUTDOWN, SIGTERM AND SIGINT
+
+Graceful shutdown:
+Stop accepting new requests, complete ongoing requests, close DB/Redis connections, then exit.
+
+Example:
+process.on("SIGTERM", async () => {
+  server.close(async () => {
+    await mongoose.connection.close();
+    process.exit(0);
+  });
+});
+
+Use case:
+Kubernetes deployments, Docker containers, zero-downtime releases.
+
+Internal working:
+SIGTERM and SIGINT are OS signals. Graceful shutdown prevents dropped requests and data corruption.
+
+Follow-up questions:
+1. Difference between SIGTERM and SIGINT?
+2. Why is graceful shutdown important?
+3. What happens to in-flight requests?
+4. How does Kubernetes use SIGTERM?
+
+Interview-ready answer:
+On SIGTERM, I stop accepting new connections, allow active requests to finish, close database and cache connections, then exit. This prevents request failures during deployments.
+
+====================================================================
+DAY 5: PERFORMANCE AND SCALING
+====================================================================
+
+1. MEMORY LEAKS, HEAP SNAPSHOTS AND CPU PROFILING
+
+Memory leak:
+Memory that is no longer needed but not released.
+
+Common causes:
+- Global variables.
+- Forgotten timers/intervals.
+- Unremoved event listeners.
+- Closures holding large objects.
+- Unbounded caches.
+
+Heap snapshot:
+Captures objects in memory for analysis.
+
+CPU profiling:
+Identifies functions consuming CPU time.
+
+Use case:
+Slow API, increasing memory usage, frequent restarts.
+
+Internal working:
+Node.js exposes inspector APIs and Chrome DevTools profiling. Heap snapshots compare object retention; CPU profiles show hot functions.
+
+Follow-up questions:
+1. How do you detect memory leak?
+2. What tools do you use?
+3. What is event listener leak?
+4. How do you analyze CPU bottleneck?
+
+Interview-ready answer:
+I monitor memory and CPU metrics, capture heap snapshots when memory grows, and profile hot functions. Common fixes include removing listeners, clearing timers, bounding caches and moving CPU-heavy work to workers.
+
+--------------------------------------------------------------------
+2. BLOCKING EVENT LOOP AND CPU-INTENSIVE WORK
+
+Blocking example:
+while (true) {}
+
+JSON.parse of very large payload.
+Large synchronous loops.
+Complex crypto operations.
+
+Use case:
+File processing, image resizing, password hashing, report generation.
+
+Internal working:
+Long synchronous JavaScript execution prevents event loop from processing other requests, increasing latency for all users.
+
+Follow-up questions:
+1. How do you identify blocking code?
+2. Difference between I/O-bound and CPU-bound work?
+3. When to use Worker Threads?
+4. What is event loop lag?
+
+Interview-ready answer:
+I keep request handlers I/O-bound and non-blocking. CPU-heavy operations are moved to Worker Threads, child processes, queues or dedicated services so the main event loop remains responsive.
+
+--------------------------------------------------------------------
+3. REDIS CACHING, BACKGROUND JOBS, QUEUES AND RETRIES
+
+Redis caching:
+Stores frequently accessed data in memory.
+
+Background jobs:
+Tasks processed asynchronously, such as emails, reports, image processing.
+
+Queue:
+Example: BullMQ, RabbitMQ, Kafka.
+
+Retry:
+Retry failed operations with delay and backoff.
+
+Use case:
+Product details caching, email sending, payment reconciliation, report generation.
+
+Internal working:
+Cache stores key-value data with TTL. Queue producers add jobs; workers consume them independently. Retries use attempts and exponential backoff to handle temporary failures.
+
+Follow-up questions:
+1. What is cache invalidation?
+2. What is TTL?
+3. What is idempotency in queue consumers?
+4. What is exponential backoff?
+
+Interview-ready answer:
+I use Redis for short-lived cacheable data, queues for decoupled background work, and retries with exponential backoff for transient failures. Consumers must be idempotent to avoid duplicate processing.
+
+--------------------------------------------------------------------
+4. RATE LIMITING, LOGGING, MONITORING AND CONNECTION POOLING
+
+Rate limiting:
+Restricts number of requests from a client.
+
+Logging:
+Structured logs with request ID, level, timestamp and context.
+
+Monitoring:
+CPU, memory, latency, error rate, DB query time.
+
+Connection pooling:
+Reuses database connections instead of creating new ones per request.
+
+Use case:
+Production APIs, security, debugging, performance.
+
+Internal working:
+Rate limiters track request counts by IP/user/token. Connection pools maintain reusable DB connections, reducing connection overhead.
+
+Follow-up questions:
+1. What is correlation ID?
+2. Why use structured logging?
+3. What is connection pool size?
+4. What metrics do you monitor in Node.js?
+
+Interview-ready answer:
+I use rate limiting for abuse protection, structured logs with correlation IDs for tracing, monitoring for latency/errors/resources, and connection pooling for efficient database access.
+
+====================================================================
+DAY 6: NODE.JS CODING PRACTICE
+====================================================================
+
+1. PROCESS LARGE FILES WITH STREAMS
+
+const fs = require("fs");
+const readline = require("readline");
+
+async function processFile(path) {
+  const stream = fs.createReadStream(path);
+  const rl = readline.createInterface({ input: stream });
+
+  for await (const line of rl) {
+    // process each line
+  }
+}
+
+Interview-ready answer:
+For large files, I use readable streams and process line by line instead of loading the entire file into memory.
+
+--------------------------------------------------------------------
+2. WORKER THREAD EXAMPLE
+
+const { Worker } = require("worker_threads");
+
+function runHeavyTask(data) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker("./heavy-task.js", { workerData: data });
+    worker.on("message", resolve);
+    worker.on("error", reject);
+  });
+}
+
+Interview-ready answer:
+I move CPU-heavy JavaScript work to Worker Threads so the main event loop can continue serving API requests.
+
+--------------------------------------------------------------------
+3. EVENTEMITTER EXAMPLE
+
+const EventEmitter = require("events");
+const emitter = new EventEmitter();
+
+emitter.on("orderCreated", order => {
+  console.log("Send email for order", order.id);
+});
+
+emitter.emit("orderCreated", { id: 101 });
+
+Interview-ready answer:
+EventEmitter decouples event producers from consumers, useful for notifications, logging and domain events.
+
+--------------------------------------------------------------------
+4. RETRY UTILITY
+
+async function retry(fn, attempts = 3, delay = 500) {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === attempts) throw error;
+      await new Promise(res => setTimeout(res, delay * 2 ** (i - 1)));
+    }
+  }
+}
+
+Interview-ready answer:
+I implement retries with exponential backoff for transient failures, while ensuring the operation is idempotent.
+
+--------------------------------------------------------------------
+5. CONCURRENT TASK RUNNER
+
+async function runWithConcurrency(tasks, limit = 3) {
+  const results = [];
+  let index = 0;
+
+  async function worker() {
+    while (index < tasks.length) {
+      const current = index++;
+      results[current] = await tasks[current]();
+    }
+  }
+
+  await Promise.all(Array.from({ length: limit }, worker));
+  return results;
+}
+
+Interview-ready answer:
+I control concurrency using a worker-pool pattern instead of firing all tasks simultaneously, preventing DB or third-party API overload.
+
+--------------------------------------------------------------------
+6. GRACEFUL SHUTDOWN AND CACHE TIMEOUT
+
+process.on("SIGTERM", () => {
+  server.close(() => process.exit(0));
+});
+
+const cache = new Map();
+
+function setCache(key, value, ttl = 60000) {
+  cache.set(key, { value, expiresAt: Date.now() + ttl });
+}
+
+function getCache(key) {
+  const item = cache.get(key);
+  if (!item || item.expiresAt < Date.now()) return null;
+  return item.value;
+}
+
+Interview-ready answer:
+I implement graceful shutdown for deployment safety and TTL-based caching to prevent stale or unbounded memory growth.

@@ -1,0 +1,609 @@
+
+GIT, LINUX, DEPLOYMENT AND DEVOPS — 3–4 DAYS COMPLETE INTERVIEW NOTES
+For 4+ Years MERN Stack Interview Preparation
+
+Format:
+Definition -> Example -> Use case -> Internal working -> Follow-up questions -> Interview-ready answer
+
+====================================================================
+DAY 1: GIT ESSENTIALS
+====================================================================
+
+1. GIT BASICS: CLONE, PULL, FETCH, MERGE, REBASE
+
+clone:
+Copies a remote repository to local machine.
+
+git clone https://github.com/user/repo.git
+
+fetch:
+Downloads latest changes from remote but does not merge them into local branch.
+
+git fetch origin
+
+pull:
+Fetches remote changes and merges them into current branch.
+
+git pull origin main
+
+merge:
+Combines changes from one branch into another.
+
+git merge feature/login
+
+rebase:
+Moves or reapplies commits onto another base branch, creating linear history.
+
+git checkout feature/login
+git rebase main
+
+Use case:
+clone for first setup, fetch to inspect remote updates, pull for regular sync, merge/rebase to integrate feature branches.
+
+Internal working:
+Git stores snapshots and commit history. merge creates a merge commit when histories diverge. rebase replays local commits on top of target branch, rewriting commit hashes.
+
+Merge vs rebase:
+merge preserves actual history and creates merge commit.
+rebase creates cleaner linear history but rewrites commits.
+
+Follow-up questions:
+1. Difference between fetch and pull?
+2. When should you rebase?
+3. Why is rebase risky on shared branches?
+4. What is fast-forward merge?
+
+Interview-ready answer:
+I use pull to sync my local branch, merge to integrate completed features, and rebase mainly for updating my local feature branch with latest main. I avoid rebasing shared/public branches because it rewrites commit history.
+
+--------------------------------------------------------------------
+2. RESET VS REVERT, CONFLICTS, CHERRY-PICK AND STASH
+
+git reset:
+Moves branch pointer and optionally changes staging area/working directory.
+
+git reset --soft HEAD~1
+git reset --mixed HEAD~1
+git reset --hard HEAD~1
+
+git revert:
+Creates a new commit that undoes changes from an earlier commit.
+
+git revert <commit-id>
+
+Conflict:
+Occurs when Git cannot automatically combine changes in same lines/files.
+
+git status
+git add <resolved-files>
+git rebase --continue
+# or
+git merge --continue
+
+cherry-pick:
+Copies a specific commit from one branch to another.
+
+git cherry-pick <commit-id>
+
+stash:
+Temporarily saves uncommitted changes.
+
+git stash
+git stash pop
+git stash list
+
+Use case:
+reset for local cleanup, revert for safe undo in shared branches, cherry-pick for hotfixes, stash for temporary context switching.
+
+Internal working:
+reset moves branch pointer; hard reset can discard local changes. revert adds inverse commit, preserving history. stash saves working directory and index changes in a stack.
+
+Follow-up questions:
+1. Difference between reset and revert?
+2. Difference between soft, mixed and hard reset?
+3. How do you resolve merge conflict?
+4. When do you use cherry-pick?
+5. Is stash shared across branches?
+
+Interview-ready answer:
+I use revert to safely undo a commit on shared branches because it preserves history. reset is for local history cleanup. For conflicts, I inspect files, resolve markers, test changes, then stage and continue merge/rebase.
+
+--------------------------------------------------------------------
+3. BRANCHING AND PULL REQUEST WORKFLOW
+
+Common branching strategy:
+main: production-ready code
+develop: integration branch
+feature/*: new features
+bugfix/*: bug fixes
+hotfix/*: urgent production fixes
+release/*: release preparation
+
+Example:
+git checkout -b feature/user-auth
+git add .
+git commit -m "feat: add user authentication"
+git push origin feature/user-auth
+
+Pull request workflow:
+1. Create feature branch.
+2. Make small focused commits.
+3. Push branch.
+4. Open pull request.
+5. CI runs tests/lint/build.
+6. Code review and approval.
+7. Merge to main/develop.
+8. Delete feature branch.
+
+Use case:
+Team collaboration, code quality, controlled releases.
+
+Internal working:
+Branch is a movable pointer to a commit. Pull request compares source and target branches, runs CI checks and allows review before merge.
+
+Follow-up questions:
+1. What is Git Flow?
+2. What is trunk-based development?
+3. What makes a good pull request?
+4. What is protected branch?
+5. What is squash merge?
+
+Interview-ready answer:
+I follow a feature-branch workflow: create a focused branch, push it, open a PR with clear description, ensure CI passes, get review approval, then merge. I prefer small PRs with meaningful commits and tests.
+
+====================================================================
+DAY 2: LINUX FOR DEVELOPERS
+====================================================================
+
+1. LINUX COMMANDS
+
+Navigation:
+pwd
+ls -la
+cd /var/www
+cd ..
+
+Files:
+touch file.txt
+mkdir app
+cp a.txt b.txt
+mv old.txt new.txt
+rm file.txt
+rm -rf folder
+
+Search:
+find . -name "*.log"
+grep -rn "error" logs/
+
+File viewing:
+cat file.txt
+less file.log
+tail -f app.log
+head -n 20 file.txt
+
+Use case:
+Server navigation, log inspection, deployment troubleshooting.
+
+Internal working:
+Linux commands interact with filesystem and shell. tail -f follows file updates in real time, useful for live logs.
+
+Follow-up questions:
+1. Difference between rm and rm -rf?
+2. How do you search logs?
+3. What does grep -r do?
+4. Difference between cat, less and tail?
+
+Interview-ready answer:
+I use Linux commands to navigate servers, inspect files, search logs and troubleshoot deployments. For live logs, I commonly use tail -f combined with grep.
+
+--------------------------------------------------------------------
+2. PERMISSIONS AND PROCESS MANAGEMENT
+
+Permissions:
+r = read = 4
+w = write = 2
+x = execute = 1
+
+Example:
+chmod 755 script.sh
+chmod 644 config.txt
+chown user:group file.txt
+
+Permission breakdown:
+755 = owner rwx, group r-x, others r-x
+644 = owner rw-, group r--, others r--
+
+Process commands:
+ps aux
+top
+htop
+kill <pid>
+kill -9 <pid>
+jobs
+bg
+fg
+nohup node server.js &
+
+Use case:
+Fix permission errors, manage Node.js processes, inspect resource usage.
+
+Internal working:
+Linux permissions control read/write/execute access for owner, group and others. Processes have PID, parent process, CPU and memory usage.
+
+Follow-up questions:
+1. What does chmod 755 mean?
+2. Difference between kill and kill -9?
+3. How do you find a process using port 3000?
+4. What is nohup?
+
+Interview-ready answer:
+I use chmod to set file permissions, ps/top to inspect processes, and kill to terminate processes. For port conflicts, I identify PID using lsof or ss, then stop only the intended process.
+
+--------------------------------------------------------------------
+3. ENVIRONMENT VARIABLES, LOGS, PORTS AND NETWORKING
+
+Environment variables:
+export DATABASE_URL=mongodb://localhost:27017/app
+printenv DATABASE_URL
+echo $DATABASE_URL
+
+Node.js example:
+process.env.PORT
+process.env.DATABASE_URL
+
+Logs:
+tail -f /var/log/nginx/error.log
+journalctl -u myapp.service
+
+Ports:
+lsof -i :3000
+ss -ltnp
+netstat -ltnp
+
+Networking:
+ping google.com
+curl -I https://api.example.com
+curl http://localhost:5000/api/health
+nslookup domain.com
+
+Use case:
+Configure secrets, debug port conflicts, test APIs, inspect DNS/network issues.
+
+Internal working:
+Environment variables provide runtime configuration without hard-coding secrets. Ports identify network services; curl sends HTTP requests and displays response details.
+
+Follow-up questions:
+1. Why not commit .env files?
+2. Difference between env and process.env?
+3. How do you check which process uses a port?
+4. What is curl used for?
+5. What is DNS?
+
+Interview-ready answer:
+I keep secrets in environment variables or a secret manager, never in Git. I use curl for API testing, lsof/ss for port conflicts, and journalctl/tail for service and server logs.
+
+--------------------------------------------------------------------
+4. DISK, MEMORY MONITORING AND TROUBLESHOOTING
+
+Disk:
+df -h
+du -sh *
+du -sh /var/log/*
+
+Memory:
+free -h
+top
+htop
+vmstat
+
+CPU:
+top
+htop
+uptime
+
+Troubleshooting flow:
+1. Check application logs.
+2. Check CPU, memory and disk.
+3. Check service status.
+4. Check port/listener.
+5. Check database/cache connectivity.
+6. Check recent deployment changes.
+
+Use case:
+Server slow, app crashing, high memory usage, disk full.
+
+Internal working:
+df shows filesystem usage; du shows directory size. free shows available memory. High disk usage can prevent logs/database writes; memory pressure can trigger OOM killer.
+
+Follow-up questions:
+1. How do you check disk space?
+2. What is OOM killer?
+3. How do you find large files?
+4. What steps do you follow when server is down?
+
+Interview-ready answer:
+When a server has issues, I first check logs, service status, CPU/memory/disk and recent deployments. I use df/du for disk, free/top for memory, and identify whether the issue is application, infrastructure or dependency related.
+
+====================================================================
+DAY 3: DEPLOYMENT AND DEVOPS
+====================================================================
+
+1. PRODUCTION BUILDS AND ENVIRONMENT CONFIGURATION
+
+Production build:
+Optimized build with minification, tree shaking, environment-specific configuration and source maps where appropriate.
+
+React example:
+npm run build
+
+Node.js example:
+NODE_ENV=production node dist/server.js
+
+Environment configuration:
+Development:
+NODE_ENV=development
+DATABASE_URL=mongodb://localhost:27017/dev
+
+Production:
+NODE_ENV=production
+DATABASE_URL=mongodb://prod-cluster/app
+
+Use case:
+Separate development, staging and production environments.
+
+Internal working:
+Build tools replace environment-specific values where supported and optimize bundles. Backend reads runtime environment variables through process.env.
+
+Important:
+Never commit .env to Git. Use secret managers such as AWS Secrets Manager, Vault or platform environment settings.
+
+Follow-up questions:
+1. Difference between development and production build?
+2. Where do you store secrets?
+3. What is staging environment?
+4. How do you manage multiple environments?
+
+Interview-ready answer:
+I keep environment-specific configuration in environment variables or secret managers, never in source control. Frontend gets a production build, while backend reads runtime configuration such as DB URL, JWT secret and port.
+
+--------------------------------------------------------------------
+2. NGINX REVERSE PROXY AND SSL/TLS
+
+Nginx reverse proxy:
+Forwards client requests to Node.js application.
+
+Example:
+server {
+  listen 80;
+  server_name example.com;
+
+  location / {
+    proxy_pass http://localhost:5000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+}
+
+SSL/TLS:
+Encrypts traffic between client and server.
+
+Let's Encrypt example:
+sudo certbot --nginx -d example.com
+
+Use case:
+Serve React build, proxy API requests, terminate HTTPS, improve security.
+
+Internal working:
+Client connects to Nginx over HTTPS. Nginx terminates TLS, serves static files or proxies API traffic to Node.js over internal HTTP.
+
+Follow-up questions:
+1. Why use Nginx with Node.js?
+2. What is reverse proxy?
+3. What is TLS termination?
+4. How do you renew SSL certificate?
+5. What causes mixed content error?
+
+Interview-ready answer:
+I use Nginx as a reverse proxy to serve the React build, proxy API traffic to Node.js and terminate HTTPS. Certificates are issued/renewed using Let's Encrypt/Certbot, and all frontend assets must load over HTTPS to avoid mixed-content errors.
+
+--------------------------------------------------------------------
+3. HTTPS AND CERTIFICATE TROUBLESHOOTING
+
+HTTPS:
+HTTP over TLS encryption.
+
+Certificate:
+Digital certificate proving server identity.
+
+Common issues:
+- Expired certificate.
+- Wrong domain in certificate.
+- Incomplete certificate chain.
+- Mixed content.
+- DNS not pointing to server.
+- Port 443 blocked.
+
+Troubleshooting:
+curl -vI https://example.com
+openssl s_client -connect example.com:443 -servername example.com
+sudo certbot certificates
+sudo nginx -t
+sudo systemctl reload nginx
+
+Use case:
+Browser security warnings, API HTTPS failures, deployment issues.
+
+Internal working:
+TLS handshake validates certificate, domain and chain. Browser rejects invalid, expired or untrusted certificates.
+
+Follow-up questions:
+1. What is TLS handshake?
+2. Difference between HTTP and HTTPS?
+3. How do you troubleshoot SSL error?
+4. What is certificate chain?
+
+Interview-ready answer:
+For HTTPS issues, I check certificate expiry, domain match, certificate chain, DNS and port 443. I use curl/openssl and Certbot logs to identify whether the issue is certificate, Nginx configuration or DNS related.
+
+--------------------------------------------------------------------
+4. AWS EC2 AND S3 FUNDAMENTALS
+
+EC2:
+Virtual server in AWS cloud.
+
+S3:
+Object storage service for files, images, backups and static assets.
+
+EC2 deployment flow:
+1. Launch EC2 instance.
+2. Connect using SSH.
+3. Install Node.js, Nginx, PM2.
+4. Clone repository.
+5. Configure environment variables.
+6. Build and start application.
+7. Configure Nginx and domain.
+
+S3 use cases:
+React static hosting, product images, user uploads, backups, logs.
+
+Example:
+aws s3 cp dist/ s3://my-app-bucket/ --recursive
+
+Use case:
+Hosting MERN app, storing media, static frontend deployment.
+
+Internal working:
+EC2 provides compute capacity; security groups control inbound/outbound traffic. S3 stores objects in buckets and can integrate with CloudFront CDN.
+
+Follow-up questions:
+1. Difference between EC2 and S3?
+2. What is security group?
+3. What is IAM role?
+4. Why use S3 for file uploads?
+5. What is CloudFront?
+
+Interview-ready answer:
+EC2 provides a virtual server to run backend services, while S3 stores objects such as images and build files. I use IAM roles with least privilege, security groups to restrict ports, and CloudFront/S3 for static assets.
+
+--------------------------------------------------------------------
+5. DOCKER BASICS AND CI/CD PIPELINES
+
+Docker:
+Packages application and dependencies into portable containers.
+
+Dockerfile example:
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+EXPOSE 5000
+CMD ["node", "dist/server.js"]
+
+Docker commands:
+docker build -t myapp .
+docker run -p 5000:5000 myapp
+docker ps
+docker logs <container-id>
+
+CI/CD:
+CI automatically builds/tests code on every push/PR.
+CD automatically deploys verified builds.
+
+Pipeline stages:
+1. Checkout code.
+2. Install dependencies.
+3. Lint.
+4. Test.
+5. Build.
+6. Build Docker image.
+7. Push image to registry.
+8. Deploy to staging/production.
+
+Use case:
+Consistent environments, automated deployment, faster releases.
+
+Internal working:
+Docker image contains application and dependencies. Container is running instance of image. CI pipeline runs checks; CD deploys only after successful validation.
+
+Follow-up questions:
+1. Difference between image and container?
+2. What is Dockerfile?
+3. What is docker-compose?
+4. What is CI/CD?
+5. What is deployment strategy: blue-green vs rolling?
+
+Interview-ready answer:
+I containerize applications with Docker for consistent environments. My CI pipeline installs dependencies, lints, tests and builds; CD then deploys the verified image through rolling or blue-green deployment with health checks and rollback support.
+
+--------------------------------------------------------------------
+6. ROLLBACK, MONITORING, HEALTH CHECKS AND DEBUGGING
+
+Rollback:
+Reverting application to previous stable version.
+
+Methods:
+- Redeploy previous Docker image tag.
+- Revert release commit and redeploy.
+- Use PM2/Kubernetes/ECS previous revision.
+- Restore database only when necessary and carefully.
+
+Health check:
+Endpoint that verifies application and dependencies.
+
+Example:
+GET /health
+
+{
+  "status": "ok",
+  "database": "connected",
+  "redis": "connected"
+}
+
+Monitoring:
+CPU, memory, latency, error rate, request rate, DB connections, queue depth.
+
+Production debugging:
+1. Check alerts/dashboard.
+2. Check recent deployment.
+3. Check application and infrastructure logs.
+4. Check health endpoint.
+5. Check DB/cache/third-party dependency.
+6. Roll back if release is causing major impact.
+7. Fix root cause and deploy corrected version.
+
+Use case:
+Failed release, high error rate, server crash, slow API.
+
+Internal working:
+Load balancer/orchestrator uses health checks to route traffic only to healthy instances. Monitoring alerts detect anomalies before users report them.
+
+Follow-up questions:
+1. When would you roll back?
+2. What makes a good health check?
+3. Difference between liveness and readiness probe?
+4. How do you debug high latency?
+5. What is blue-green deployment?
+
+Interview-ready answer:
+I deploy with health checks, monitoring and rollback capability. If a release increases error rate or breaks critical flows, I roll back first to restore service, then investigate logs, metrics and recent changes for root cause.
+
+====================================================================
+QUICK REVISION: MOST ASKED ANSWERS
+====================================================================
+
+1. git fetch downloads remote changes; git pull fetches and merges.
+2. merge preserves history; rebase rewrites commits for linear history.
+3. revert safely undoes commits on shared branches; reset is mainly local.
+4. Use feature branches, pull requests, CI checks and code review.
+5. chmod controls Linux file permissions.
+6. Use tail -f, grep, journalctl for logs.
+7. Store secrets in environment variables or secret managers, not Git.
+8. Use df/du for disk and free/top for memory troubleshooting.
+9. Nginx acts as reverse proxy and TLS terminator for Node.js apps.
+10. Use Let's Encrypt/Certbot for HTTPS certificates.
+11. EC2 is compute; S3 is object storage.
+12. Docker image is template; container is running instance.
+13. CI builds/tests code; CD deploys verified builds.
+14. Health checks help load balancers route traffic only to healthy instances.
+15. Roll back first during major production impact, then perform root-cause analysis.

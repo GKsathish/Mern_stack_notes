@@ -1,0 +1,550 @@
+
+EXPRESS.JS AND REST APIS — 6–8 DAYS COMPLETE INTERVIEW NOTES
+For 4+ Years MERN Stack Interview Preparation
+
+====================================================================
+DAY 1: EXPRESS FUNDAMENTALS
+====================================================================
+
+1. WHAT IS EXPRESS.JS?
+
+Definition:
+Express.js is a minimal, flexible Node.js web application framework used to build REST APIs and web servers.
+
+Example:
+const express = require("express");
+const app = express();
+
+app.get("/", (req, res) => {
+  res.json({ message: "Server running" });
+});
+
+app.listen(5000);
+
+Use case:
+REST APIs, admin dashboards, authentication services, microservices.
+
+Internal working:
+Express wraps Node.js HTTP server. It registers routes and middleware. When request arrives, Express matches route and executes middleware chain before sending response.
+
+Follow-up questions:
+1. Is Express mandatory for Node.js?
+2. What is middleware?
+3. How does Express handle routing?
+4. What is Express application object?
+
+Interview-ready answer:
+Express simplifies Node.js HTTP server development through routing and middleware. Each request passes through a middleware chain until a response is sent.
+
+--------------------------------------------------------------------
+2. REQUEST AND RESPONSE
+
+req:
+Contains request data: params, query, body, headers, cookies.
+
+res:
+Used to send response: status, json, send, cookie, redirect.
+
+Example:
+app.post("/users", (req, res) => {
+  console.log(req.body);
+  res.status(201).json({ success: true });
+});
+
+Use case:
+Read client input and return API response.
+
+Internal working:
+Express parses request based on middleware such as express.json(). Response methods set headers and body, then end response.
+
+Follow-up questions:
+1. Difference between req.params and req.query?
+2. How do you read request headers?
+3. What is res.json?
+4. How do you send status code?
+
+Interview-ready answer:
+req carries client request data, while res builds the server response. I use req.params for path values, req.query for filters, and req.body for JSON payload after body parsing middleware.
+
+--------------------------------------------------------------------
+3. ROUTING, HTTP METHODS AND STATUS CODES
+
+Routing:
+app.get("/users", getUsers);
+app.post("/users", createUser);
+app.put("/users/:id", updateUser);
+app.delete("/users/:id", deleteUser);
+
+HTTP methods:
+GET: read
+POST: create
+PUT: full update
+PATCH: partial update
+DELETE: remove
+
+Status codes:
+200 OK
+201 Created
+204 No Content
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict
+422 Unprocessable Entity
+500 Internal Server Error
+
+Use case:
+CRUD APIs, resource-based endpoints.
+
+Internal working:
+Express matches HTTP method and URL path to registered route handlers.
+
+Follow-up questions:
+1. Difference between PUT and PATCH?
+2. What is idempotency?
+3. Which status code for validation failure?
+4. What is 401 vs 403?
+
+Interview-ready answer:
+PUT replaces a resource and should be idempotent; PATCH applies partial changes. I use 400/422 for validation issues, 401 for unauthenticated requests and 403 for insufficient permissions.
+
+====================================================================
+DAY 2: MIDDLEWARE AND ARCHITECTURE
+====================================================================
+
+1. ROUTE PARAMS VS QUERY PARAMS VS REQUEST BODY
+
+Route params:
+/users/:id -> req.params.id
+
+Query params:
+/users?page=2&search=ravi -> req.query.page
+
+Request body:
+POST /users with JSON -> req.body
+
+Use case:
+Params identify resource, query controls filtering/pagination, body carries creation/update data.
+
+Internal working:
+Express parses URL and query string; body parser middleware parses JSON or form data.
+
+Follow-up questions:
+1. When do you use query params?
+2. How do you validate req.body?
+3. What is URL encoding?
+4. Can GET request have body?
+
+Interview-ready answer:
+I use route params for resource identity, query params for filtering/sorting/pagination, and request body for create/update payloads.
+
+--------------------------------------------------------------------
+2. MIDDLEWARE
+
+Definition:
+Middleware is a function that has access to req, res and next. It can modify request/response, validate data, authenticate users, log requests or handle errors.
+
+Example:
+app.use((req, res, next) => {
+  console.log(req.method, req.url);
+  next();
+});
+
+Use case:
+Authentication, validation, logging, CORS, rate limiting, error handling.
+
+Internal working:
+Middleware executes in registration order. Calling next passes control to next middleware. If next(error) is called, Express skips normal middleware and goes to error middleware.
+
+Follow-up questions:
+1. What happens if next is not called?
+2. Difference between app.use and app.get middleware?
+3. How many middleware can a route have?
+4. What is middleware chain?
+
+Interview-ready answer:
+Middleware processes requests in order. Every middleware must either call next, end response, or pass an error; otherwise request hangs.
+
+--------------------------------------------------------------------
+3. ERROR MIDDLEWARE
+
+Example:
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error"
+  });
+});
+
+Use case:
+Centralized error responses, hiding internal errors from clients.
+
+Internal working:
+Express identifies error middleware by four parameters. next(err) routes error to this handler.
+
+Follow-up questions:
+1. Why does error middleware need four arguments?
+2. How do you handle async errors?
+3. What is global error handler?
+4. Should you expose stack trace in production?
+
+Interview-ready answer:
+I use a centralized error middleware with four arguments. Async route errors are forwarded using next(error) or asyncHandler, and production responses should not expose stack traces.
+
+--------------------------------------------------------------------
+4. MVC AND LAYERED ARCHITECTURE
+
+MVC:
+Model: data/database logic
+View: response/UI
+Controller: request handling
+
+Layered architecture:
+Route -> Controller -> Service -> Repository -> Database
+
+Example:
+routes/user.routes.js
+controllers/user.controller.js
+services/user.service.js
+repositories/user.repository.js
+
+Use case:
+Maintainable backend, separation of concerns, testability.
+
+Internal working:
+Controller validates input and calls service. Service contains business logic. Repository handles DB queries. This avoids fat controllers.
+
+Follow-up questions:
+1. Why avoid business logic in controllers?
+2. What is repository pattern?
+3. What is DTO?
+4. How do you structure large Express app?
+
+Interview-ready answer:
+I follow a layered structure: routes define endpoints, controllers handle HTTP, services contain business rules, and repositories handle database access. This improves testability and maintainability.
+
+--------------------------------------------------------------------
+5. REST PRINCIPLES, VERSIONING, PAGINATION AND FILTERING
+
+REST principles:
+- Resource-based URLs.
+- Proper HTTP methods.
+- Stateless requests.
+- Proper status codes.
+- JSON representation.
+
+Versioning:
+/api/v1/users
+
+Pagination:
+GET /users?page=1&limit=20
+
+Sorting:
+GET /users?sortBy=createdAt&order=desc
+
+Filtering:
+GET /users?status=active&role=admin
+
+Use case:
+Scalable public APIs, admin dashboards, mobile apps.
+
+Internal working:
+Query parameters translate to DB query conditions, sort fields and skip/limit values.
+
+Follow-up questions:
+1. What is statelessness?
+2. Why version APIs?
+3. How do you prevent unbounded queries?
+4. What is HATEOAS?
+
+Interview-ready answer:
+REST APIs should be resource-oriented, stateless and use proper HTTP semantics. I version APIs, paginate results, whitelist sortable/filterable fields, and enforce limits to protect database performance.
+
+====================================================================
+DAY 3: SECURITY AND AUTHENTICATION
+====================================================================
+
+1. AUTHENTICATION VS AUTHORIZATION
+
+Authentication:
+Verifies who the user is.
+
+Authorization:
+Checks what the user can do.
+
+Example:
+Authentication: JWT validation.
+Authorization: Only admin can delete user.
+
+Use case:
+Login systems, admin panels, role-based access.
+
+Internal working:
+Authentication usually uses credentials/token. Authorization checks user roles/permissions after identity is known.
+
+Follow-up questions:
+1. What is RBAC?
+2. What is ABAC?
+3. Where should authorization be enforced?
+4. What is least privilege?
+
+Interview-ready answer:
+Authentication identifies the user; authorization decides access. I enforce authorization on backend for every sensitive operation, never relying only on frontend checks.
+
+--------------------------------------------------------------------
+2. JWT, ACCESS AND REFRESH TOKENS
+
+JWT:
+JSON Web Token containing header, payload and signature.
+
+Access token:
+Short-lived token sent with API requests.
+
+Refresh token:
+Longer-lived token used to obtain new access token.
+
+Example:
+Authorization: Bearer <accessToken>
+
+Use case:
+Stateless authentication for APIs and mobile clients.
+
+Internal working:
+Server signs JWT using secret or private key. Client sends token; server verifies signature and expiry. Refresh tokens should be stored securely and rotated on reuse.
+
+Follow-up questions:
+1. Where should JWT be stored?
+2. Access token vs refresh token?
+3. What is token rotation?
+4. Can JWT be revoked easily?
+
+Interview-ready answer:
+I use short-lived access tokens and secure HTTP-only refresh tokens with rotation. JWTs are stateless, so revocation requires a denylist, short expiry or session/version tracking.
+
+--------------------------------------------------------------------
+3. BCRYPT AND RBAC
+
+bcrypt:
+Password hashing algorithm with salt and cost factor.
+
+const hash = await bcrypt.hash(password, 10);
+const match = await bcrypt.compare(password, hash);
+
+RBAC:
+Role-Based Access Control.
+
+roles: ["user", "admin", "manager"]
+
+Use case:
+Secure password storage, admin-only routes, permission checks.
+
+Internal working:
+bcrypt hashes passwords using salt and configurable work factor. RBAC checks user role before allowing operation.
+
+Follow-up questions:
+1. Why not store plain passwords?
+2. What is salt?
+3. What is bcrypt cost factor?
+4. How do you implement role middleware?
+
+Interview-ready answer:
+I hash passwords with bcrypt and compare using bcrypt.compare. For authorization, I implement role middleware that validates allowed roles before controller execution.
+
+--------------------------------------------------------------------
+4. CORS, HELMET AND RATE LIMITING
+
+CORS:
+Controls which origins can access API.
+
+Helmet:
+Sets secure HTTP headers.
+
+Rate limiting:
+Limits request frequency.
+
+Use case:
+Browser-based frontend, security hardening, abuse prevention.
+
+Internal working:
+CORS uses HTTP headers such as Access-Control-Allow-Origin. Helmet sets headers like X-Frame-Options and Strict-Transport-Security. Rate limiter tracks request counts per IP/user.
+
+Follow-up questions:
+1. What is preflight request?
+2. Should CORS allow * in production?
+3. What security headers does Helmet set?
+4. How do you rate limit authenticated users?
+
+Interview-ready answer:
+I configure CORS with explicit trusted origins, use Helmet for security headers, and apply rate limiting per IP/user/route to prevent abuse.
+
+--------------------------------------------------------------------
+5. INPUT VALIDATION, SANITIZATION AND INJECTION PREVENTION
+
+Validation:
+Check data type, format, length and allowed values.
+
+Sanitization:
+Clean dangerous input.
+
+NoSQL injection example:
+{ "email": { "$gt": "" } }
+
+Prevention:
+- Validate with Zod/Joi.
+- Use Mongoose schema types.
+- Avoid raw query concatenation.
+- Sanitize operators.
+
+Use case:
+Login, registration, search, admin operations.
+
+Internal working:
+Validation rejects malformed data before it reaches business logic. Parameterized queries and ORM/schema validation reduce injection risk.
+
+Follow-up questions:
+1. What is NoSQL injection?
+2. Difference between validation and sanitization?
+3. How do you prevent XSS in API?
+4. Why validate on backend?
+
+Interview-ready answer:
+I validate and sanitize all client input on the backend. For MongoDB, I avoid untrusted operator objects and rely on schema validation plus safe query construction.
+
+====================================================================
+DAY 4: RELIABILITY AND TESTING
+====================================================================
+
+1. VALIDATION WITH ZOD OR JOI
+
+Zod example:
+const createUserSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(8)
+});
+
+Use case:
+Request body validation, query validation, config validation.
+
+Internal working:
+Schema defines expected shape. Validator parses input and returns typed data or validation errors.
+
+Follow-up questions:
+1. Zod vs Joi?
+2. Where should validation happen?
+3. How do you validate query params?
+4. How do you return validation errors?
+
+Interview-ready answer:
+I validate request data at the API boundary using Zod or Joi, return 400/422 with field-level errors, and pass only parsed safe data to services.
+
+--------------------------------------------------------------------
+2. ASYNC ERROR HANDLING AND CUSTOM ERRORS
+
+Example:
+const asyncHandler = fn => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 404;
+  }
+}
+
+Use case:
+Database failures, not-found resources, validation failures.
+
+Internal working:
+asyncHandler catches rejected promises and forwards them to Express error middleware.
+
+Follow-up questions:
+1. Why do async errors need special handling in Express?
+2. What is error propagation?
+3. How do you avoid try/catch repetition?
+4. What is error hierarchy?
+
+Interview-ready answer:
+I wrap async controllers with asyncHandler or use Express 5-style automatic rejection handling, then centralize errors in one middleware using custom error classes.
+
+--------------------------------------------------------------------
+3. TIMEOUTS, RETRIES AND EXPONENTIAL BACKOFF
+
+Timeout:
+Prevents requests from waiting indefinitely.
+
+Retry:
+Reattempts temporary failures.
+
+Exponential backoff:
+Increases delay after each failure: 1s, 2s, 4s.
+
+Use case:
+Payment gateway, email service, third-party API.
+
+Internal working:
+HTTP clients such as Axios support timeout. Retry logic should be idempotent and avoid retrying non-retryable errors such as 400.
+
+Follow-up questions:
+1. Which errors should be retried?
+2. What is circuit breaker?
+3. What is idempotency key?
+4. How do you prevent duplicate payments?
+
+Interview-ready answer:
+I set timeouts, retry only transient failures with exponential backoff, and use idempotency keys for payment or creation operations to prevent duplicates.
+
+--------------------------------------------------------------------
+4. WEBHOOKS AND PAYMENT INTEGRATION
+
+Webhook:
+Server-to-server callback sent when an event occurs.
+
+Example:
+Payment gateway sends payment.success event to /webhooks/payment.
+
+Use case:
+Payments, subscriptions, delivery updates, third-party events.
+
+Internal working:
+Verify webhook signature, parse event, check duplicate event ID, process asynchronously, return 200 quickly.
+
+Follow-up questions:
+1. How do you secure webhooks?
+2. What if webhook is received twice?
+3. What if processing fails?
+4. Why return 200 immediately?
+
+Interview-ready answer:
+I verify webhook signatures, store event IDs to prevent duplicates, queue processing for reliability, and acknowledge receipt quickly to avoid provider retries.
+
+--------------------------------------------------------------------
+5. TESTING WITH SUPERTHAT AND API PERFORMANCE
+
+Supertest example:
+const request = require("supertest");
+
+it("creates user", async () => {
+  const res = await request(app)
+    .post("/api/v1/users")
+    .send({ name: "Ravi", email: "ravi@test.com" });
+
+  expect(res.status).toBe(201);
+});
+
+Use case:
+Integration testing of routes, validation, auth and DB flow.
+
+Internal working:
+Supertest starts Express app in test environment and sends HTTP requests without needing manually running server.
+
+Follow-up questions:
+1. Unit vs integration testing?
+2. How do you mock external APIs?
+3. How do you test auth-protected routes?
+4. How do you improve API performance?
+
+Interview-ready answer:
+I write integration tests using Supertest with test database and mocked third-party services. For performance, I add indexes, pagination, caching, connection pooling and avoid N+1 queries.

@@ -1,0 +1,1652 @@
+JAVASCRIPT / MERN INTERVIEW CODING PRACTICE
+============================================
+Format for every question:
+1) Brute Force (easy)
+2) Built-in Methods (clean JavaScript)
+3) Medium / Optimized Method (interview-friendly)
+
+=====================================================
+1. JAVASCRIPT: STRINGS
+=====================================================
+
+Q1. Reverse a string
+--------------------
+Input: "hello" -> Output: "olleh"
+
+1) Brute Force:
+function reverseString(str) {
+  let rev = "";
+  for (let i = 0; i < str.length; i++) {
+    rev = str[i] + rev;
+  }
+  return rev;
+}
+Time: O(n^2), Space: O(n)
+
+2) Built-in:
+const reverseString = str => str.split("").reverse().join("");
+Time: O(n), Space: O(n)
+
+3) Two Pointers:
+function reverseString(str) {
+  const chars = str.split("");
+  let left = 0, right = chars.length - 1;
+  while (left < right) {
+    [chars[left], chars[right]] = [chars[right], chars[left]];
+    left++; right--;
+  }
+  return chars.join("");
+}
+Time: O(n), Space: O(n)
+
+Q2. Reverse words in a sentence
+-------------------------------
+Input: "hello world js" -> Output: "js world hello"
+
+1) Brute Force:
+function reverseWords(str) {
+  let words = [], word = "";
+  for (let ch of str) {
+    if (ch === " ") { if (word) { words.unshift(word); word = ""; } }
+    else word += ch;
+  }
+  if (word) words.unshift(word);
+  return words.join(" ");
+}
+
+2) Built-in:
+const reverseWords = str => str.trim().split(/\s+/).reverse().join(" ");
+
+3) Optimized:
+Split once, then use two pointers to swap words in the array before joining.
+Time: O(n), Space: O(n)
+
+Q3. Palindrome check (ignore case, spaces, special chars)
+---------------------------------------------------------
+Input: "A man, a plan, a canal: Panama" -> true
+
+1) Brute Force:
+function isPalindrome(str) {
+  let clean = "";
+  for (let ch of str.toLowerCase()) {
+    if ((ch >= "a" && ch <= "z") || (ch >= "0" && ch <= "9")) clean += ch;
+  }
+  let rev = "";
+  for (let i = clean.length - 1; i >= 0; i--) rev += clean[i];
+  return clean === rev;
+}
+
+2) Built-in:
+const isPalindrome = str => {
+  const clean = str.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return clean === clean.split("").reverse().join("");
+};
+
+3) Two Pointers:
+function isPalindrome(str) {
+  let left = 0, right = str.length - 1;
+  while (left < right) {
+    while (left < right && !/[a-z0-9]/i.test(str[left])) left++;
+    while (left < right && !/[a-z0-9]/i.test(str[right])) right--;
+    if (str[left].toLowerCase() !== str[right].toLowerCase()) return false;
+    left++; right--;
+  }
+  return true;
+}
+Time: O(n), Space: O(1)
+
+Q4. Anagram check
+-----------------
+Input: "listen", "silent" -> true
+
+1) Brute Force:
+Sort both strings and compare.
+function isAnagram(a, b) {
+  return a.split("").sort().join("") === b.split("").sort().join("");
+}
+Time: O(n log n)
+
+2) Built-in + Map:
+Use a Map to count characters in first string, then reduce counts for second string.
+
+3) Optimized Frequency Array:
+function isAnagram(a, b) {
+  if (a.length !== b.length) return false;
+  const count = {};
+  for (const ch of a) count[ch] = (count[ch] || 0) + 1;
+  for (const ch of b) {
+    if (!count[ch]) return false;
+    count[ch]--;
+  }
+  return true;
+}
+Time: O(n), Space: O(k)
+
+Q5. Group anagrams from an array of words
+-----------------------------------------
+Input: ["eat","tea","tan","ate","nat","bat"]
+
+1) Brute Force:
+For every word, compare sorted characters with every other word and group manually.
+
+2) Built-in:
+const groupAnagrams = words => {
+  const map = new Map();
+  for (const word of words) {
+    const key = word.split("").sort().join("");
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(word);
+  }
+  return [...map.values()];
+};
+
+3) Optimized:
+Use a 26-length character-count string as the Map key.
+Time: O(n * k), Space: O(n * k)
+
+Q6. First non-repeating character
+---------------------------------
+Input: "swiss" -> "w"
+
+1) Brute Force:
+For each character, loop through the full string and count occurrences.
+
+2) Built-in:
+const firstUnique = str =>
+  [...str].find(ch => str.split(ch).length - 1 === 1) || "";
+
+3) Optimized:
+function firstUnique(str) {
+  const count = {};
+  for (const ch of str) count[ch] = (count[ch] || 0) + 1;
+  for (const ch of str) if (count[ch] === 1) return ch;
+  return "";
+}
+Time: O(n), Space: O(k)
+
+Q7. Character frequency count
+-----------------------------
+Input: "aabbc" -> { a: 2, b: 2, c: 1 }
+
+1) Brute Force:
+For each character, count using another inner loop.
+
+2) Built-in:
+const freq = str =>
+  [...str].reduce((acc, ch) => (acc[ch] = (acc[ch] || 0) + 1, acc), {});
+
+3) Optimized:
+Single-pass object/Map count.
+Time: O(n), Space: O(k)
+
+Q8. Most frequent character
+---------------------------
+Input: "aabbbcc" -> "b"
+
+1) Brute Force:
+Count every character using nested loops and track maximum.
+
+2) Built-in:
+const mostFrequent = str => {
+  const freq = [...str].reduce((a, ch) => (a[ch] = (a[ch] || 0) + 1, a), {});
+  return Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
+};
+
+3) Optimized:
+One pass to count, one pass to find max.
+Time: O(n), Space: O(k)
+
+Q9. Longest substring without repeating characters
+--------------------------------------------------
+Input: "abcabcbb" -> 3
+
+1) Brute Force:
+Check every substring and verify whether all characters are unique.
+Time: O(n^3)
+
+2) Built-in + Set:
+Use a Set and shrink window from the left when duplicate appears.
+
+3) Sliding Window:
+function lengthOfLongestSubstring(str) {
+  const seen = new Set();
+  let left = 0, max = 0;
+  for (let right = 0; right < str.length; right++) {
+    while (seen.has(str[right])) {
+      seen.delete(str[left]);
+      left++;
+    }
+    seen.add(str[right]);
+    max = Math.max(max, right - left + 1);
+  }
+  return max;
+}
+Time: O(n), Space: O(k)
+
+Q10. Longest common prefix
+--------------------------
+Input: ["flower","flow","flight"] -> "fl"
+
+1) Brute Force:
+Compare characters column by column across all words.
+
+2) Built-in:
+const commonPrefix = arr => {
+  if (!arr.length) return "";
+  let prefix = arr[0];
+  for (const word of arr) {
+    while (!word.startsWith(prefix)) prefix = prefix.slice(0, -1);
+  }
+  return prefix;
+};
+
+3) Optimized:
+Find min and max strings lexicographically, then compare only those two.
+Time: O(n * m)
+
+Q11. Valid parentheses
+----------------------
+Input: "{[]}" -> true
+
+1) Brute Force:
+Repeatedly remove "()", "[]", "{}" until no changes; valid if string becomes empty.
+
+2) Built-in:
+Use replace loop:
+while (/\(\)|\[\]|\{\}/.test(s)) s = s.replace(/\(\)|\[\]|\{\}/g, "");
+return s === "";
+
+3) Stack:
+function isValid(str) {
+  const stack = [];
+  const map = { ")": "(", "]": "[", "}": "{" };
+  for (const ch of str) {
+    if (ch === "(" || ch === "[" || ch === "{") stack.push(ch);
+    else if (stack.pop() !== map[ch]) return false;
+  }
+  return stack.length === 0;
+}
+Time: O(n), Space: O(n)
+
+Q12. Capitalize first letter of each word
+-----------------------------------------
+Input: "hello world" -> "Hello World"
+
+1) Brute Force:
+Loop characters; capitalize after space or at start.
+
+2) Built-in:
+const capitalize = str =>
+  str.replace(/\b\w/g, ch => ch.toUpperCase());
+
+3) Map words:
+const capitalize = str =>
+  str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+Q13. String compression: aaabbc -> a3b2c1
+------------------------------------------
+1) Brute Force:
+Count each character using nested loops.
+
+2) Built-in:
+Use match or reduce with grouping.
+
+3) Single Pass:
+function compress(str) {
+  let result = "", count = 1;
+  for (let i = 1; i <= str.length; i++) {
+    if (str[i] === str[i - 1]) count++;
+    else {
+      result += str[i - 1] + count;
+      count = 1;
+    }
+  }
+  return result;
+}
+Time: O(n)
+
+Q14. Check if one string is a rotation of another
+-------------------------------------------------
+Input: "abcde", "cdeab" -> true
+
+1) Brute Force:
+Try rotating the first string n times and compare.
+
+2) Built-in:
+const isRotation = (a, b) =>
+  a.length === b.length && (a + a).includes(b);
+
+3) Optimized:
+Same concatenation trick is already optimal; validate lengths first.
+Time: O(n)
+
+Q15. Remove duplicate characters
+--------------------------------
+Input: "programming" -> "progamin"
+
+1) Brute Force:
+Check whether result already contains the character before adding.
+
+2) Built-in:
+const removeDuplicates = str => [...new Set(str)].join("");
+
+3) Optimized:
+Use a Set while iterating and build result once.
+Time: O(n)
+
+Q16. Count vowels and consonants
+--------------------------------
+1) Brute Force:
+Nested checks with vowel list.
+
+2) Built-in:
+const count = str => {
+  const vowels = (str.match(/[aeiou]/gi) || []).length;
+  const letters = (str.match(/[a-z]/gi) || []).length;
+  return { vowels, consonants: letters - vowels };
+};
+
+3) Single Pass:
+Loop once, classify each alphabetic character.
+Time: O(n)
+
+Q17. Is subsequence
+-------------------
+Input: "abc", "ahbgdc" -> true
+
+1) Brute Force:
+Generate all subsequences of the second string and check.
+
+2) Built-in:
+Use indexOf repeatedly with increasing search position.
+
+3) Two Pointers:
+function isSubsequence(s, t) {
+  let i = 0;
+  for (const ch of t) {
+    if (ch === s[i]) i++;
+  }
+  return i === s.length;
+}
+Time: O(n)
+
+Q18. Implement atoi / parseInt
+------------------------------
+1) Brute Force:
+Manual character-by-character parsing with sign and digit checks.
+
+2) Built-in:
+const atoi = str => parseInt(str, 10) || 0;
+
+3) Optimized:
+Skip spaces, read optional sign, read digits, clamp to 32-bit integer range.
+
+Q19. Longest palindromic substring
+----------------------------------
+1) Brute Force:
+Check every substring whether palindrome.
+Time: O(n^3)
+
+2) Built-in + Helper:
+Use a helper isPalindrome and check substrings from longest to shortest.
+
+3) Expand Around Center:
+function longestPalindrome(str) {
+  let start = 0, end = 0;
+  const expand = (l, r) => {
+    while (l >= 0 && r < str.length && str[l] === str[r]) { l--; r++; }
+    return r - l - 1;
+  };
+  for (let i = 0; i < str.length; i++) {
+    const len = Math.max(expand(i, i), expand(i, i + 1));
+    if (len > end - start) {
+      start = i - Math.floor((len - 1) / 2);
+      end = i + Math.floor(len / 2);
+    }
+  }
+  return str.slice(start, end + 1);
+}
+Time: O(n^2), Space: O(1)
+
+Q20. Find all permutations of a string
+--------------------------------------
+Input: "abc" -> ["abc","acb","bac","bca","cab","cba"]
+
+1) Brute Force:
+Generate all possible arrangements by recursion and filter duplicates.
+
+2) Built-in:
+Use recursion with remaining characters and current path.
+
+3) Backtracking:
+function permutations(str) {
+  const result = [];
+  const backtrack = (path, remaining) => {
+    if (!remaining.length) return result.push(path.join(""));
+    for (let i = 0; i < remaining.length; i++) {
+      backtrack(
+        [...path, remaining[i]],
+        [...remaining.slice(0, i), ...remaining.slice(i + 1)]
+      );
+    }
+  };
+  backtrack([], [...str]);
+  return result;
+}
+Time: O(n * n!)
+
+Q21. Check if two strings are isomorphic
+----------------------------------------
+Input: "egg", "add" -> true
+
+1) Brute Force:
+For every character pair, verify consistent mapping both ways.
+
+2) Built-in:
+Use two Maps for forward and reverse mapping.
+
+3) Optimized:
+function isIsomorphic(s, t) {
+  if (s.length !== t.length) return false;
+  const mapST = {}, mapTS = {};
+  for (let i = 0; i < s.length; i++) {
+    const a = s[i], b = t[i];
+    if (mapST[a] && mapST[a] !== b) return false;
+    if (mapTS[b] && mapTS[b] !== a) return false;
+    mapST[a] = b;
+    mapTS[b] = a;
+  }
+  return true;
+}
+Time: O(n)
+
+Q22. Reverse only letters, keep special characters in place
+------------------------------------------------------------
+Input: "a-bC-dEf" -> "f-dC-bEa"
+
+1) Brute Force:
+Collect letters, reverse them, then rebuild string keeping non-letters in place.
+
+2) Built-in:
+Filter letters, reverse, and replace letters using regex.
+
+3) Two Pointers:
+function reverseOnlyLetters(str) {
+  const chars = str.split("");
+  let left = 0, right = chars.length - 1;
+  while (left < right) {
+    if (!/[a-zA-Z]/.test(chars[left])) left++;
+    else if (!/[a-zA-Z]/.test(chars[right])) right--;
+    else {
+      [chars[left], chars[right]] = [chars[right], chars[left]];
+      left++; right--;
+    }
+  }
+  return chars.join("");
+}
+
+Q23. Count occurrences of a substring
+-------------------------------------
+Input: "hello hello", "hello" -> 2
+
+1) Brute Force:
+Check every index using slice comparison.
+
+2) Built-in:
+const count = (str, sub) => str.split(sub).length - 1;
+
+3) Optimized:
+Use indexOf in a loop with lastIndex + 1.
+Time: O(n * m)
+
+Q24. Convert snake_case to camelCase and back
+---------------------------------------------
+1) Brute Force:
+Split manually and rebuild strings.
+
+2) Built-in:
+const snakeToCamel = s =>
+  s.replace(/_([a-z])/g, (_, ch) => ch.toUpperCase());
+
+const camelToSnake = s =>
+  s.replace(/[A-Z]/g, ch => "_" + ch.toLowerCase());
+
+3) Optimized:
+Single-pass character transformation with state flag.
+
+=====================================================
+2. JAVASCRIPT: ARRAYS
+=====================================================
+
+Q1. Remove duplicates (3 ways)
+------------------------------
+Input: [1,2,2,3] -> [1,2,3]
+
+1) Brute Force:
+Nested loop; skip already-added values.
+
+2) Built-in:
+const unique = arr => [...new Set(arr)];
+
+3) Filter + indexOf:
+const unique = arr => arr.filter((v, i) => arr.indexOf(v) === i);
+Time: O(n^2)
+
+Q2. Flatten nested array
+------------------------
+Input: [1,[2,[3,[4]]]] -> [1,2,3,4]
+
+1) Brute Force:
+Recursive function pushing values into result.
+
+2) Built-in:
+arr.flat(Infinity)
+
+3) Recursive:
+const flatten = arr =>
+  arr.reduce((acc, v) =>
+    Array.isArray(v) ? acc.concat(flatten(v)) : acc.concat(v), []);
+
+Q3. Two Sum
+-----------
+Input: [2,7,11,15], target 9 -> [0,1]
+
+1) Brute Force:
+Check every pair.
+Time: O(n^2)
+
+2) Built-in:
+Use indexOf inside loop.
+
+3) HashMap:
+function twoSum(nums, target) {
+  const map = new Map();
+  for (let i = 0; i < nums.length; i++) {
+    const need = target - nums[i];
+    if (map.has(need)) return [map.get(need), i];
+    map.set(nums[i], i);
+  }
+}
+Time: O(n), Space: O(n)
+
+Q4. Three Sum
+-------------
+Find triplets summing to zero.
+
+1) Brute Force:
+Three nested loops.
+Time: O(n^3)
+
+2) Built-in:
+Sort array, then use includes/Set-based checks.
+
+3) Sort + Two Pointers:
+Sort, fix one number, use two pointers for remaining pair.
+Time: O(n^2)
+
+Q5. Move all zeros to end
+-------------------------
+Input: [0,1,0,3,12] -> [1,3,12,0,0]
+
+1) Brute Force:
+Create new array with non-zeros then fill zeros.
+
+2) Built-in:
+const moveZeros = arr =>
+  [...arr.filter(x => x !== 0), ...arr.filter(x => x === 0)];
+
+3) Two Pointers:
+function moveZeros(arr) {
+  let insertPos = 0;
+  for (const num of arr) if (num !== 0) arr[insertPos++] = num;
+  while (insertPos < arr.length) arr[insertPos++] = 0;
+  return arr;
+}
+Time: O(n), Space: O(1)
+
+Q6. Rotate array by k positions
+-------------------------------
+Input: [1,2,3,4,5], k=2 -> [4,5,1,2,3]
+
+1) Brute Force:
+Rotate one step k times.
+
+2) Built-in:
+const rotate = (arr, k) =>
+  [...arr.slice(-k % arr.length), ...arr.slice(0, -k % arr.length)];
+
+3) Reversal Algorithm:
+Reverse whole array, reverse first k, reverse remaining.
+Time: O(n), Space: O(1)
+
+Q7. Find missing number in 1 to n
+---------------------------------
+Input: [1,2,4,5] -> 3
+
+1) Brute Force:
+Check each number from 1 to n.
+
+2) Built-in:
+Expected sum minus actual sum using reduce.
+
+3) Math:
+const missing = arr => {
+  const n = arr.length + 1;
+  return n * (n + 1) / 2 - arr.reduce((a, b) => a + b, 0);
+};
+Time: O(n), Space: O(1)
+
+Q8. Find duplicate number
+-------------------------
+Input: [1,3,4,2,2] -> 2
+
+1) Brute Force:
+Nested loop comparison.
+
+2) Built-in:
+Use filter + indexOf or Set size check.
+
+3) HashSet:
+function findDuplicate(nums) {
+  const seen = new Set();
+  for (const num of nums) {
+    if (seen.has(num)) return num;
+    seen.add(num);
+  }
+}
+Time: O(n)
+
+Q9. Maximum subarray sum (Kadane's)
+-----------------------------------
+Input: [-2,1,-3,4,-1,2,1,-5,4] -> 6
+
+1) Brute Force:
+Check all subarrays.
+Time: O(n^2) or O(n^3)
+
+2) Built-in:
+Use reduce tracking current and max sum.
+
+3) Kadane's:
+function maxSubArray(nums) {
+  let current = nums[0], max = nums[0];
+  for (let i = 1; i < nums.length; i++) {
+    current = Math.max(nums[i], current + nums[i]);
+    max = Math.max(max, current);
+  }
+  return max;
+}
+Time: O(n), Space: O(1)
+
+Q10. Merge two sorted arrays
+----------------------------
+1) Brute Force:
+Concatenate and sort.
+Time: O((m+n) log(m+n))
+
+2) Built-in:
+[...a, ...b].sort((x, y) => x - y)
+
+3) Two Pointers:
+Compare elements and merge into result.
+Time: O(m+n)
+
+Q11. Merge overlapping intervals
+--------------------------------
+Input: [[1,3],[2,6],[8,10]] -> [[1,6],[8,10]]
+
+1) Brute Force:
+Compare every interval with every other interval.
+
+2) Built-in:
+Sort by start, then merge with reduce.
+
+3) Sort + Linear Merge:
+Sort intervals, merge when current start <= previous end.
+Time: O(n log n)
+
+Q12. Intersection and union of two arrays
+-----------------------------------------
+1) Brute Force:
+Nested loops.
+
+2) Built-in:
+const intersection = (a, b) => [...new Set(a)].filter(x => new Set(b).has(x));
+const union = (a, b) => [...new Set([...a, ...b])];
+
+3) Optimized:
+Convert one array to Set first, then single-pass checks.
+Time: O(n + m)
+
+Q13. Chunk array into size n
+----------------------------
+Input: [1,2,3,4,5], size 2 -> [[1,2],[3,4],[5]]
+
+1) Brute Force:
+Manual nested loop.
+
+2) Built-in:
+const chunk = (arr, size) =>
+  Array.from({ length: Math.ceil(arr.length / size) },
+    (_, i) => arr.slice(i * size, i * size + size));
+
+3) Loop + Slice:
+Use a while loop and slice.
+Time: O(n)
+
+Q14. Second largest element without sorting
+-------------------------------------------
+1) Brute Force:
+Find max, remove it, find max again.
+
+2) Built-in:
+const secondLargest = arr => [...new Set(arr)].sort((a,b)=>b-a)[1];
+
+3) Single Pass:
+Track largest and second largest while looping.
+Time: O(n), Space: O(1)
+
+Q15. Product of array except self
+---------------------------------
+Input: [1,2,3,4] -> [24,12,8,6]
+
+1) Brute Force:
+For each index, multiply all other elements.
+Time: O(n^2)
+
+2) Built-in:
+Use reduce for total product when no zeros exist.
+
+3) Prefix/Suffix Products:
+Build left products and right products, multiply them.
+Time: O(n), Space: O(n) or O(1) output-based
+
+Q16. Group array of objects by key
+----------------------------------
+Input: [{type:"fruit",name:"apple"},{type:"fruit",name:"mango"}]
+
+1) Brute Force:
+Loop and manually create groups.
+
+2) Built-in:
+Object.groupBy(items, item => item.type)
+
+3) Reduce:
+const groupBy = (arr, key) =>
+  arr.reduce((acc, item) => {
+    (acc[item[key]] ||= []).push(item);
+    return acc;
+  }, {});
+
+Q17. Sort array of objects by multiple fields
+---------------------------------------------
+1) Brute Force:
+Custom comparison function with if conditions.
+
+2) Built-in:
+arr.sort((a, b) =>
+  a.city.localeCompare(b.city) || a.age - b.age
+);
+
+3) Generic Multi-Sort:
+Accept array of keys/directions and compare sequentially.
+
+Q18. Binary search
+------------------
+1) Brute Force:
+Linear search.
+Time: O(n)
+
+2) Built-in:
+arr.findIndex / indexOf for unsorted arrays.
+
+3) Binary Search:
+function binarySearch(arr, target) {
+  let left = 0, right = arr.length - 1;
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    if (arr[mid] === target) return mid;
+    if (arr[mid] < target) left = mid + 1;
+    else right = mid - 1;
+  }
+  return -1;
+}
+Time: O(log n)
+
+Q19. Find pairs with given sum
+------------------------------
+1) Brute Force:
+Nested loops.
+
+2) Built-in:
+Use includes for complement.
+
+3) HashSet:
+Store seen numbers; check target - current.
+Time: O(n)
+
+Q20. Longest consecutive sequence
+---------------------------------
+Input: [100,4,200,1,3,2] -> 4
+
+1) Brute Force:
+Sort and count consecutive runs.
+
+2) Built-in:
+Sort + reduce.
+
+3) HashSet:
+Only start counting when num - 1 is not in Set.
+Time: O(n)
+
+Q21. Best time to buy and sell stock
+------------------------------------
+Input: [7,1,5,3,6,4] -> 5
+
+1) Brute Force:
+Check every buy/sell pair.
+Time: O(n^2)
+
+2) Built-in:
+Track minimum using Math.min and profit using Math.max.
+
+3) Single Pass:
+function maxProfit(prices) {
+  let minPrice = Infinity, profit = 0;
+  for (const price of prices) {
+    minPrice = Math.min(minPrice, price);
+    profit = Math.max(profit, price - minPrice);
+  }
+  return profit;
+}
+
+Q22. Container with most water
+------------------------------
+1) Brute Force:
+Check every pair of lines.
+Time: O(n^2)
+
+2) Built-in:
+Use nested loops with Math.min and multiplication.
+
+3) Two Pointers:
+Move the shorter line inward.
+Time: O(n)
+
+Q23. Subarray with given sum
+----------------------------
+1) Brute Force:
+Check all subarrays.
+
+2) Built-in:
+Use slice + reduce for each starting index.
+
+3) Sliding Window / Prefix Sum:
+For positive numbers use sliding window; for general numbers use prefix-sum Map.
+Time: O(n)
+
+Q24. Majority element
+---------------------
+Input: [3,2,3] -> 3
+
+1) Brute Force:
+Count each element using nested loops.
+
+2) Built-in:
+Use reduce frequency map and find max.
+
+3) Boyer-Moore Voting:
+function majorityElement(nums) {
+  let candidate = null, count = 0;
+  for (const num of nums) {
+    if (count === 0) candidate = num;
+    count += num === candidate ? 1 : -1;
+  }
+  return candidate;
+}
+Time: O(n), Space: O(1)
+
+Q25. Implement map, filter, reduce polyfills
+--------------------------------------------
+Array.prototype.myMap = function(cb) {
+  const result = [];
+  for (let i = 0; i < this.length; i++) {
+    if (i in this) result[i] = cb(this[i], i, this);
+  }
+  return result;
+};
+
+Array.prototype.myFilter = function(cb) {
+  const result = [];
+  for (let i = 0; i < this.length; i++) {
+    if (i in this && cb(this[i], i, this)) result.push(this[i]);
+  }
+  return result;
+};
+
+Array.prototype.myReduce = function(cb, initialValue) {
+  let acc = initialValue;
+  let start = 0;
+  if (acc === undefined) {
+    acc = this[0];
+    start = 1;
+  }
+  for (let i = start; i < this.length; i++) {
+    if (i in this) acc = cb(acc, this[i], i, this);
+  }
+  return acc;
+};
+
+Q26. Array equality (deep compare)
+----------------------------------
+1) Brute Force:
+Compare lengths and elements one by one; recurse for nested arrays.
+
+2) Built-in:
+JSON.stringify(a) === JSON.stringify(b) — simple but order-sensitive and limited.
+
+3) Recursive Deep Compare:
+Handle arrays, objects, null, and primitive types properly.
+
+Q27. Find the k-th largest element
+----------------------------------
+1) Brute Force:
+Sort descending and pick k-1 index.
+
+2) Built-in:
+const kthLargest = (arr, k) => [...arr].sort((a,b)=>b-a)[k-1];
+
+3) Min-Heap:
+Maintain heap of size k.
+Time: O(n log k)
+
+Q28. Sort array of 0s, 1s, 2s (Dutch flag)
+-------------------------------------------
+1) Brute Force:
+Count 0s, 1s, 2s and overwrite array.
+
+2) Built-in:
+arr.sort((a,b)=>a-b)
+
+3) Three Pointers:
+low, mid, high pointers; swap based on nums[mid].
+Time: O(n), Space: O(1)
+
+Q29. Find leaders in an array
+-----------------------------
+A leader is greater than all elements to its right.
+
+1) Brute Force:
+Nested loop comparison.
+
+2) Built-in:
+Use slice + Math.max / every.
+
+3) Right-to-Left Scan:
+Track max from right; current element is leader if greater than max.
+Time: O(n)
+
+Q30. Spiral traversal of a 2D matrix
+------------------------------------
+1) Brute Force:
+Use visited matrix and direction changes.
+
+2) Built-in:
+Use shift/pop and matrix transformation recursively.
+
+3) Boundary Pointers:
+Maintain top, bottom, left, right boundaries.
+Time: O(m*n)
+
+Q31. Rotate a matrix 90 degrees
+-------------------------------
+1) Brute Force:
+Create new matrix and place elements using formula.
+
+2) Built-in:
+Use map + reverse for transpose-like transformation.
+
+3) In-place:
+Transpose matrix, then reverse each row.
+Time: O(n^2), Space: O(1)
+
+Q32. Transpose a matrix
+-----------------------
+1) Brute Force:
+Create new matrix with swapped indices.
+
+2) Built-in:
+const transpose = matrix => matrix[0].map((_, i) => matrix.map(row => row[i]));
+
+3) In-place:
+Swap matrix[i][j] with matrix[j][i] for j > i.
+
+=====================================================
+3. JAVASCRIPT: OBJECTS
+=====================================================
+
+Q1. Deep clone
+--------------
+1) Brute Force:
+Manual recursive copy for arrays and plain objects.
+
+2) Built-in:
+structuredClone(obj)
+
+3) Custom Deep Clone:
+Handle Date, Array, nested objects, and circular references using WeakMap.
+
+Q2. Deep equal
+--------------
+1) Brute Force:
+JSON.stringify comparison.
+
+2) Built-in:
+Use Object.keys + every recursively.
+
+3) Optimized:
+Recursive comparison handling arrays, dates, null, and key counts.
+
+Q3. Flatten nested object
+-------------------------
+Input: {a:{b:1}} -> {"a.b":1}
+
+1) Brute Force:
+Recursive function building keys manually.
+
+2) Built-in:
+Use Object.entries + reduce recursively.
+
+3) Optimized:
+Single recursive DFS with path accumulation.
+
+Q4. Unflatten object
+--------------------
+Input: {"a.b":1} -> {a:{b:1}}
+
+1) Brute Force:
+Split keys and manually create nested objects.
+
+2) Built-in:
+Use reduce + split.
+
+3) Optimized:
+Iterate keys once and build nested structure using references.
+
+Q5. Group by / count by property
+--------------------------------
+1) Brute Force:
+Loop and if/else grouping.
+
+2) Built-in:
+Object.groupBy(arr, fn) or reduce.
+
+3) Optimized:
+Single-pass reduce with computed keys.
+
+Q6. Deep merge two objects
+--------------------------
+1) Brute Force:
+Recursive manual merge.
+
+2) Built-in:
+Shallow: {...a, ...b}; deep requires recursion.
+
+3) Optimized:
+Recursive merge where nested plain objects merge, other values overwrite.
+
+Q7. Implement get(obj, 'a.b.c', default)
+----------------------------------------
+1) Brute Force:
+Split path and loop.
+
+2) Built-in:
+Use reduce with optional chaining concept.
+
+3) Optimized:
+function get(obj, path, defaultValue) {
+  const value = path.split(".").reduce((acc, key) => acc?.[key], obj);
+  return value === undefined ? defaultValue : value;
+}
+
+Q8. Implement set(obj, 'a.b.c', value)
+--------------------------------------
+1) Brute Force:
+Split path and create objects level by level.
+
+2) Built-in:
+Use reduce with object references.
+
+3) Optimized:
+Clone only affected path to avoid mutating original object.
+
+Q9. Invert object keys and values
+---------------------------------
+1) Brute Force:
+Loop entries and build new object.
+
+2) Built-in:
+const invert = obj =>
+  Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k]));
+
+3) Optimized:
+Single-pass reduce.
+
+Q10. Pick and omit keys
+-----------------------
+1) Brute Force:
+Loop keys and manually copy/delete.
+
+2) Built-in:
+const pick = (obj, keys) => Object.fromEntries(
+  keys.filter(k => k in obj).map(k => [k, obj[k]])
+);
+const omit = (obj, keys) => Object.fromEntries(
+  Object.entries(obj).filter(([k]) => !keys.includes(k))
+);
+
+3) Optimized:
+Use Set for keys to reduce lookup time.
+
+Q11. Find object with max value in an array
+-------------------------------------------
+1) Brute Force:
+Loop and compare.
+
+2) Built-in:
+arr.reduce((max, item) => item.score > max.score ? item : max)
+
+3) Optimized:
+Single-pass reduce.
+Time: O(n)
+
+Q12. Convert array to object
+----------------------------
+1) Brute Force:
+Loop and assign.
+
+2) Built-in:
+Object.fromEntries(arr.map(item => [item.id, item]))
+
+3) Optimized:
+Single-pass reduce keyed by id.
+
+Q13. Remove falsy values from object
+------------------------------------
+1) Brute Force:
+Loop entries and skip falsy.
+
+2) Built-in:
+const clean = obj =>
+  Object.fromEntries(Object.entries(obj).filter(([, v]) => Boolean(v)));
+
+3) Optimized:
+Single-pass reduce.
+
+Q14. Sort object by values
+--------------------------
+1) Brute Force:
+Convert to entries, sort, rebuild.
+
+2) Built-in:
+const sortByValue = obj =>
+  Object.fromEntries(Object.entries(obj).sort((a,b)=>b[1]-a[1]));
+
+3) Optimized:
+Same approach; use appropriate comparator for numbers or strings.
+
+Q15. Transform API response
+---------------------------
+1) Brute Force:
+Manual loops and temporary variables.
+
+2) Built-in:
+map + destructuring + spread.
+
+3) Optimized:
+Pure transformation function with clear mapping rules.
+
+Q16. Count frequency of items and return object
+-----------------------------------------------
+1) Brute Force:
+Nested loops.
+
+2) Built-in:
+reduce frequency counter.
+
+3) Optimized:
+Single pass Map/object counter.
+
+Q17. Find common keys between two objects
+-----------------------------------------
+1) Brute Force:
+Nested key checks.
+
+2) Built-in:
+Object.keys(a).filter(k => k in b)
+
+3) Optimized:
+Use Set of keys from smaller object.
+
+Q18. Difference between two objects
+------------------------------------
+1) Brute Force:
+Compare every key manually.
+
+2) Built-in:
+Use Object.keys + filter + comparison.
+
+3) Optimized:
+Recursive diff returning added, removed, and changed values.
+
+Q19. Make object deeply immutable
+---------------------------------
+1) Brute Force:
+Manually freeze every nested object.
+
+2) Built-in:
+Object.freeze(obj) — shallow only.
+
+3) Deep Freeze:
+function deepFreeze(obj) {
+  Object.freeze(obj);
+  for (const value of Object.values(obj)) {
+    if (value && typeof value === "object") deepFreeze(value);
+  }
+  return obj;
+}
+
+Q20. Convert object to query string and back
+--------------------------------------------
+1) Brute Force:
+Manual string building and parsing.
+
+2) Built-in:
+new URLSearchParams(obj).toString()
+Object.fromEntries(new URLSearchParams(queryString))
+
+3) Optimized:
+Handle nested objects and arrays with encoding.
+
+Q21. Merge array of objects by id
+---------------------------------
+1) Brute Force:
+Nested loops.
+
+2) Built-in:
+Use Map + reduce.
+
+3) Optimized:
+Build id Map once, then merge in one pass.
+Time: O(n + m)
+
+Q22. Build tree from flat list with parentId
+--------------------------------------------
+1) Brute Force:
+Recursive search for children.
+
+2) Built-in:
+Use Map of id -> node and attach children.
+
+3) Optimized:
+function buildTree(items, parentId = null) {
+  const map = new Map(items.map(item => [item.id, { ...item, children: [] }]));
+  const tree = [];
+  for (const node of map.values()) {
+    if (node.parentId === parentId) tree.push(node);
+    else map.get(node.parentId)?.children.push(node);
+  }
+  return tree;
+}
+Time: O(n)
+
+=====================================================
+4. JAVASCRIPT: FUNCTIONS AND ASYNC
+=====================================================
+
+Q1. Debounce
+------------
+Run function only after user stops calling it for delay ms.
+
+1) Brute Force:
+Use timestamp checks.
+
+2) Built-in:
+Use setTimeout and clearTimeout.
+
+3) Standard:
+function debounce(fn, delay) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+Q2. Throttle
+------------
+Allow function execution at most once per interval.
+
+1) Brute Force:
+Track last execution time.
+
+2) Built-in:
+Use setTimeout flag.
+
+3) Standard:
+function throttle(fn, limit) {
+  let lastCall = 0;
+  return function (...args) {
+    const now = Date.now();
+    if (now - lastCall >= limit) {
+      lastCall = now;
+      fn.apply(this, args);
+    }
+  };
+}
+
+Q3. Currying: sum(1)(2)(3)
+--------------------------
+1) Brute Force:
+Return nested arrow functions.
+
+2) Built-in:
+Use recursive closure.
+
+3) Generic Curry:
+const curry = fn => {
+  return function curried(...args) {
+    return args.length >= fn.length
+      ? fn(...args)
+      : curried.bind(null, ...args);
+  };
+};
+
+Q4. Infinite currying: sum(1)(2)(3)()
+--------------------------------------
+function sum(a) {
+  return function (b) {
+    if (b === undefined) return a;
+    return sum(a + b);
+  };
+}
+
+Q5. Memoize
+-----------
+Cache function results for same inputs.
+
+function memoize(fn) {
+  const cache = new Map();
+  return function (...args) {
+    const key = JSON.stringify(args);
+    if (!cache.has(key)) cache.set(key, fn.apply(this, args));
+    return cache.get(key);
+  };
+}
+
+Q6. bind, call, apply polyfills
+-------------------------------
+Implement using Function.prototype and Symbol to temporarily attach function to context.
+
+Function.prototype.myCall = function (context, ...args) {
+  context = context ?? globalThis;
+  const key = Symbol();
+  context[key] = this;
+  const result = context[key](...args);
+  delete context[key];
+  return result;
+};
+
+Q7. Promise.all polyfill
+------------------------
+Resolve when all promises resolve; reject immediately on first failure.
+
+function promiseAll(promises) {
+  return new Promise((resolve, reject) => {
+    const results = [];
+    let completed = 0;
+    promises.forEach((p, i) => {
+      Promise.resolve(p).then(value => {
+        results[i] = value;
+        completed++;
+        if (completed === promises.length) resolve(results);
+      }, reject);
+    });
+  });
+}
+
+Q8. Promise.allSettled polyfill
+-------------------------------
+Wait for all promises and return status/value or status/reason.
+
+Q9. Promise.race polyfill
+-------------------------
+Resolve or reject with the first settled promise.
+
+function promiseRace(promises) {
+  return new Promise((resolve, reject) => {
+    promises.forEach(p => Promise.resolve(p).then(resolve, reject));
+  });
+}
+
+Q10. Retry a failed API call n times
+------------------------------------
+async function retry(fn, retries = 3, delay = 1000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      await new Promise(res => setTimeout(res, delay));
+    }
+  }
+}
+
+Q11. Run n promises with concurrency limit
+------------------------------------------
+Maintain an active count and a queue; start a new task whenever one finishes.
+
+Q12. compose and pipe
+---------------------
+const compose = (...fns) => x => fns.reduceRight((acc, fn) => fn(acc), x);
+const pipe = (...fns) => x => fns.reduce((acc, fn) => fn(acc), x);
+
+Q13. Event emitter
+------------------
+Implement on, off, emit, once using a Map of event name to listener array.
+
+Q14. once(fn)
+-------------
+function once(fn) {
+  let called = false, result;
+  return function (...args) {
+    if (!called) {
+      called = true;
+      result = fn.apply(this, args);
+    }
+    return result;
+  };
+}
+
+Q15. Sleep / delay function
+---------------------------
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+Q16. Promise timeout wrapper
+----------------------------
+Promise.race([task, timeoutPromise])
+
+Q17. Implement a simple Promise class
+-------------------------------------
+Maintain state: pending, fulfilled, rejected.
+Store callbacks and execute them asynchronously.
+
+Q18. Async task queue / scheduler
+---------------------------------
+Queue tasks and run with concurrency control.
+
+Q19. LRU cache
+--------------
+Use Map because it preserves insertion order.
+On get/put, delete and re-set key to make it most recently used.
+Evict first key when capacity exceeds limit.
+
+Q20. Pub-sub
+------------
+Publishers send events to a channel; subscribers register callbacks.
+Implement subscribe, unsubscribe, publish.
+
+=====================================================
+5. JAVASCRIPT: OUTPUT QUESTIONS
+=====================================================
+
+Q1. var vs let in loop with setTimeout
+--------------------------------------
+var creates function-scoped variable, so all callbacks see final value.
+let creates block-scoped variable per iteration.
+
+Q2. Event loop order
+--------------------
+Synchronous code -> process.nextTick -> microtasks (Promises) -> macrotasks (setTimeout).
+
+Q3. this in arrow vs normal function
+------------------------------------
+Arrow functions inherit this from enclosing scope.
+Normal functions get this based on how they are called.
+
+Q4. Closure counter
+-------------------
+Inner function retains access to outer function variable even after outer function returns.
+
+Q5. Hoisting and TDZ
+--------------------
+var declarations are hoisted with undefined.
+let/const are hoisted but remain in Temporal Dead Zone until initialization.
+
+Q6. == vs ===, [] + {}, typeof null
+------------------------------------
+== performs type coercion; === does not.
+typeof null === "object" is a historical JavaScript bug.
+
+Q7. Prototype chain
+-------------------
+Objects look up properties on themselves, then their prototype, and continue upward.
+
+Q8. async/await execution order
+-------------------------------
+await pauses only inside the async function; remaining code becomes microtask.
+
+Q9. Object reference vs copy
+----------------------------
+Objects are copied by reference; spread creates shallow copy only.
+
+Q10. new keyword and constructor functions
+------------------------------------------
+new creates an object, sets prototype, binds this, and returns the object.
+
+=====================================================
+6. REACT.JS CODING
+=====================================================
+
+For React questions, explain in three levels:
+1) Basic state + JSX approach
+2) Built-in hooks: useState, useEffect, useMemo, useCallback
+3) Optimized approach: custom hooks, memoization, key optimization, Context/Reducer
+
+Components:
+1. Counter
+2. Todo app (add, delete, edit, toggle, filter)
+3. Search/filter list with debounce
+4. Fetch API data with loading and error states
+5. Pagination
+6. Infinite scroll
+7. Accordion
+8. Tabs
+9. Modal
+10. Star rating
+11. Autocomplete / typeahead
+12. Form with validation
+13. Stopwatch / countdown timer
+14. Progress bar
+15. Nested comments
+16. File explorer (recursive)
+17. Tic-tac-toe
+18. Grid lights
+19. Dark/light theme with Context
+20. Shopping cart
+21. OTP input
+22. Image carousel
+23. Multi-step form
+24. Data table with sort and search
+25. Like button with optimistic update
+26. Toast / notification system
+27. Drag and drop list
+28. Dropdown with multi-select
+29. Tooltip
+30. Quiz app
+
+Custom Hooks:
+1. useFetch
+2. useDebounce
+3. useThrottle
+4. useLocalStorage
+5. usePrevious
+6. useToggle
+7. useOnClickOutside
+8. useWindowSize
+9. useInterval
+10. useAsync
+
+=====================================================
+7. NODE.JS + EXPRESS CODING
+=====================================================
+
+For backend questions, explain in three levels:
+1) Basic route/controller approach
+2) Built-in Express/Mongoose/Middleware features
+3) Production-ready approach: validation, error handling, security, transactions, caching
+
+Topics:
+1. CRUD REST API with MongoDB
+2. JWT authentication
+3. Password hashing with bcrypt
+4. Role-based authorization middleware
+5. Logger middleware
+6. Global error handler + async wrapper
+7. Rate limiter from scratch
+8. Pagination, sorting, filtering, search API
+9. File upload with Multer
+10. Input validation with Joi
+11. Refresh token flow
+12. Response caching
+13. Soft delete
+14. Mongoose populate and aggregation
+15. MongoDB transaction
+16. Read large file with streams
+17. Custom EventEmitter example
+18. Graceful shutdown
+19. Simple URL shortener API
+20. Simple pub-sub with Redis
+
+=====================================================
+8. MERN COMBINED PROBLEMS
+=====================================================
+
+For full-stack questions, explain:
+1) Basic working flow
+2) Built-in tools/libraries
+3) Production-ready architecture
+
+Topics:
+1. Login flow end to end (React + Express + JWT)
+2. Protected routes in React + protected APIs in Express
+3. Search with debounce + search API
+4. Infinite scroll with paginated API
+5. Image upload (React FormData -> Multer -> Cloudinary)
+6. Real-time chat with Socket.io
+7. Axios interceptor with auto token refresh
+8. Optimistic UI update with rollback
+9. Role-based UI and API
+10. Todo app full stack
+11. E-commerce cart with checkout flow
+12. Notification system with Socket.io
