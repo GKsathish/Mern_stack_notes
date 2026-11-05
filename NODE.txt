@@ -12,7 +12,8 @@ DAY 1: NODE.JS ARCHITECTURE
 1. WHAT IS NODE.JS?
 
 Definition:
-Node.js is a JavaScript runtime built on Chrome's V8 engine that allows JavaScript to run outside the browser, mainly for server-side and tooling applications.
+
+Node.js is an open-source, cross-platform JavaScript runtime environment ,built on chorme's v8 engine that allows us to execute JavaScript outside the browser, primarily for building server-side applications.
 
 Example:
 console.log("Node.js server running");
@@ -62,6 +63,8 @@ Node.js JavaScript execution is single-threaded, but libuv uses a thread pool fo
 Definition:
 Node.js executes JavaScript on one main thread, but it can handle many I/O operations concurrently using asynchronous callbacks, promises and the event loop.
 
+Concurrent I/O means Node.js can manage multiple I/O operations that are in progress at the same time without synchronously blocking the main JavaScript thread while they wait.
+
 Example:
 fs.readFile("file.txt", (err, data) => {
   console.log("File read completed");
@@ -88,7 +91,13 @@ Node.js handles concurrency through asynchronous I/O, not by running JavaScript 
 4. EVENT-DRIVEN AND NON-BLOCKING I/O
 
 Definition:
-Event-driven architecture means program flow is determined by events such as requests, timers, file completion or messages. Non-blocking I/O means the program does not wait for I/O operations to finish.
+Event-driven architecture means program flow is determined by events such as requests, timers, file completion or messages. 
+
+Non-blocking I/O means the program does not wait for I/O operations to finish.
+
+Non-blocking I/O allows JavaScript to continue executing other work while an I/O operation is pending, rather than waiting synchronously for the operation to finish.
+
+“Event-driven programming is a programming model in which the application responds to events by executing registered callbacks or handlers.”
 
 Example:
 const EventEmitter = require("events");
@@ -123,6 +132,8 @@ DAY 2: EVENT LOOP, THREADS AND PROCESSES
 
 Definition:
 The event loop is the mechanism that allows Node.js to perform non-blocking operations on a single thread by processing callbacks in phases.
+
+The Event Loop is a mechanism in Node.js that coordinates the execution of eligible asynchronous callbacks and I/O events while JavaScript runs on the main thread.
 
 Main phases:
 1. Timers: executes setTimeout and setInterval callbacks.
@@ -171,14 +182,18 @@ The event loop processes phases and drains microtasks between them. process.next
 Thread pool:
 libuv maintains a pool of threads, by default four, used for operations such as fs I/O, DNS lookup and some crypto operations.
 
+“The libuv thread pool is a group of background threads used for certain operations, including many file-system operations and selected DNS and cryptographic operations.”
+
 Worker Threads:
 Run JavaScript in separate threads for CPU-intensive tasks.
+“Worker Threads allow JavaScript to execute in separate threads within the same process, making them useful for CPU-intensive tasks.”
 
 const { Worker } = require("worker_threads");
 new Worker("./heavy-task.js");
 
 Child Processes:
 Create separate Node.js processes.
+"The Child Process module allows a Node.js application to create separate operating-system processes to execute commands, scripts, or other programs.”
 
 const { fork } = require("child_process");
 fork("./worker.js");
@@ -204,6 +219,7 @@ I use Worker Threads for CPU-bound JavaScript work and child processes for isola
 
 Definition:
 Cluster module allows a Node.js application to create multiple worker processes that share the same server port.
+“The Cluster module allows Node.js application to create multiple worker processes that can share a server port and handle incoming connections across multiple processes.”
 
 Example:
 const cluster = require("cluster");
@@ -265,12 +281,17 @@ DAY 3: MODULES, EVENTS AND STREAMS
 ====================================================================
 
 1. COMMONJS VS ES MODULES
+A module is a reusable, independent unit of code that can be exported from one file and imported into another file.
 
 CommonJS:
+ CommonJS is a module system used by Node.js that provides require() for importing modules and module.exports for exporting functionality.
+
 const fs = require("fs");
 module.exports = { start };
 
 ES Modules:
+ ES Modules are the standard JavaScript module system that uses import and export to share functionality between modules.
+
 import fs from "fs";
 export function start() {}
 
@@ -296,7 +317,17 @@ CommonJS uses require/module.exports and loads synchronously, while ES Modules u
 2. EVENTEMITTER AND CUSTOM EVENTS
 
 Definition:
+EventEmitter is a built-in Node.js class provided by the node:events module that allows objects to emit named events and register listener functions to respond to those events.
 EventEmitter is a Node.js core class used to create and handle custom events.
+
+3. Important EventEmitter methods
+Method               	Purpose
+on(event, listener)	Registers a listener that can execute repeatedly.
+emit(event, ...args)	Triggers an event and passes arguments to listeners.
+once(event, listener)	Registers a listener that executes at most once.
+off(event, listener)	Removes a specific listener.
+removeAllListeners(event)	Removes all listeners for an event, or all events if omitted.
+listenerCount(event)	Returns the number of listeners registered for an event.
 
 Example:
 const EventEmitter = require("events");
@@ -325,11 +356,15 @@ Follow-up questions:
 Interview-ready answer:
 EventEmitter enables pub-sub style communication inside Node.js. Listeners run synchronously unless the handler performs async work; I remove listeners properly to prevent memory leaks.
 
+EventEmitter vs Event-driven architecture
+- EventEmitter: A specific Node.js API for emitting and listening to events within a process.
+- Event-driven architecture: A broader design approach where components communicate through events.
+
 --------------------------------------------------------------------
 3. BUFFER AND FILE SYSTEM MODULE
 
 Buffer:
-Temporary memory area used to handle binary data.
+Temporary memory area used to handle binary data. or A Buffer is a Node.js class used to handle binary data directly in memory, especially when working with files, streams, and network communication.
 
 const buffer = Buffer.from("hello");
 console.log(buffer.toString());
@@ -339,6 +374,12 @@ const fs = require("fs/promises");
 
 await fs.readFile("data.txt", "utf-8");
 await fs.writeFile("output.txt", "Hello");
+Method	Purpose
+Buffer.from()	Creates a buffer from existing data
+Buffer.alloc()	Creates a zero-initialized buffer
+buffer.toString()	Converts buffer contents to text
+buffer.length	Returns the buffer size in bytes
+Buffer.isBuffer()	Checks whether a value is a Buffer
 
 Use case:
 File uploads, image processing, logs, CSV/PDF processing.
@@ -355,22 +396,98 @@ Follow-up questions:
 Interview-ready answer:
 Buffer handles binary data such as files and network packets. For small files I may use readFile, but for large files I use streams to avoid loading entire file into memory.
 
+The File System module (node:fs) is a built-in Node.js module that provides APIs to interact with files and directories, including reading, writing, updating, deleting, and managing file metadata.
+
+const fs = require("node:fs");
+
+fs.readFile("sample.txt", "utf8", (err, data) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+
+  console.log(data);
+});
+
+Other important methods
+Method	Purpose
+fs.readFile()	Reads the complete file into memory
+fs.writeFile()	Writes data to a file
+fs.appendFile()	Appends data to a file
+fs.unlink()	Deletes a file
+fs.mkdir()	Creates a directory
+fs.readdir()	Lists directory contents
+fs.stat()	Retrieves file metadata
+fs.createReadStream()	Reads a file incrementally
+fs.createWriteStream()	Writes data incrementally
+
 --------------------------------------------------------------------
 4. STREAMS: READABLE, WRITABLE, DUPLEX AND TRANSFORM
 
-Readable:
+A Stream is an abstraction for processing data incrementally in chunks instead of requiring the entire dataset to be loaded into memory at once.
+
+Readable: 
+
+A Readable stream is used to read data from a source in chunks.
+
 Source of data.
-fs.createReadStream("large.mp4")
+const fs = require("node:fs");
+
+const readable = fs.createReadStream("large.txt");
+
+readable.on("data", (chunk) => {
+  console.log("Received:", chunk.length, "bytes");
+});
+
+readable.on("end", () => {
+  console.log("Reading completed");
+});
+
+readable.on("error", (err) => {
+  console.error(err.message);
+});
 
 Writable:
+Definition: A Writable stream is used to write data to a destination incrementally.
+
 Destination for data.
-fs.createWriteStream("copy.mp4")
+const fs = require("node:fs");
+
+const writable = fs.createWriteStream("output.txt");
+
+writable.write("Hello ");
+writable.write("Node.js\n");
+
+writable.end("Writing completed");
+
+writable.on("finish", () => {
+  console.log("All data has been written");
+});
+
+writable.on("error", (err) => {
+  console.error(err.message);
+}); 
 
 Duplex:
-Both readable and writable.
-Net socket.
+Definition: A Duplex stream supports both reading and writing, with its readable and writable sides operating independently.
+const net = require("node:net");
+
+const server = net.createServer((socket) => {
+  socket.write("Welcome to the server\n");
+
+  socket.on("data", (data) => {
+    console.log("Client sent:", data.toString());
+    socket.write(`Received: ${data}`);
+  });
+});
+
+server.listen(3000, () => {
+  console.log("Server listening on port 3000");
+});
 
 Transform:
+Definition: A Transform stream is a Duplex stream that transforms input data into output data.
+
 Modifies data while streaming.
 zlib.createGzip()
 
@@ -393,18 +510,47 @@ Streams process data in chunks, making them ideal for large files and network I/
 5. PIPE, PIPELINE AND BACKPRESSURE
 
 pipe:
-Connects readable stream to writable stream.
+Interview definition: pipe() is a stream method that connects a Readable stream to a Writable stream, allowing data to flow from the source to the destination while managing backpressure.
 
-readStream.pipe(writeStream);
+const fs = require("node:fs");
+
+const readable = fs.createReadStream("large.txt");
+const writable = fs.createWriteStream("copy.txt");
+
+readable.pipe(writable);
+
+writable.on("finish", () => {
+  console.log("File copied successfully");
+});
+
+readable.on("error", console.error);
+writable.on("error", console.error);
+
+Limitation: pipe() does not automatically provide comprehensive error propagation and cleanup across the entire pipeline. For production code, consider pipeline().
 
 pipeline:
-Connects multiple streams and handles errors properly.
 
-const { pipeline } = require("stream/promises");
-await pipeline(readStream, gzipStream, writeStream);
+Interview definition: pipeline() is a Node.js stream utility that connects streams, forwards errors, and helps clean up streams when a pipeline fails.
+
+const fs = require("node:fs");
+const { pipeline } = require("node:stream");
+
+pipeline(
+  fs.createReadStream("large.txt"),
+  fs.createWriteStream("copy.txt"),
+  (err) => {
+    if (err) {
+      console.error("Pipeline failed:", err.message);
+      return;
+    }
+
+    console.log("File copied successfully");
+  }
+);
 
 Backpressure:
-When writable stream cannot consume data as fast as readable stream produces it.
+
+Interview definition: Backpressure is a mechanism that regulates data flow when a Writable stream cannot process data as quickly as a Readable stream produces it.
 
 Use case:
 File copy, compression, upload proxying, ETL jobs.
