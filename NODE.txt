@@ -142,6 +142,9 @@ Main phases:
 4. Check: executes setImmediate callbacks.
 5. Close callbacks: executes close events.
 
+Between every callback, Node first drains the process.nextTick queue, then the Promise microtask queue. 
+Heavy operations like file system, DNS and crypto are handled by libuv’s thread pool, so the main thread stays free to handle other requests.”
+
 Queues:
 - Microtask queue: process.nextTick and Promise callbacks.
 - Macrotask queues: timers, I/O, setImmediate.
@@ -182,28 +185,153 @@ The event loop processes phases and drains microtasks between them. process.next
 Thread pool:
 libuv maintains a pool of threads, by default four, used for operations such as fs I/O, DNS lookup and some crypto operations.
 
-“The libuv thread pool is a group of background threads used for certain operations, including many file-system operations and selected DNS and cryptographic operations.”
+The Thread Pool in Node.js is a collection of background worker threads managed by libuv. It is used to execute certain time-consuming operations without blocking the main JavaScript thread.
+
+By default, the libuv thread pool contains 4 worker threads. We can change its size using the UV_THREADPOOL_SIZE environment variable.
+
+Operation	Thread Pool
+fs.readFile()	Yes
+fs.writeFile()	Yes
+crypto.pbkdf2()	Yes
+crypto.scrypt()	Yes
+zlib operations	Yes
+dns.lookup()	Yes
+HTTP network requests	Generally no
+
+Important: Every asynchronous operation does not use the Thread Pool. Network I/O generally uses OS-level asynchronous mechanisms.
+
+4. Practical Example
+const fs = require("fs");
+
+console.log("Start");
+
+fs.readFile("sample.txt", "utf8", (err, data) => {
+    if (err) {
+        console.log(err);
+        return;
+    }
+
+    console.log("File Reading Completed");
+});
+
+console.log("End");
+
+
+Output:
+Start
+End
+File Reading Completed
+
 
 Worker Threads:
-Run JavaScript in separate threads for CPU-intensive tasks.
-“Worker Threads allow JavaScript to execute in separate threads within the same process, making them useful for CPU-intensive tasks.”
+
+Worker Threads are a Node.js feature that allows us to execute JavaScript code in multiple threads within the same process.
+Each Worker Thread has its own JavaScript execution environment (V8 isolate and Event Loop). Worker Threads are mainly used for CPU-intensive tasks to prevent blocking the main JavaScript thread.
+
+Large Excel file processing
+Image processing
+Complex calculations
+Large data processing
+Password hashing with computationally expensive algorithms
+#main.js
 
 const { Worker } = require("worker_threads");
-new Worker("./heavy-task.js");
+
+console.log("Main Thread Started");
+
+const worker = new Worker("./worker.js");
+
+worker.on("message", (result) => {
+    console.log("Result from Worker:", result);
+});
+
+worker.on("error", (error) => {
+    console.log("Worker Error:", error);
+});
+
+worker.on("exit", (code) => {
+    console.log("Worker Exited:", code);
+});
+
+console.log("Main Thread is Free");
+
+worker.js
+const { parentPort } = require("worker_threads");
+
+function calculateSum() {
+    let sum = 0;
+
+    for (let i = 0; i < 100000000; i++) {
+        sum += i;
+    }
+
+    return sum;
+}
+
+const result = calculateSum();
+
+parentPort.postMessage(result);
+
+output
+Main Thread Started
+Main Thread is Free
+Result from Worker: 4999999950000000
+Worker Exited: 0
+
+mportant Worker Thread Methods
+Method / Property      	       Purpose
+new Worker()                 	 Creates a worker thread
+parentPort.postMessage()	     Sends message from worker to parent
+worker.postMessage()	         Sends message from parent to worker
+worker.on("message")	         Receives worker message
+worker.on("error")	           Handles worker errors
+worker.terminate()	           Stops worker
+isMainThread	                 Checks whether execution is on the main thread
+workerData	                   Passes initial data to worker
 
 Child Processes:
 Create separate Node.js processes.
+
 "The Child Process module allows a Node.js application to create separate operating-system processes to execute commands, scripts, or other programs.”
 
+Child Process is a Node.js module that allows us to create and execute separate operating system processes from a parent Node.js process.
+
+It allows us to execute external commands, run other Node.js scripts, and perform independent tasks without blocking the main JavaScript thread.
+Each child process has its own memory space and execution environment. Parent and child processes can communicate using IPC (Inter-Process Communication)
+
+child process has four methods 
+
+Method	Purpose
+spawn()	Executes a command in a new process with streaming output
+exec()	Executes a command using a shell and buffers output
+execFile()	Executes an executable directly without a shell by default
+fork()	Creates another Node.js process with IPC communication
+
+parent.js
 const { fork } = require("child_process");
-fork("./worker.js");
+
+const child = fork("child.js");
+
+child.send({ number: 10 });
+
+child.on("message", (result) => {
+    console.log("Result from child:", result);
+});
+
+child.js
+
+process.on("message", (data) => {
+    const result = data.number * data.number;
+
+    process.send(result);
+});
+
+output
+Result from child: 100
 
 Use case:
 Worker Threads: image processing, hashing, data transformation.
 Child Processes: isolated tasks, shell commands, CPU-heavy services.
-
-Internal working:
-Worker Threads share memory options and communicate through message passing or SharedArrayBuffer. Child processes have separate memory and communicate through IPC.
 
 Follow-up questions:
 1. Difference between Worker Threads and child processes?
@@ -218,18 +346,64 @@ I use Worker Threads for CPU-bound JavaScript work and child processes for isola
 3. CLUSTER MODULE
 
 Definition:
-Cluster module allows a Node.js application to create multiple worker processes that share the same server port.
-“The Cluster module allows Node.js application to create multiple worker processes that can share a server port and handle incoming connections across multiple processes.”
+The Cluster module allows Node.js application to create multiple worker processes that run simultaneoulsy and   share a  same server port and handle incoming connections across multiple processes.Each worker process has its own JavaScript execution environment, Event Loop and memory space.
+It helps Node.js applications utilize multiple CPU cores and handle more concurrent requests, improving application scalability and performance.
 
 Example:
 const cluster = require("cluster");
+const os = require("os");
 const http = require("http");
 
+const numCPUs = os.cpus().length;
+
 if (cluster.isPrimary) {
-  for (let i = 0; i < 4; i++) cluster.fork();
+    console.log(`Primary process: ${process.pid}`);
+
+    // Create worker processes
+    for (let i = 0; i < numCPUs; i++) {
+        cluster.fork();
+    }
+
+    // Detect worker exit
+    cluster.on("exit", (worker, code, signal) => {
+        console.log(`Worker ${worker.process.pid} exited`);
+
+        // Restart worker
+        cluster.fork();
+    });
+
 } else {
-  http.createServer((req, res) => res.end("OK")).listen(3000);
+
+    // Every worker creates its own server
+    http.createServer((req, res) => {
+        res.writeHead(200, {
+            "Content-Type": "text/plain"
+        });
+
+        res.end(`Request handled by worker: ${process.pid}`);
+
+    }).listen(3000);
+
+    console.log(`Worker started: ${process.pid}`);
 }
+
+output:
+Primary process: 1000
+Worker started: 1001
+Worker started: 1002
+Worker started: 1003
+Worker started: 1004
+
+
+Important Cluster Methods
+Method / Property	      Purpose
+cluster.isPrimary	      Checks whether the process is primary
+cluster.isWorker	      Checks whether the process is a worker
+cluster.fork()	        Creates a worker process
+cluster.workers	        Provides access to worker processes
+cluster.on("exit")	    Detects worker exit
+cluster.on("online")  	Detects when a worker is online
+worker.kill()	          Terminates a worker
 
 Use case:
 Utilizing multiple CPU cores, improving API throughput.
