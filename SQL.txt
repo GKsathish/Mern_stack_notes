@@ -2,6 +2,17 @@
 SQL / MySQL — 5–7 DAYS COMPLETE INTERVIEW NOTES
 For 4+ Years MERN Stack Interview Preparation
 
+I choose the database based on the project requirements rather than simply choosing a database based on technology preference.
+
+If the application has highly structured data, complex relationships, and requires relational queries and transactional consistency, I prefer SQL databases like PostgreSQL or MySQL.
+
+If the application requires flexible schemas, nested documents, frequently changing data structures, and document-based data access, I prefer MongoDB.
+
+For example, in my gaming application, different game types have different configurations and data structures. MongoDB is suitable because it allows us to manage these flexible document structures efficiently.
+
+So, I consider data relationships, transaction requirements, query patterns, scalability, and maintainability before selecting a database."
+
+
 Topics selected for MERN full-stack interviews:
 SQL fundamentals, joins, aggregate functions, subqueries, normalization, indexes, transactions,
 stored procedures, views, triggers, query optimization, MySQL internals, database design and coding practice.
