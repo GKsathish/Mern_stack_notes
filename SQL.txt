@@ -6,6 +6,74 @@ Topics selected for MERN full-stack interviews:
 SQL fundamentals, joins, aggregate functions, subqueries, normalization, indexes, transactions,
 stored procedures, views, triggers, query optimization, MySQL internals, database design and coding practice.
 
+ACID Properties
+
+ACID stands for Atomicity, Consistency, Isolation, and Durability. These are four important properties of database transactions that ensure data i
+ntegrity, reliability, and correctness.
+
+# Atomicity
+English Definition:
+
+Atomicity ensures that a transaction is treated as a single unit of work. Either all operations are successfully completed, or none of them are applied.
+
+Example:
+
+Bank money transfer:
+- Deduct ₹1,000 from Account A.
+- Add ₹1,000 to Account B.
+If adding money to Account B fails, the deduction from Account A must also be rolled back.
+
+Remember: All or Nothing – COMMIT or ROLLBACK.
+
+# Consistency
+English Definition:
+
+Consistency ensures that a transaction moves the database from one valid state to another valid state while maintaining all defined rules, constraints, and business logic.
+
+Example:
+
+Bank account:
+- Current balance = ₹1,000.
+- Minimum balance = ₹500.
+- User tries to withdraw ₹800.
+- Remaining balance would be ₹200.
+The transaction should fail because it violates the minimum balance rule.
+
+Remember: Database rules should never be violated.
+
+# Isolation
+English Definition:
+
+Isolation ensures that multiple concurrent transactions execute without interfering with each other and maintain data correctness.
+
+Example:
+
+E-commerce application:
+- Available stock = 1 iPhone.
+- User A and User B simultaneously try to purchase it.
+- Only one user should successfully purchase the last available item.
+Proper concurrency control prevents both transactions from incorrectly purchasing the same stock.
+
+Remember: Concurrent transactions should not interfere.
+
+5. Durability
+English Definition:
+
+Durability ensures that once a transaction is successfully committed, the changes are permanently stored and survive system crashes or restarts.
+
+Example:
+
+E-commerce application:
+- User places an order.
+- Payment succeeds.
+- Order transaction commits.
+- Server crashes.
+After restarting the server, the committed order details should still exist.
+
+Remember: Once committed, data should persist.
+
+
+
 Format:
 Definition -> Example -> Use case -> Internal working -> Follow-up questions -> Interview-ready answer
 
