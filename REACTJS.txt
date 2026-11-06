@@ -112,6 +112,11 @@ Components are reusable UI building blocks. JSX is syntax sugar for React.create
 Definition:
 Props are read-only inputs passed from parent to child. State is mutable data managed inside a component.
 
+Props are read-only inputs passed from a parent component to a child component. They allow components to receive data and configuration from outside.
+
+State is mutable data managed by a component or a state-management system that can change over time and influence the rendered UI.
+
+
 Example:
 function Parent() {
   const [count, setCount] = useState(0);
@@ -196,7 +201,10 @@ I use ternary operators for either/or UI and && for show-or-hide UI. I ensure co
 2. LISTS AND KEYS
 
 Definition:
-Lists are rendered using map(). Keys are unique identifiers given to list items so React can identify each item.
+ lists are used to render multiple elements dynamically from arrays or objects, making UI development efficient and reusable. 
+
+A key serves as a unique identifier in React, helping to track which items in a list have changed, been updated, or removed. It is particularly useful when dynamically creating components or when users modify the list.
+
 
 Example:
 {users.map(user => (
@@ -284,7 +292,13 @@ I lift shared state to the closest common parent. For deep prop drilling, I use 
 5. FRAGMENTS AND SYNTHETIC EVENTS
 
 Definition:
-Fragment lets us group multiple elements without adding an extra DOM node. SyntheticEvent is React's cross-browser wrapper around native browser events.
+Fragment lets us group multiple elements without adding an extra DOM node. 
+
+"A React Fragment is a built-in feature that allows you to group a list of children elements without adding an extra, unnecessary node to the HTML DOM. It enables components to return multiple root-level elements seamlessly."
+
+SyntheticEvent is React's cross-browser wrapper around native browser events.
+
+"A Synthetic Event in React is a cross-browser wrapper around the browser’s native event. It implements the exact same interface as a native DOM event—including methods like preventDefault() and stopPropagation()—but guarantees that events behave consistently across all browsers, operating through global event delegation at the root container."
 
 Example:
 <>
@@ -318,6 +332,8 @@ DAY 3: IMPORTANT HOOKS
 
 Definition:
 useState adds local state to functional components.
+The useState hook allows functional components in React to store and manage data that can change over time. It is simple to use and ideal for handling basic state updates within a component.
+
 
 Example:
 const [count, setCount] = useState(0);
@@ -339,6 +355,10 @@ Follow-up questions:
 3. Does useState cause immediate re-render?
 4. What happens if we set the same value again?
 
+Batching in React is a performance optimization where React groups multiple state updates into a single re-render.
+
+Instead of updating the user interface (UI) every single time a state variable changes, React waits until all state setters in a block of code have finished running, then processes them all at once.
+
 Interview-ready answer:
 useState manages local component state. I use functional updates when the new state depends on the previous state, especially inside event handlers or async operations.
 
@@ -346,7 +366,8 @@ useState manages local component state. I use functional updates when the new st
 2. useEffect
 
 Definition:
-useEffect runs side effects after render, such as API calls, subscriptions, timers and DOM operations.
+The useEffect Hook in React allows you to synchronize your components with an external system or handle side effects.
+Examples of side effects include fetching data from an API, interacting directly with the browser DOM, setting up timers, or subscribing to external services.
 
 Example:
 useEffect(() => {
