@@ -479,9 +479,55 @@ No. Choose function syntax based on behavior, readability and requirements, not 
 
 What is this?
 
-Interview definition: 
-this is a value available in a function's execution context. In regular functions, it is generally determined by the call site. Arrow functions inherit this lexically.
+Technical Simple Definitions
+call()
+call() is a function method used to invoke a function immediately with a specified this value and arguments passed individually.
 
+js
+
+
+greet.call(user, "Hyderabad");
+Simple definition:
+call() function ni immediate ga run chestundi, this value set chesi, arguments ni comma separated ga pass chestundi.
+
+apply()
+apply() is a function method used to invoke a function immediately with a specified this value and arguments passed as an array.
+
+js
+
+
+greet.apply(user, ["Hyderabad"]);
+Simple definition:
+apply() function ni immediate ga run chestundi, this value set chesi, arguments ni array form lo pass chestundi.
+
+bind()
+bind() is a function method used to create a new function with a fixed this value and optional pre-filled arguments. It does not invoke the function immediately.
+
+js
+
+
+const boundGreet = greet.bind(user, "Hyderabad");
+boundGreet();
+Simple definition:
+bind() function ni immediate ga run cheyyadu; new function return chestundi, adi this value fix chesi untundi.
+
+One-Line Technical Definitions
+call() — invokes function immediately with custom this and individual arguments.
+
+apply() — invokes function immediately with custom this and array arguments.
+
+bind() — returns a new function with fixed this and optional preset arguments.
+
+# JavaScript `this`, `call()`, `apply()`, `bind()` — Interview Notes
+
+## 1. `this` Keyword
+
+`this` is a value available inside a function’s execution context. It usually refers to the object on which the function is called.
+
+- In regular functions, `this` is determined by how the function is called (call site).
+- In arrow functions, `this` is inherited from the surrounding lexical scope.
+
+```js
 const user = {
   name: "Ravi",
   greet() {
@@ -490,10 +536,33 @@ const user = {
 };
 
 user.greet(); // Ravi
+```
 
+### Important Points
 
-What is call()?
-call() invokes a function immediately with a specified this value and individual arguments.
+- In a method: `this` = the object before the dot.
+- In a normal function call: `this` is `undefined` in strict mode, or `window`/`globalThis` in non-strict mode.
+- In an arrow function: `this` comes from the enclosing scope.
+- `this` is not fixed at function definition time for regular functions.
+
+```js
+const user = {
+  name: "Ravi",
+  greet: () => {
+    console.log(this.name);
+  }
+};
+
+user.greet(); // undefined
+```
+
+---
+
+## 2. `call()`
+
+`call()` immediately invokes a function with a specified `this` value and arguments passed one by one.
+
+```js
 function greet(city) {
   console.log(`${this.name} from ${city}`);
 }
@@ -502,22 +571,498 @@ const user = { name: "Ravi" };
 
 greet.call(user, "Hyderabad");
 // Ravi from Hyderabad
+```
 
+### Syntax
 
-2.2 What is apply()?
-apply() invokes a function immediately with a specified this value and arguments supplied as an array-like object.
+```js
+functionName.call(thisArg, arg1, arg2, ...)
+```
+
+### Key Point
+
+- Invokes the function immediately.
+- Arguments are passed individually.
+
+---
+
+## 3. `apply()`
+
+`apply()` also immediately invokes a function with a specified `this` value, but arguments are passed as an array or array-like object.
+
+```js
+function greet(city) {
+  console.log(`${this.name} from ${city}`);
+}
+
+const user = { name: "Ravi" };
+
 greet.apply(user, ["Hyderabad"]);
 // Ravi from Hyderabad
+```
 
+### Syntax
 
-2.3 What is bind()?
-bind() returns a new function with a specified this value and optionally pre-filled arguments. It does not invoke the function immediately.
+```js
+functionName.apply(thisArg, [arg1, arg2, ...])
+```
+
+### Key Point
+
+- Invokes the function immediately.
+- Arguments are passed as an array.
+
+### `call()` vs `apply()`
+
+| Feature | `call()` | `apply()` |
+|---|---|---|
+| Invocation | Immediate | Immediate |
+| `this` setting | Yes | Yes |
+| Arguments | Individual values | Array / array-like |
+| Example | `fn.call(obj, 1, 2)` | `fn.apply(obj, [1, 2])` |
+
+---
+
+## 4. `bind()`
+
+`bind()` returns a new function with a fixed `this` value and optionally pre-filled arguments. It does not invoke the function immediately.
+
+```js
+function greet(city) {
+  console.log(`${this.name} from ${city}`);
+}
+
+const user = { name: "Ravi" };
+
 const boundGreet = greet.bind(user, "Hyderabad");
 
 boundGreet();
 // Ravi from Hyderabad
+```
 
+### Syntax
 
+```js
+const newFunction = functionName.bind(thisArg, arg1, arg2, ...)
+```
+
+### Key Point
+
+- Does not invoke immediately.
+- Returns a new bound function.
+- Useful for callbacks and event handlers.
+
+```js
+setTimeout(boundGreet, 1000);
+```
+
+---
+
+## 5. Quick Comparison
+
+| Method | Invokes immediately? | Sets `this`? | Arguments |
+|---|---|---|---|
+| `call()` | Yes | Yes | Individually |
+| `apply()` | Yes | Yes | As array |
+| `bind()` | No | Yes | Individually, optional pre-fill |
+
+### Interview One-Liners
+
+- `call()` — invoke now, pass args separately.
+- `apply()` — invoke now, pass args as array.
+- `bind()` — returns a new function with fixed `this`; invoke later.
+- `this` in regular functions depends on call site.
+- `this` in arrow functions is lexically inherited.
+
+---
+
+# Tricky `this` Interview Questions
+
+## 1. Method Reference Loss
+
+```js
+const user = {
+  name: "Ravi",
+  greet() {
+    console.log(this.name);
+  }
+};
+
+const greet = user.greet;
+greet();
+```
+
+**Output:** `undefined`
+
+**Reason:** `user.greet` ni variable lo store chesinappudu `this` context lost. Standalone function la call avtundi.
+
+**Fix:**
+
+```js
+const greet = user.greet.bind(user);
+greet(); // Ravi
+```
+
+---
+
+## 2. `call()` vs Arrow Function
+
+```js
+const user = {
+  name: "Ravi",
+  greet: () => {
+    console.log(this.name);
+  }
+};
+
+user.greet.call({ name: "Sita" });
+```
+
+**Output:** `undefined`
+
+**Reason:** Arrow function ki own `this` ledu. `call()` tho `this` change cheyyalem.
+
+**Regular function version:**
+
+```js
+const user = {
+  name: "Ravi",
+  greet() {
+    console.log(this.name);
+  }
+};
+
+user.greet.call({ name: "Sita" }); // Sita
+```
+
+---
+
+## 3. `setTimeout` lo `this`
+
+```js
+const user = {
+  name: "Ravi",
+  greet() {
+    setTimeout(function () {
+      console.log(this.name);
+    }, 1000);
+  }
+};
+
+user.greet();
+```
+
+**Output:** `undefined`
+
+**Reason:** `setTimeout` callback standalone function la call avtundi, so `this` context lost.
+
+**Fix 1 — Arrow function:**
+
+```js
+setTimeout(() => {
+  console.log(this.name);
+}, 1000);
+```
+
+**Fix 2 — `bind()`:**
+
+```js
+setTimeout(function () {
+  console.log(this.name);
+}.bind(this), 1000);
+```
+
+---
+
+## 4. `bind()` Re-bind Cheyyalemu
+
+```js
+function show() {
+  console.log(this.id);
+}
+
+const bound = show.bind({ id: 1 });
+
+bound.call({ id: 2 });
+```
+
+**Output:** `1`
+
+**Reason:** `bind()` `this` ni permanently lock chestundi. Tarvata `call()` tho different object pass chesina, adi ignore avtundi.
+
+---
+
+## 5. `new` vs `call()`
+
+```js
+function Person(name) {
+  this.name = name;
+}
+
+const p = Person.call({}, "Ravi");
+
+console.log(p);
+```
+
+**Output:** `undefined`
+
+**Reason:** `call()` function ni normal ga call chestundi; `new` object create cheyyadu. `Person` return value ledu, so `p` = `undefined`.
+
+**Correct way:**
+
+```js
+const p = new Person("Ravi");
+console.log(p.name); // Ravi
+```
+
+---
+
+## 6. Object Method vs Arrow Method
+
+```js
+const user = {
+  name: "Ravi",
+  regular() {
+    console.log(this.name);
+  },
+  arrow: () => {
+    console.log(this.name);
+  }
+};
+
+user.regular(); // Ravi
+user.arrow();   // undefined
+```
+
+**Reason:** `regular()` method call, so `this` = `user`. `arrow()` arrow function, so `this` outer scope nunchi vastundi.
+
+---
+
+## 7. Nested Arrow Function
+
+```js
+const user = {
+  name: "Ravi",
+  greet() {
+    const inner = () => {
+      console.log(this.name);
+    };
+    inner();
+  }
+};
+
+user.greet();
+```
+
+**Output:** `Ravi`
+
+**Reason:** Arrow function `greet()` method scope nunchi `this` teesukuntundi. `greet()` regular function, so `this` = `user`.
+
+---
+
+## 8. Event Listener `this`
+
+```js
+button.addEventListener("click", function () {
+  console.log(this);
+});
+```
+
+**Output:** button element
+
+**Reason:** Event listener regular function lo `this` = event trigger chesina DOM element.
+
+**Arrow function version:**
+
+```js
+button.addEventListener("click", () => {
+  console.log(this);
+});
+```
+
+**Output:** outer scope `this`
+
+---
+
+## 9. `call()` Argument Passing
+
+```js
+function greet(city, country) {
+  console.log(`${this.name} - ${city}, ${country}`);
+}
+
+const user = { name: "Ravi" };
+
+greet.call(user, "Hyderabad", "India");
+```
+
+**Output:** `Ravi - Hyderabad, India`
+
+**Reason:** `call()` arguments ni comma separated ga pass chestundi.
+
+---
+
+## 10. `apply()` Array Pass
+
+```js
+function greet(city, country) {
+  console.log(`${this.name} - ${city}, ${country}`);
+}
+
+const user = { name: "Ravi" };
+
+greet.apply(user, ["Hyderabad", "India"]);
+```
+
+**Output:** `Ravi - Hyderabad, India`
+
+**Reason:** `apply()` arguments ni array form lo pass chestundi.
+
+---
+
+## 11. `bind()` Partial Application
+
+```js
+function multiply(a, b) {
+  return a * b;
+}
+
+const double = multiply.bind(null, 2);
+
+console.log(double(5));
+```
+
+**Output:** `10`
+
+**Reason:** `bind()` first argument `2` ni fix chesindi. Tarvata `5` pass chesinappudu `b = 5`.
+
+---
+
+## 12. Priority Order
+
+**Q:** `new`, `call()`, `bind()`, method call — priority enti?
+
+**A:**
+
+```text
+new > call/apply/bind > obj.method() > default
+```
+
+**Interview answer:** `new` highest priority; `bind()` next; method call next; default last.
+
+---
+
+## Practical Use Cases
+
+### `call()` — Method Borrowing
+
+```js
+const user = {
+  name: "Ravi",
+  greet(city) {
+    console.log(`${this.name} from ${city}`);
+  }
+};
+
+const admin = { name: "Sita" };
+
+user.greet.call(admin, "Hyderabad");
+// Sita from Hyderabad
+```
+
+### `apply()` — Array Arguments
+
+```js
+function introduce(name, city) {
+  console.log(`${name} from ${city}`);
+}
+
+const details = ["Ravi", "Hyderabad"];
+
+introduce.apply(null, details);
+// Ravi from Hyderabad
+```
+
+### `bind()` — Event Handlers
+
+```js
+class Counter {
+  constructor() {
+    this.count = 0;
+  }
+
+  increment() {
+    this.count++;
+    console.log(this.count);
+  }
+}
+
+const counter = new Counter();
+
+document.getElementById("btn")
+  .addEventListener("click", counter.increment.bind(counter));
+```
+
+### `bind()` — setTimeout
+
+```js
+const user = {
+  name: "Ravi",
+  greet() {
+    setTimeout(() => {
+      console.log(`Hello ${this.name}`);
+    }, 1000);
+  }
+};
+
+user.greet();
+// Hello Ravi
+```
+
+### `bind()` — Partial Application
+
+```js
+function request(url, method) {
+  console.log(`${method} request to ${url}`);
+}
+
+const getRequest = request.bind(null, "/api/users", "GET");
+const postRequest = request.bind(null, "/api/users", "POST");
+
+getRequest(); // GET request to /api/users
+postRequest(); // POST request to /api/users
+```
+
+### `call()` — Inheritance
+
+```js
+function Person(name) {
+  this.name = name;
+}
+
+function Student(name, course) {
+  Person.call(this, name);
+  this.course = course;
+}
+
+const s = new Student("Ravi", "JavaScript");
+
+console.log(s.name);   // Ravi
+console.log(s.course); // JavaScript
+```
+
+---
+
+## Quick Memory Rules
+
+- Regular function: `this` depends on **how it is called**.
+- Arrow function: `this` depends on **where it is defined**.
+- `call()` — immediate, args separately.
+- `apply()` — immediate, args as array.
+- `bind()` — returns new function, `this` permanently fixed.
+- `new` — creates new object and sets `this` to that object.
+- Event listener regular function — `this` = element.
+- `setTimeout` regular callback — `this` lost; use arrow or `bind()`.
 
 3. Closures, Higher-Order Functions and Callbacks
 
@@ -547,11 +1092,85 @@ How it works:
 3. The inner function retains access to count.
 4. Each call updates the same preserved variable.
 
-Real-time use cases:
-- Maintaining private state.
-- Creating reusable function factories.
-- Implementing callbacks and event handlers.
-- Understanding stale closures in React hooks.
+Use Cases:
+  Data privacy
+  Function factories
+  Event handlers
+  Callbacks
+  Memoization
+  Currying
+
+ Example — Data Privacy
+
+function createAccount() {
+  let balance = 0;
+
+  return {
+    deposit(amount) {
+      balance += amount;
+      console.log(balance);
+    },
+    getBalance() {
+      return balance;
+    }
+  };
+}
+
+const account = createAccount();
+
+account.deposit(100); // 100
+console.log(account.getBalance()); // 100
+
+Explanation:
+balance variable private ga untundi.
+Outside nunchi direct ga access cheyyalem.
+Closure tho data privacy vastundi.
+
+Example  Memoization
+
+function memoize(fn) {
+  const cache = {};
+
+  return function (n) {
+    if (cache[n]) {
+      return cache[n];
+    }
+
+    const result = fn(n);
+    cache[n] = result;
+    return result;
+  };
+}
+
+function square(n) {
+  return n * n;
+}
+
+const memoizedSquare = memoize(square);
+
+console.log(memoizedSquare(5)); // 25
+console.log(memoizedSquare(5)); // 25 (cached)
+
+Explanation:
+memoize() lo cache object undi.
+Returned function cache ni remember chestundi.
+Same input vasthe cached result return chestundi
+
+Example — Currying
+
+function add(a) {
+  return function (b) {
+    return a + b;
+  };
+}
+
+const addFive = add(5);
+
+console.log(addFive(3)); // 8
+Explanation:
+add() a ni remember chestundi.
+addFive() closure.
+Idi currying.
 
 Higher-order Function:
 
