@@ -416,6 +416,92 @@ Follow-up questions:
 Interview-ready answer:
 I follow a layered structure: routes define endpoints, controllers handle HTTP, services contain business rules, and repositories handle database access. This improves testability and maintainability.
 
+Repository pattern :
+
+Repository Pattern is a design pattern that separates database logic from business logic. It acts as a middle layer between the application and the database.
+// userRepository.js
+class UserRepository {
+  async findAll() {
+    return await User.find();
+  }
+
+  async findById(id) {
+    return await User.findById(id);
+  }
+
+  async create(data) {
+    return await User.create(data);
+  }
+
+  async update(id, data) {
+    return await User.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async delete(id) {
+    return await User.findByIdAndDelete(id);
+  }
+}
+
+module.exports = new UserRepository();
+
+controller.js
+
+const userRepository = require("./userRepository");
+
+app.get("/users", async (req, res) => {
+  const users = await userRepository.findAll();
+  res.json(users);
+});
+
+
+DTODTO (Data Transfer Object)
+
+DTO  is an object used to transfer data between layers, usually between client and server. It contains only required fields.
+
+// userDTO.js
+function toUserDTO(user) {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email
+  };
+}
+
+module.exports = toUserDTO;
+
+const toUserDTO = require("./userDTO");
+
+app.get("/users/:id", async (req, res) => {
+  const user = await userRepository.findById(req.params.id);
+
+  res.json(toUserDTO(user));
+});
+
+Validation :
+
+Validation is the process of checking whether the incoming data is correct and complete before saving it to the database.
+
+const { body, validationResult } = require("express-validator");
+
+app.post(
+  "/users",
+  body("name").notEmpty().withMessage("Name is required"),
+  body("email").isEmail().withMessage("Valid email is required"),
+  body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+
+  (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    res.json({ message: "User created successfully" });
+  }
+);
+
+
+
 --------------------------------------------------------------------
 5. REST PRINCIPLES, VERSIONING, PAGINATION AND FILTERING
 

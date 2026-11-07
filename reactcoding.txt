@@ -1,0 +1,151 @@
+1.InfiniteScroll  feature  in react:
+
+
+function InfiniteScroll() {
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [hasPrev, setHasPrev] = useState(false);
+
+  const topRef = useRef(null);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const response = await fetch(
+        `https://api.example.com/items?page=${page}`
+      );
+
+      const data = await response.json();
+
+      setItems(data.items);
+      setHasMore(data.hasMore);
+      setHasPrev(page > 1);
+    }
+
+    fetchData();
+  }, [page]);
+
+  useEffect(() => {
+    const topObserver = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasPrev) {
+          setPage(prev => prev - 1);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    const bottomObserver = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage(prev => prev + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    if (topRef.current) {
+      topObserver.observe(topRef.current);
+    }
+
+    if (bottomRef.current) {
+      bottomObserver.observe(bottomRef.current);
+    }
+
+    return () => {
+      topObserver.disconnect();
+      bottomObserver.disconnect();
+    };
+  }, [hasMore, hasPrev]);
+
+  return (
+    <div>
+      {items.map((item, index) => (
+        <div
+          key={item.id}
+          ref={
+            index === 0
+              ? topRef
+              : index === items.length - 1
+              ? bottomRef
+              : null
+          }
+        >
+          {item.name}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+2.virtualization in react:
+
+import { useState, useRef } from "react";
+
+const ITEM_HEIGHT = 50;
+const VISIBLE_ITEMS = 10;
+
+function VirtualList({ items }) {
+  const [scrollTop, setScrollTop] = useState(0);
+  const containerRef = useRef(null);
+
+  const totalHeight = items.length * ITEM_HEIGHT;
+
+  const startIndex = Math.floor(scrollTop / ITEM_HEIGHT);
+  const endIndex = startIndex + VISIBLE_ITEMS;
+
+  const visibleItems = items.slice(startIndex, endIndex);
+
+  function handleScroll() {
+    setScrollTop(containerRef.current.scrollTop);
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      style={{
+        height: "400px",
+        overflowY: "auto",
+        position: "relative"
+      }}
+    >
+      <div style={{ height: totalHeight, position: "relative" }}>
+        <div
+          style={{
+            transform: `translateY(${startIndex * ITEM_HEIGHT}px)`
+          }}
+        >
+          {visibleItems.map(item => (
+            <div
+              key={item.id}
+              style={{ height: ITEM_HEIGHT }}
+            >
+              {item.name}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Using react window 
+
+import { FixedSizeList } from "react-window";
+
+function App({ items }) {
+  return (
+    <FixedSizeList
+      height={400}
+      itemCount={items.length}
+      itemSize={50}
+      width="100%"
+    >
+      {({ index, style }) => (
+        <div style={style}>{items[index].name}</div>
+      )}
+    </FixedSizeList>
+  );
+}
