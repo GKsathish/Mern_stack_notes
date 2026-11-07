@@ -294,11 +294,13 @@ I lift shared state to the closest common parent. For deep prop drilling, I use 
 Definition:
 Fragment lets us group multiple elements without adding an extra DOM node. 
 
-"A React Fragment is a built-in feature that allows you to group a list of children elements without adding an extra, unnecessary node to the HTML DOM. It enables components to return multiple root-level elements seamlessly."
+"A React Fragment is a built-in feature that allows you to group a list of children elements without adding an extra, unnecessary node to the HTML DOM. 
+It enables components to return multiple root-level elements seamlessly."
 
 SyntheticEvent is React's cross-browser wrapper around native browser events.
 
-"A Synthetic Event in React is a cross-browser wrapper around the browser’s native event. It implements the exact same interface as a native DOM event—including methods like preventDefault() and stopPropagation()—but guarantees that events behave consistently across all browsers, operating through global event delegation at the root container."
+"A Synthetic Event in React is a cross-browser wrapper around the browser’s native event. 
+It implements the exact same interface as a native DOM event—including methods like preventDefault() and stopPropagation()—but guarantees that events behave consistently across all browsers, operating through global event delegation at the root container."
 
 Example:
 <>
@@ -331,9 +333,10 @@ DAY 3: IMPORTANT HOOKS
 1. useState
 
 Definition:
-useState adds local state to functional components.
-The useState hook allows functional components in React to store and manage data that can change over time. It is simple to use and ideal for handling basic state updates within a component.
-
+useState is a React hook that adds state to functional components. 
+It returns the current state and a function to update it.
+syntax:
+const [state, setState] = useState(initialValue);
 
 Example:
 const [count, setCount] = useState(0);
@@ -346,6 +349,9 @@ Internal working:
 React stores state per component instance. Calling setter schedules a re-render. React batches multiple state updates where possible.
 
 Functional update:
+Functional updates use the previous state to calculate the new state.
+They are useful when the new state depends on the previous state.
+
 setCount(prev => prev + 1)
 is safer when next value depends on previous value.
 
@@ -1563,30 +1569,82 @@ DAY 11: ADVANCED REACT PATTERNS
 1. HOC, RENDER PROPS AND COMPOUND COMPONENTS
 
 HOC:
-A function that takes a component and returns an enhanced component.
+A Higher-Order Component (HOC) is a function that takes a component and returns a new component with enhanced behavior.
 
-const WithAuth = Component => props => {
-  const user = useAuth();
-  return user ? <Component {...props} /> : <Login />;
-};
+syntax : const EnhancedComponent = HOC(Component);
+
+function withLogger(Component) {
+  return function Enhanced(props) {
+    console.log("Component rendered");
+    return <Component {...props} />;
+  };
+}
+
+function Button(props) {
+  return <button {...props}>Click</button>;
+}
+
+const LoggerButton = withLogger(Button);
+
+Use Cases:
+  Logging
+  Authentication
+  Data fetching
+  Permission checks
 
 Render props:
-A component receives a function as prop and calls it to render UI.
+Render props is a pattern where a component receives a function as a prop and uses it to render content.
 
-<DataProvider render={data => <List data={data} />} />
+syntax : <DataProvider render={data => <List data={data} />} />
+
+function DataProvider({ render }) {
+  const data = "Hello";
+
+  return render(data);
+}
+
+function App() {
+  return (
+    <DataProvider render={(data) => <h1>{data}</h1>} />
+  );
+}
+Use Cases
+  Sharing logic
+  Data fetching
+  Mouse tracking
+  Toggle state
+
 
 Compound components:
-Multiple components work together while sharing implicit state.
+Compound components are components that work together to share state and behavior implicitly.
+function Tabs({ children }) {
+  const [active, setActive] = useState(0);
 
-<Tabs>
-  <Tabs.List />
-  <Tabs.Panel />
-</Tabs>
+  return (
+    <div>
+      {children.map((child, index) => (
+        <div key={index} onClick={() => setActive(index)}>
+          {child}
+        </div>
+      ))}
+    </div>
+  );
+}
 
-Use case:
-HOC: auth, logging, permissions.
-Render props: reusable data-fetching or mouse-tracking logic.
-Compound components: Tabs, Accordion, Select, Modal.
+function App() {
+  return (
+    <Tabs>
+      <div>Tab 1</div>
+      <div>Tab 2</div>
+    </Tabs>
+  );
+}
+
+Use Cases
+  Tabs
+  Accordions
+  Menus
+  Modals
 
 Follow-up questions:
 1. Are HOCs still commonly used?
@@ -1600,12 +1658,25 @@ HOCs wrap components to reuse logic, render props share render logic through fun
 2. PORTALS AND REFS
 
 Portal:
-Renders children into a different DOM node.
+A portal is a React feature that renders children into a different DOM node,
+outside the parent component hierarchy.
 
-createPortal(
-  <Modal />,
-  document.getElementById("modal-root")
-);
+syntax :import { createPortal } from "react-dom";
+
+createPortal(child, container);
+
+Example :
+
+import { createPortal } from "react-dom";
+
+function Modal({ children }) {
+  return createPortal(
+    <div className="modal">
+      {children}
+    </div>,
+    document.body
+  );
+}
 
 Use case:
 Modals, tooltips, dropdowns, toast notifications.
@@ -1614,7 +1685,33 @@ Internal working:
 Portal changes DOM placement but keeps React context and event bubbling behavior within React tree.
 
 Refs:
-Provide direct access to DOM nodes or mutable values.
+A ref is a React feature that gives direct access to a DOM element or a class component instance.
+
+syntax : const ref = useRef(null);
+
+Example 
+import { useRef } from "react";
+
+function Input() {
+  const inputRef = useRef(null);
+
+  function focusInput() {
+    inputRef.current.focus();
+  }
+
+  return (
+    <div>
+      <input ref={inputRef} />
+      <button onClick={focusInput}>Focus</button>
+    </div>
+  );
+}
+
+Use Cases
+  Focus management
+  Media control
+  Animation
+  Third-party DOM libraries
 
 Follow-up questions:
 1. Why use portal for modal?

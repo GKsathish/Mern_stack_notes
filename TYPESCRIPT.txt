@@ -100,31 +100,71 @@ Arrays allow variable length with a consistent element type, while tuples define
 4. ANY VS UNKNOWN; NEVER VS VOID
 
 any:
-Disables type checking. Anything can be assigned to any, and any can be assigned to anything.
+any is a TypeScript type that disables static type checking. 
+A value of type any can be assigned to any other type, and any other type can be assigned to it.
+
+let value: any = "hello";
+
+value = 10;
+value = true;
+value.toUpperCase();
+value.foo.bar();
+
+Use Cases
+  Legacy JavaScript migration
+  Quick prototyping
+  Third-party libraries without types
+  Temporary dynamic data
+
 
 unknown:
-Safer alternative to any. We must narrow or validate the type before using it.
+
+unknown is a type-safe alternative to any. 
+It accepts any value, but the value must be narrowed or validated before it can be used.
+
+let data: unknown = "hello";
+
+data.toUpperCase(); // Error
+
+if (typeof data === "string") {
+  data.toUpperCase(); // OK
+}
+
+Use Cases
+  API responses
+  JSON parsing
+  External data
+  User input
+  Third-party library data
 
 never:
-Represents values that never occur, such as a function that always throws or an unreachable branch.
+never is a TypeScript type that represents a value that can never occur. 
+It is used for functions that never return normally, such as functions that always throw errors or run infinite loops.
 
-void:
-Represents absence of a meaningful return value.
-
-Example:
-let value: any = "hello";
-let data: unknown = "hello";
 
 function handleError(): never {
   throw new Error("Failed");
 }
 
+Use Cases
+  Error functions
+  Infinite loops
+  Exhaustive checks
+  Unreachable code
+
+void:
+void is a TypeScript type that represents the absence of a meaningful return value. 
+It is used for functions that do not return a value.
+
 function logMessage(): void {
   console.log("Done");
 }
 
-Use case:
-unknown for API responses or external data, void for functions without return values, never for exhaustive checks and error functions.
+Use Cases
+Logging functions
+Event handlers
+Side-effect functions
+
 
 Internal working:
 TypeScript allows any operations on any, but unknown requires type narrowing. never helps TypeScript prove that all cases in a union are handled.
@@ -138,16 +178,40 @@ Follow-up questions:
 Interview-ready answer:
 I avoid any because it disables type safety. I use unknown for uncertain external data and narrow it using typeof, instanceof or validation. void means no meaningful return value, while never means a value can never occur.
 
+
+
 --------------------------------------------------------------------
 5. TYPE ALIASES VS INTERFACES
 
 Type alias:
-Creates a name for any type, including unions, primitives, tuples and objects.
 
-type ID = string | number;
+A type alias is a name given to any TypeScript type.
+It can represent primitives, unions, intersections, tuples, functions, and object types.
+
+type UserID = string | number;
+
+type User = {
+  id: number;
+  name: string;
+};
+
+const user: User = {
+  id: 1,
+  name: "Ravi"
+};
+
+Use Cases
+  Primitive types
+  Union types
+  Intersection types
+  Function types
+  Tuples
+  Complex types
+
 
 interface:
-Primarily describes object shapes and can be extended or merged.
+An interface is a TypeScript structure that describes the shape of an object. 
+It is mainly used for object types and can be extended or implemented.
 
 interface User {
   id: number;
@@ -160,6 +224,12 @@ type Status = "active" | "inactive";
 interface Admin extends User {
   role: string;
 }
+
+Use Cases
+  Object shapes
+  Class contracts
+  Extending types
+  Implementing types
 
 Use case:
 Use type for unions, utility types, tuples and complex types. Use interface for object contracts, especially when extension or declaration merging is needed.
@@ -179,23 +249,50 @@ Interfaces are best for object shapes and extension, while type aliases are more
 --------------------------------------------------------------------
 6. UNION, INTERSECTION AND LITERAL TYPES
 
+
 Union type:
-Value can be one of several types.
+A union type allows a value to be one of several types. 
+It is created using the pipe symbol ( | ).
 
 let id: string | number;
 
-Intersection type:
-Combines multiple types into one.
+Use Cases
+  API responses
+  Function parameters
+  Conditional types
+  Multiple possible values
 
-type Employee = User & Department;
+Intersection type:
+An intersection type combines multiple types into one. 
+It is created using the ampersand symbol ( & ).
+
+type A = { name: string };
+type B = { age: number };
+
+type Person = A & B;
+
+const person: Person = {
+  name: "Ravi",
+  age: 25
+}
+Use Cases
+  Combining types
+  Reusing types
+  Building complex types
+  Mixins
 
 Literal type:
-Value restricted to specific values.
+A literal type is a type that represents a specific value instead of a general type.
 
-type Direction = "left" | "right" | "up" | "down";
+let direction: "up" | "down";
+  direction = "up";
+  direction = "down";
 
-Use case:
-Union for API status, role, theme. Intersection for combining reusable object shapes. Literal types for fixed options.
+Use Cases
+  Fixed set of values
+  API status codes
+  Config options
+  Function parameters
 
 Internal working:
 Union allows assignment if value matches at least one member. Intersection requires value to satisfy all combined types.
@@ -213,29 +310,71 @@ Unions allow one of multiple types, intersections combine requirements from mult
 7. ENUMS, OPTIONAL AND READONLY PROPERTIES
 
 Enum:
-Named set of constant values.
+Enums are a TypeScript feature that defines a set of named constants.
+ They make code more readable and maintainable.
 
-enum Status {
-  Active = "ACTIVE",
-  Inactive = "INACTIVE"
+enum Role {
+  Admin = "ADMIN",
+  User = "USER"
 }
 
+let role: Role = Role.Admin;
+
+Use Cases
+  Fixed set of values
+  User roles
+  API status
+  Config options
+
+
 Optional property:
-Property may be missing.
+Optional properties are properties that may or may not be present in an object. 
+They are defined using a question mark (?).
 
 interface User {
+  id: number;
+  name: string;
   email?: string;
 }
 
-Readonly property:
-Property cannot be modified after creation.
+const user1: User = {
+  id: 1,
+  name: "Ravi"
+};
 
-interface Config {
-  readonly apiUrl: string;
+const user2: User = {
+  id: 2,
+  name: "Sita",
+  email: "sita@mail.com"
+};
+
+Use Cases
+  API responses
+  Config objects
+  Partial data
+  Optional fields
+
+Readonly property:
+Readonly properties are properties that cannot be modified after initialization.
+ They are defined using the readonly keyword.
+
+interface User {
+  readonly id: number;
+  name: string;
 }
 
-Use case:
-Enums for fixed statuses, optional fields for partial data, readonly for configuration and immutable data.
+const user: User = {
+  id: 1,
+  name: "Ravi"
+};
+
+user.id = 2; // Error
+
+Use Cases
+  Immutable data
+  Config objects
+  Constants
+  Preventing accidental changes
 
 Internal working:
 String enums compile to JavaScript objects. Optional properties add undefined to their type. readonly is compile-time only; it does not freeze objects at runtime.
