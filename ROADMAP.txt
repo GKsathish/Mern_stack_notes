@@ -1,0 +1,428 @@
+4+ YEARS MERN STACK DEVELOPER — COMPLETE INTERVIEW PREPARATION ROADMAP
+JavaScript | React.js | TypeScript | Node.js | Express.js | MongoDB
+
+Goal: Prepare for 4+ years MERN Stack interviews through concepts, coding, real-world scenarios, system design and project explanations.
+Suggested timeline: 12 weeks. Adjust based on daily study time and current skill level.
+
+1. JAVASCRIPT — 10–12 DAYS
+
+Fundamentals:
+[ ] JavaScript features and V8 engine
+[ ] Execution context: global and function
+[ ] Call stack, memory heap and stack
+[ ] Primitive vs reference types
+[ ] var vs let vs const
+[ ] Scope, lexical scope, hoisting and Temporal Dead Zone
+[ ] undefined vs null; == vs ===
+[ ] Type coercion, truthy/falsy, NaN
+[ ] Optional chaining and nullish coalescing
+
+Functions and objects:
+[ ] Function declaration vs expression; arrow vs regular functions
+[ ] this, call, apply and bind
+[ ] Closures, higher-order functions and callbacks
+[ ] Pure functions, side effects, IIFE, currying and composition
+[ ] Recursion, rest/spread, destructuring and default parameters
+[ ] Shallow vs deep copy; Object.freeze vs Object.seal
+[ ] map, filter, reduce, forEach, find, some, every
+[ ] slice vs splice; sort and custom comparators
+[ ] Object.keys/values/entries; for...in vs for...of
+[ ] Map, Set, WeakMap and WeakSet
+
+Async JavaScript:
+[ ] Callbacks, callback hell and Promises
+[ ] Promise chaining; async/await; try/catch
+[ ] Promise.all, allSettled, race and any
+[ ] Event loop; microtasks vs macrotasks
+[ ] setTimeout, setInterval, setImmediate, queueMicrotask
+[ ] Node.js process.nextTick
+[ ] Sequential vs parallel API calls
+[ ] AbortController, cancellation and timeout handling
+
+Advanced topics:
+[ ] Prototype chain and prototypal inheritance
+[ ] Classes, extends, super, static methods and OOP principles
+[ ] CommonJS vs ES Modules; strict mode
+[ ] Iterators, generators, symbols and property descriptors
+[ ] Garbage collection and memory leaks
+[ ] Debouncing, throttling and memoization
+[ ] Event bubbling/capturing, delegation and DOM performance
+[ ] Web Workers, Big O notation and XSS basics
+
+Coding practice:
+[ ] Reverse string/words; palindrome; character frequency
+[ ] First non-repeating character; remove duplicates
+[ ] Second-largest number; missing number; max/min
+[ ] Find duplicates; array intersection; move zeros
+[ ] Flatten arrays; group objects by property; sort objects
+[ ] Two Sum; longest substring without repeating characters
+[ ] Implement custom map/filter/reduce
+[ ] Implement debounce, throttle, memoization and deep clone
+[ ] Retry failed async operations; custom Promise.all
+[ ] Limit concurrent async tasks
+
+2. REACT.JS — 10–12 DAYS
+
+Fundamentals:
+[ ] React features; SPA vs MPA; components and JSX
+[ ] Props vs state; one-way data flow
+[ ] Conditional rendering, lists and keys
+[ ] Controlled vs uncontrolled components
+[ ] Composition, lifting state and prop drilling
+[ ] Fragments and synthetic events
+
+Hooks:
+[ ] useState, functional updates and batching
+[ ] useEffect, dependencies and cleanup
+[ ] useLayoutEffect vs useEffect
+[ ] useRef, useMemo, useCallback and React.memo
+[ ] Custom Hooks, useReducer and useContext
+[ ] useId, useTransition and useDeferredValue
+[ ] Rules of Hooks, stale closures and common effect mistakes
+
+Internals, routing and forms:
+[ ] Virtual DOM, reconciliation and React Fiber basics
+[ ] Render phase vs commit phase; why components re-render
+[ ] Keys, component identity and state preservation
+[ ] Strict Mode and concurrent rendering concepts
+[ ] React Router: BrowserRouter, Routes, Route
+[ ] useNavigate, useParams, useLocation; nested/protected routes
+[ ] Forms, validation, multi-step forms and file uploads
+
+State management:
+[ ] Local vs global state; Context API
+[ ] Redux data flow and Redux Toolkit
+[ ] configureStore, createSlice and createAsyncThunk
+[ ] Selectors, middleware and Redux DevTools
+[ ] Redux Thunk vs Redux Saga; RTK Query
+[ ] Server state vs client state; optimistic updates
+
+Performance, errors and testing:
+[ ] React.memo; useMemo vs useCallback
+[ ] Lazy loading, Suspense and code splitting
+[ ] Virtualization, pagination and infinite scroll
+[ ] Avoid re-renders; bundle optimization and React Profiler
+[ ] Debounced search, request deduplication and skeleton loaders
+[ ] Error boundaries vs try/catch; async error handling
+[ ] Jest, React Testing Library, unit vs integration tests
+[ ] Mock APIs; test forms, Hooks, Redux and user interactions
+
+Advanced and coding:
+[ ] HOCs, render props, compound components, portals and refs
+[ ] SSR vs CSR, hydration, Next.js and React Server Components basics
+[ ] Accessibility and XSS prevention
+[ ] Build searchable paginated list and debounced search
+[ ] Build modal, tabs, accordion, multi-step form and data table
+[ ] Build protected route, Redux cart and real-time dashboard
+[ ] Profile and optimize a slow component
+
+3. TYPESCRIPT — 5–7 DAYS
+
+Core types:
+[ ] TypeScript vs JavaScript; type inference
+[ ] Primitive types, arrays, tuples and object types
+[ ] any vs unknown; never vs void
+[ ] Type aliases vs interfaces
+[ ] Union, intersection and literal types
+[ ] Enums, optional and readonly properties
+[ ] Function types, overloads and type assertions
+
+Advanced types:
+[ ] Type narrowing and type guards: typeof, instanceof, in
+[ ] Discriminated unions
+[ ] Generics and generic constraints
+[ ] keyof, typeof and indexed access types
+[ ] infer and conditional types
+[ ] Mapped and template literal types
+[ ] Partial, Required, Pick, Omit, Record
+[ ] Exclude, Extract, ReturnType, Parameters and Awaited
+[ ] Declaration merging, modules and declaration files
+[ ] tsconfig, strict mode, strictNullChecks and noImplicitAny
+
+React with TypeScript:
+[ ] Typing props, components and children
+[ ] Typing useState, useRef, useReducer and useContext
+[ ] Typing events, forms, API responses and custom Hooks
+[ ] Generic reusable components
+[ ] Typing Redux Toolkit, async thunks and Axios services
+[ ] Runtime validation vs compile-time types
+[ ] Convert JavaScript components to TypeScript
+
+4. NODE.JS — 7–9 DAYS
+
+Architecture:
+[ ] Node.js architecture; V8 and libuv
+[ ] Single-threaded JavaScript vs concurrent I/O
+[ ] Event-driven and non-blocking I/O
+[ ] Event loop phases and queues
+[ ] Thread pool, worker threads and child processes
+[ ] Cluster module; process.nextTick and setImmediate
+[ ] Node.js vs browser JavaScript
+
+Modules, events and streams:
+[ ] CommonJS vs ES Modules and module caching
+[ ] EventEmitter and custom events
+[ ] Buffer and File System module
+[ ] Readable, Writable, Duplex and Transform streams
+[ ] pipe, pipeline and backpressure
+[ ] File uploads and environment variables
+
+Errors and production:
+[ ] Callbacks, Promises and async/await
+[ ] Operational vs programmer errors
+[ ] Unhandled rejections and custom error classes
+[ ] Graceful shutdown, SIGTERM and SIGINT
+[ ] Memory leaks, heap snapshots and CPU profiling
+[ ] Blocking event loop and CPU-intensive work
+[ ] Redis caching, background jobs, queues and retries
+[ ] Rate limiting, logging, monitoring and connection pooling
+[ ] Security and scaling Node.js applications
+
+Coding practice:
+[ ] Process large files with streams
+[ ] Worker-thread example and EventEmitter example
+[ ] Retry utility and concurrent task runner
+[ ] Graceful shutdown handler; cache and timeout handling
+
+5. EXPRESS.JS AND REST APIS — 6–8 DAYS
+
+Fundamentals and architecture:
+[ ] Create Express server; request and response
+[ ] Routing, HTTP methods and status codes
+[ ] Route params vs query params vs request body
+[ ] Application, router, built-in and third-party middleware
+[ ] Middleware order and error middleware
+[ ] MVC, layered architecture, controllers and services
+[ ] Repository pattern, DTOs and validation
+[ ] Folder structure and configuration management
+[ ] REST principles, versioning, pagination, sorting and filtering
+[ ] PUT vs PATCH, idempotency and OpenAPI/Swagger
+
+Security and authentication:
+[ ] Authentication vs authorization
+[ ] JWT, access vs refresh tokens, expiration and rotation
+[ ] bcrypt password hashing and RBAC
+[ ] Authentication and authorization middleware
+[ ] CORS, Helmet and rate limiting
+[ ] NoSQL injection, input validation and sanitization
+[ ] XSS, CSRF and secure cookies
+[ ] Secrets management and OWASP API Security basics
+
+Reliability and testing:
+[ ] Validation with Zod or Joi
+[ ] Async error handling and custom errors
+[ ] Timeouts, retries and exponential backoff
+[ ] Third-party/payment API integration and webhooks
+[ ] Duplicate request prevention and transaction status tracking
+[ ] Caching, correlation IDs, health checks and graceful shutdown
+[ ] Unit/integration testing with Supertest
+[ ] API performance optimization
+
+6. MONGODB AND MONGOOSE — 6–8 DAYS
+
+Fundamentals and data modeling:
+[ ] MongoDB vs SQL; database, collection, document and BSON
+[ ] ObjectId and CRUD operations
+[ ] Query, comparison, logical and update operators
+[ ] Projection, sorting and pagination
+[ ] Embedding vs referencing; normalization vs denormalization
+[ ] One-to-one, one-to-many and many-to-many relationships
+[ ] Schema validation, dates, soft deletes and consistency
+[ ] Model users, roles, transactions and analytics data
+
+Indexes and aggregation:
+[ ] Single-field, compound, unique, TTL, multikey and text indexes
+[ ] Index prefixes, selectivity and ESR guideline
+[ ] explain; collection scans vs index scans
+[ ] Slow query optimization and index write overhead
+[ ] Aggregation: match, project, group, sort, limit, skip
+[ ] unwind, lookup, addFields, facet and cond
+[ ] sum, avg, min, max; multi-stage aggregation and performance
+
+Mongoose and advanced:
+[ ] MongoDB Driver vs Mongoose; schemas and models
+[ ] CRUD, validation, middleware/hooks and populate
+[ ] lean, select, findOneAndUpdate, updateOne vs save
+[ ] Instance/static methods and duplicate-key errors
+[ ] Sessions, transactions and optimistic concurrency
+[ ] Replica sets, sharding, read preference and read/write concerns
+[ ] ACID, atomic operations, change streams, backup and security
+[ ] Connection pooling and performance
+
+Coding practice:
+[ ] CRUD, pagination and search APIs
+[ ] Indexes and explain query plans
+[ ] Aggregation reports and transactions
+[ ] Duplicate prevention; user-role and transaction-history schemas
+
+7. HTML, CSS, BROWSER AND WEB FUNDAMENTALS — 3–4 DAYS
+
+HTML/CSS:
+[ ] Semantic HTML, forms, validation and accessibility
+[ ] Box model, specificity and stacking context
+[ ] Flexbox, Grid, positioning and z-index
+[ ] Responsive design and media queries
+[ ] CSS variables, SCSS, CSS Modules and Tailwind
+[ ] Animations, transitions and CSS performance
+
+Browser and web:
+[ ] Browser rendering and critical rendering path
+[ ] DOM vs BOM; reflow vs repaint
+[ ] HTTP vs HTTPS; DNS; TCP vs UDP basics
+[ ] HTTP/1.1 vs HTTP/2 vs HTTP/3
+[ ] Cookies vs local/session storage
+[ ] CORS and Same-Origin Policy
+[ ] REST vs GraphQL basics
+[ ] WebSocket vs HTTP and web security
+
+8. REDUX, API INTEGRATION AND WEBSOCKET — 4–5 DAYS
+
+State and API management:
+[ ] Redux Toolkit and async API calls
+[ ] Loading, success, error and empty states
+[ ] Normalization, caching and invalidation
+[ ] Optimistic updates, race conditions and cancellation
+[ ] Axios interceptors and token refresh
+[ ] Retry logic, global error handling and request deduplication
+
+Real-time applications:
+[ ] WebSocket protocol vs Socket.IO
+[ ] Connection lifecycle, handshake, ping/pong and heartbeat
+[ ] Reconnection and exponential backoff
+[ ] Authentication, rooms, broadcasting and multiple clients
+[ ] Duplicate event prevention and data synchronization
+[ ] Scaling WebSocket servers and Redis Pub/Sub
+[ ] Build real-time dashboard, transaction updates and activity feed
+
+9. TESTING AND CODE QUALITY — 3–4 DAYS
+
+Testing:
+[ ] Jest and React Testing Library
+[ ] Unit, integration, component and Hook testing
+[ ] Mock API responses and async components
+[ ] Testing Redux, forms and user interactions
+[ ] Backend service/controller testing and Supertest
+[ ] Mock database operations and test isolation
+[ ] Authentication, authorization and validation tests
+
+Code quality:
+[ ] ESLint and Prettier
+[ ] Git branching, pull requests and code reviews
+[ ] SOLID, DRY, KISS and YAGNI
+[ ] Refactoring, clean code and technical debt
+
+10. SYSTEM DESIGN — 5–7 DAYS
+
+Fundamentals:
+[ ] Monolith vs microservices; client-server and three-tier architecture
+[ ] Horizontal vs vertical scaling
+[ ] Load balancing, reverse proxy and CDN
+[ ] Caching, replication and sharding
+[ ] Message queues, API gateways and rate limiting
+[ ] Fault tolerance, high availability and observability
+
+Design exercises:
+[ ] Employee management and e-commerce
+[ ] Authentication and payment processing
+[ ] Real-time chat and notification system
+[ ] URL shortener and file upload service
+[ ] Analytics and inventory dashboards
+[ ] Live transaction monitoring
+
+For every design:
+[ ] Requirements and API design
+[ ] Database schema and component architecture
+[ ] Authentication and security
+[ ] Performance, caching and scalability
+[ ] Failure handling and trade-offs
+
+11. GIT, LINUX, DEPLOYMENT AND DEVOPS — 3–4 DAYS
+
+Git and Linux:
+[ ] clone, pull, fetch, merge and rebase
+[ ] reset vs revert, conflicts, cherry-pick and stash
+[ ] Branching and pull request workflow
+[ ] Linux commands, permissions and process management
+[ ] Environment variables, logs, ports and networking
+[ ] Disk/memory monitoring and troubleshooting
+
+Deployment:
+[ ] Production builds and environment configuration
+[ ] Nginx reverse proxy and SSL/TLS
+[ ] HTTPS and certificate troubleshooting
+[ ] AWS EC2 and S3 fundamentals
+[ ] Docker basics and CI/CD pipelines
+[ ] Rollback, monitoring, health checks and production debugging
+
+12. RESUME AND PROJECT INTERVIEW PREPARATION — 5–7 DAYS
+
+Project explanation:
+[ ] Tell me about yourself and explain your project
+[ ] Architecture, responsibilities and request lifecycle
+[ ] Frontend-backend communication and state management
+[ ] API errors, authentication and role permissions
+[ ] Real-time updates and performance optimization
+[ ] Testing, deployment and most challenging issue
+
+Scenario-based questions:
+[ ] Dashboard is slow: profile and investigate
+[ ] Duplicate API data: trace and debug
+[ ] Excessive React re-renders: identify root cause
+[ ] WebSocket disconnects: reconnect and resynchronize
+[ ] Expired token during request: refresh strategy
+[ ] Concurrent refresh attempts: coordinate safely
+[ ] Payment timeout with unknown outcome: reconcile safely
+[ ] Concurrent record updates: handle conflicts
+[ ] Slow MongoDB queries: inspect plans and indexes
+[ ] Works locally but fails in production: diagnose
+[ ] Production crash: inspect logs and build
+[ ] Unauthorized data access: enforce backend permissions
+[ ] Traffic spike: scale and protect services
+[ ] Critical production fix: test, deploy and roll back safely
+
+Resume claims:
+[ ] Prepare truthful explanation for every major skill and achievement
+[ ] Explain how dashboard performance improvement was measured
+[ ] Explain third-party payment/telecom API integration
+[ ] Explain WebSocket dashboard design and failure handling
+[ ] Explain JWT/RBAC implementation and security boundaries
+[ ] Explain tests, deployment, Nginx and SSL/TLS
+[ ] Prepare follow-up questions for every project bullet
+
+
+ADDITIONAL TECHNOLOGIES
+[ ] SQL/MySQL: joins, indexes, transactions, normalization and query optimization
+[ ] Redis: caching, TTL, cache invalidation and Pub/Sub
+[ ] Next.js: routing, SSR/CSR, data fetching and rendering basics
+[ ] GraphQL: queries, mutations, schema and REST comparison
+[ ] Docker: images, containers, volumes and networking
+[ ] Cloud/CI/CD: deployment workflows, environment variables, monitoring and rollback
+[ ] Message queues: retries, dead-letter queues and idempotency
+
+SUGGESTED 12-WEEK PLAN
+[ ] Weeks 1–2: JavaScript concepts, output questions and coding practice
+[ ] Weeks 3–4: React fundamentals, Hooks, routing, Redux and performance
+[ ] Week 5: TypeScript and React with TypeScript
+[ ] Week 6: Node.js architecture, event loop, streams and async programming
+[ ] Week 7: Express APIs, middleware, authentication and security
+[ ] Week 8: MongoDB, Mongoose, indexes, aggregation and data modeling
+[ ] Week 9: Web fundamentals, WebSocket, API integration and testing
+[ ] Week 10: System design, Git, Linux, Nginx, AWS and deployment
+[ ] Week 11: Project explanation, resume questions and scenarios
+[ ] Week 12: Mock interviews, revision and weak-area improvement
+
+DAILY STUDY ROUTINE
+[ ] 60 minutes: learn concepts and make short notes
+[ ] 60 minutes: write code without copying solutions
+[ ] 30 minutes: answer interview questions aloud in English
+[ ] 30 minutes: revise yesterday’s topics and solve follow-up questions
+[ ] Weekend: one mock interview, one mini-project task and weak-area review
+
+INTERVIEW READINESS CHECKLIST
+[ ] I can explain each major concept in simple English
+[ ] I can write common coding solutions without looking them up
+[ ] I can explain time and space complexity
+[ ] I can discuss trade-offs, not only definitions
+[ ] I can explain my actual project architecture and responsibilities accurately
+[ ] I can debug API, database, rendering and production issues systematically
+[ ] I can answer follow-up questions and admit when I do not know something
