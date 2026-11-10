@@ -476,7 +476,7 @@ Internal working:
 CommonJS loads modules synchronously using require and caches them after first load. ES Modules use static import/export analysis, enabling tree shaking and asynchronous loading.
 
 Module caching:
-A module is executed only once; subsequent require calls return cached exports.
+Interview definition: Module caching is a mechanism in Node.js where a loaded CommonJS module is cached, allowing subsequent require() calls to reuse its exported value without executing the module again.
 
 Follow-up questions:
 1. Difference between require and import?
@@ -544,6 +544,8 @@ const buffer = Buffer.from("hello");
 console.log(buffer.toString());
 
 File System module:
+The File System module (node:fs) is a built-in Node.js module that provides APIs to interact with files and directories, including reading, writing, updating, deleting, and managing file metadata.
+
 const fs = require("fs/promises");
 
 await fs.readFile("data.txt", "utf-8");
@@ -741,7 +743,75 @@ Follow-up questions:
 Interview-ready answer:
 I prefer pipeline over pipe because it propagates errors and closes streams correctly. Backpressure occurs when consumer is slower than producer; Node streams pause and resume internally to manage it.
 
+File Uploading:
+Interview definition: File uploading is the process of transferring files from a client application to a server for validation, processing, and storage.
+
+Interview definition: Multer is Express middleware used to handle multipart/form-data, which is commonly used for file uploads.
+
+const express = require("express");
+const multer = require("multer");
+const path = require("node:path");
+const fs = require("node:fs");
+
+const app = express();
+
+const uploadDir = path.join(__dirname, "uploads");
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+
+  filename: (req, file, cb) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+    cb(null, `${Date.now()}-${require("node:crypto").randomUUID()}${extension}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5 MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png"];
+
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only JPEG and PNG images are allowed"));
+    }
+  }
+});
+
+app.post("/upload", upload.single("image"), (req, res) => {
+  res.status(201).json({
+    message: "File uploaded successfully",
+    filename: req.file.filename
+  });
+});
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: err.message });
+  }
+
+  if (err) {
+    return res.status(400).json({ message: err.message });
+  }
+
+  next();
+});
+
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
+});
+
+
 Environment variables:
+
+Interview definition: Environment variables are key-value pairs supplied to a process at runtime to configure application behavior without hardcoding environment-specific values into source code.
 
 Environment variables are values stored outside the code, used to keep sensitive data like database URLs, API keys, and secrets safe.
 
@@ -783,10 +853,12 @@ I use async/await with try/catch for readable error handling. For parallel indep
 2. OPERATIONAL VS PROGRAMMER ERRORS
 
 Operational error:
+Operational errors are expected runtime errors that occur during normal application execution due to external conditions, invalid input, or unavailable resources.
+
 Expected runtime failure, such as DB down, invalid input, network timeout.
 
 Programmer error:
-Bug in code, such as undefined variable, wrong logic or invalid API usage.
+Programmer errors are unexpected errors caused by mistakes, incorrect assumptions, or bugs in the application code.
 
 Use case:
 Operational errors should be handled and returned safely. Programmer errors should be fixed and may require process restart.
@@ -806,19 +878,41 @@ I distinguish expected operational failures from coding bugs. Operational errors
 3. UNHANDLED REJECTIONS AND CUSTOM ERROR CLASSES
 
 Unhandled rejection:
-Promise rejection without catch handler.
+An unhandled rejection occurs when a Promise is rejected, but the application does not provide a rejection handler to handle the error.
 
-process.on("unhandledRejection", reason => {
-  console.error(reason);
-});
+function getUser() {
+  return Promise.reject(
+    new Error("Database connection failed")
+  );
+}
+
+getUser();
+
+coorect approach:
+
+getUser()
+  .then((user) => {
+    console.log(user);
+  })
+  .catch((error) => {
+    console.error("Error:", error.message);
+  });
 
 Custom error:
+A custom error class is a user-defined class that extends JavaScript's built-in Error class to create application-specific errors.
+Example:
 class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
+
     this.statusCode = statusCode;
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
   }
 }
+usage
+throw new AppError("User not found", 404);
 
 Use case:
 Consistent API error responses, domain-specific errors, centralized error middleware.
