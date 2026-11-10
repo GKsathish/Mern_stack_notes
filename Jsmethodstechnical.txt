@@ -1,0 +1,1229 @@
+==============================================================
+ JAVASCRIPT METHODS: DETAILED TECHNICAL REFERENCE
+ Array + String + Object
+==============================================================
+ For each method:
+   Technical Definition | Syntax | Parameters | Returns |
+   Mutates? | Examples | Edge cases | Use case
+==============================================================
+
+
+##############################################################
+ PART 1: ARRAY METHODS
+##############################################################
+
+Terms used below:
+  Mutates  = changes the original array in place
+  Shallow  = nested objects are copied by reference, not cloned
+  Callback = function(element, index, array) invoked per element
+
+==============================================================
+ 1.1 CREATION AND TYPE CHECK
+==============================================================
+
+--------------------------------------------------------------
+Array.isArray(value)
+--------------------------------------------------------------
+Technical Definition:
+  Static method that returns true if the argument's internal class is
+  Array. It works across iframes/realms, unlike `instanceof Array`.
+Parameters : value - any value
+Returns    : boolean
+Mutates    : No
+Examples:
+  Array.isArray([1,2]);          // true
+  Array.isArray("abc");          // false
+  Array.isArray({length: 2});    // false (array-like, not array)
+  Array.isArray(new Array());    // true
+  Array.isArray(Array.prototype);// true
+Edge case  : typeof [] is "object", so typeof cannot detect arrays.
+Use case   : Validating API responses, function argument checks.
+
+--------------------------------------------------------------
+Array.from(iterable | arrayLike, mapFn?)
+--------------------------------------------------------------
+Technical Definition:
+  Creates a new, shallow-copied Array instance from an iterable or
+  array-like object (object with `length` and indexed elements). The
+  optional mapFn is applied to each element during creation.
+Parameters : source, mapFn(value, index)
+Returns    : new Array
+Mutates    : No (source unchanged)
+Examples:
+  Array.from("abc");                       // ["a","b","c"]
+  Array.from(new Set([1,1,2]));            // [1,2]
+  Array.from(new Map([["a",1]]));          // [["a",1]]
+  Array.from({length: 3}, (_, i) => i*2);  // [0,2,4]
+  Array.from(document.querySelectorAll("p"));   // NodeList to array
+Edge case  : Array.from(5) returns [] (numbers are not iterable).
+Use case   : Converting NodeList, Set, Map, arguments, strings.
+
+--------------------------------------------------------------
+Array.of(...items)
+--------------------------------------------------------------
+Technical Definition:
+  Creates a new array from its arguments, regardless of count or type.
+  Fixes the ambiguity of the Array constructor with a single number.
+Returns    : new Array
+Examples:
+  Array.of(7);          // [7]
+  new Array(7);         // [ <7 empty items> ]
+  Array.of(1, "a", {}); // [1,"a",{}]
+Use case   : Predictable array creation.
+
+--------------------------------------------------------------
+fill(value, start = 0, end = length)
+--------------------------------------------------------------
+Technical Definition:
+  Overwrites elements from start (inclusive) to end (exclusive) with a
+  static value. Same reference is reused for objects.
+Returns    : the same (modified) array
+Mutates    : YES
+Examples:
+  new Array(3).fill(0);               // [0,0,0]
+  [1,2,3,4].fill(9, 1, 3);            // [1,9,9,4]
+  [1,2,3].fill(0, -1);                // [1,2,0]
+  // 2D grid (correct way):
+  Array.from({length: 3}, () => Array(3).fill(0));
+Edge case  : new Array(3).fill([]) shares ONE inner array (bug).
+Use case   : Initializing arrays, matrices, DP tables.
+
+
+==============================================================
+ 1.2 ADD / REMOVE ELEMENTS
+==============================================================
+
+--------------------------------------------------------------
+push(...items)
+--------------------------------------------------------------
+Technical Definition:
+  Appends one or more elements to the end and returns the new length.
+Time       : O(1) per element (amortized)
+Returns    : number (new length)
+Mutates    : YES
+Examples:
+  const a = [1,2];
+  a.push(3);            // returns 3, a = [1,2,3]
+  a.push(4, 5);         // returns 5, a = [1,2,3,4,5]
+  a.push(...[6,7]);     // spread another array
+  a.push([8,9]);        // adds ONE nested array element
+Use case   : Stack push, building results in loops, cart items.
+
+--------------------------------------------------------------
+pop()
+--------------------------------------------------------------
+Technical Definition:
+  Removes the last element and returns it. Returns undefined if empty.
+Time       : O(1)
+Returns    : removed element | undefined
+Mutates    : YES
+Examples:
+  [1,2,3].pop();        // 3
+  [].pop();             // undefined
+  const stack = [1,2,3];
+  while (stack.length) console.log(stack.pop());   // 3 2 1
+Use case   : Stack pop, undo operations, backtracking.
+
+--------------------------------------------------------------
+unshift(...items)
+--------------------------------------------------------------
+Technical Definition:
+  Inserts elements at the beginning and returns the new length. All
+  existing indexes shift right.
+Time       : O(n)
+Returns    : number (new length)
+Mutates    : YES
+Examples:
+  const a = [3,4];
+  a.unshift(1,2);       // a = [1,2,3,4], returns 4
+Note       : Items are inserted in the given order (1,2 not 2,1).
+Use case   : Latest notification first, prepend to list.
+
+--------------------------------------------------------------
+shift()
+--------------------------------------------------------------
+Technical Definition:
+  Removes the first element and returns it. Remaining indexes shift
+  left.
+Time       : O(n)
+Returns    : removed element | undefined
+Mutates    : YES
+Examples:
+  const q = [1,2,3];
+  q.shift();            // 1, q = [2,3]
+  // BFS queue
+  while (queue.length) { const node = queue.shift(); }
+Use case   : Queue (FIFO), BFS traversal, task scheduling.
+
+--------------------------------------------------------------
+splice(start, deleteCount?, ...itemsToInsert)
+--------------------------------------------------------------
+Technical Definition:
+  Changes array contents by removing and/or inserting elements at a
+  given index. Returns an array of the removed elements.
+Parameters :
+  start       - index to begin (negative counts from end)
+  deleteCount - how many to remove (omit = remove to end)
+  items       - elements to insert at start
+Returns    : array of removed elements
+Mutates    : YES
+Examples:
+  const a = [1,2,3,4,5];
+  a.splice(1, 2);          // returns [2,3], a = [1,4,5]   (remove)
+  a.splice(1, 0, "x");     // returns [],    a = [1,"x",4,5] (insert)
+  a.splice(1, 1, "y");     // returns ["x"], a = [1,"y",4,5] (replace)
+  a.splice(-1);            // removes last element
+  a.splice(2);             // removes everything from index 2
+  // remove item by value
+  const i = arr.indexOf("b");
+  if (i > -1) arr.splice(i, 1);
+Use case   : Delete by index, insert in middle, replace in place.
+
+--------------------------------------------------------------
+toSpliced(start, deleteCount, ...items)   (ES2023)
+--------------------------------------------------------------
+Technical Definition:
+  Copying version of splice. Returns a new array; original untouched.
+Mutates    : No
+Examples:
+  const a = [1,2,3];
+  a.toSpliced(1, 1);       // [1,3]
+  a;                       // [1,2,3] unchanged
+Use case   : Immutable updates (React/Redux state).
+
+
+==============================================================
+ 1.3 COPY / COMBINE / ACCESS
+==============================================================
+
+--------------------------------------------------------------
+slice(start = 0, end = length)
+--------------------------------------------------------------
+Technical Definition:
+  Returns a shallow copy of a portion of the array from start
+  (inclusive) to end (exclusive). Original is not modified.
+Time       : O(k) where k = copied elements
+Returns    : new array
+Mutates    : No
+Examples:
+  const a = [1,2,3,4,5];
+  a.slice(1, 3);        // [2,3]
+  a.slice(2);           // [3,4,5]
+  a.slice(-2);          // [4,5]
+  a.slice();            // full shallow copy
+  a.slice(1, -1);       // [2,3,4]
+Edge case  : Nested objects are shared by reference.
+Use case   : Pagination, cloning, taking first/last N items.
+
+--------------------------------------------------------------
+concat(...valuesOrArrays)
+--------------------------------------------------------------
+Technical Definition:
+  Merges arrays and/or values into a new array. Arrays are flattened
+  by one level only.
+Returns    : new array
+Mutates    : No
+Examples:
+  [1,2].concat([3,4]);          // [1,2,3,4]
+  [1].concat(2, [3], [[4]]);    // [1,2,3,[4]]
+  [...[1,2], ...[3,4]];         // modern spread equivalent
+Use case   : Merging lists without mutating.
+
+--------------------------------------------------------------
+join(separator = ",")
+--------------------------------------------------------------
+Technical Definition:
+  Converts each element to a string and concatenates them with the
+  separator. null and undefined become empty strings.
+Returns    : string
+Examples:
+  ["a","b","c"].join("-");      // "a-b-c"
+  [1,2,3].join("");             // "123"
+  [1,null,3].join(",");         // "1,,3"
+  ["Home","About"].join(" / "); // "Home / About"
+Use case   : CSV rows, breadcrumbs, URL slugs, string reversal.
+
+--------------------------------------------------------------
+at(index)
+--------------------------------------------------------------
+Technical Definition:
+  Returns the element at the given integer index. Negative values
+  count back from the end.
+Returns    : element | undefined
+Examples:
+  [10,20,30].at(0);     // 10
+  [10,20,30].at(-1);    // 30   (same as arr[arr.length - 1])
+  [10,20,30].at(5);     // undefined
+Use case   : Cleaner "last element" access.
+
+--------------------------------------------------------------
+with(index, value)   (ES2023)
+--------------------------------------------------------------
+Technical Definition:
+  Returns a copy with the element at index replaced. Throws
+  RangeError if the index is out of range.
+Examples:
+  [1,2,3].with(1, 99);    // [1,99,3]
+  [1,2,3].with(-1, 0);    // [1,2,0]
+Use case   : Immutable single-element update.
+
+--------------------------------------------------------------
+flat(depth = 1)
+--------------------------------------------------------------
+Technical Definition:
+  Creates a new array with sub-array elements concatenated into it up
+  to the specified depth. Also removes empty slots.
+Examples:
+  [1,[2,[3]]].flat();           // [1,2,[3]]
+  [1,[2,[3]]].flat(2);          // [1,2,3]
+  [1,[2,[3,[4]]]].flat(Infinity);   // [1,2,3,4]
+  [1,,3].flat();                // [1,3]
+Use case   : Flattening nested API data.
+
+--------------------------------------------------------------
+flatMap(callback)
+--------------------------------------------------------------
+Technical Definition:
+  Maps each element with the callback, then flattens the result by
+  exactly one level. Equivalent to map(...).flat(1) but more efficient.
+Examples:
+  ["a b", "c d"].flatMap(s => s.split(" "));   // ["a","b","c","d"]
+  [1,2,3].flatMap(n => [n, n*2]);              // [1,2,2,4,3,6]
+  [1,2,3].flatMap(n => n > 1 ? [n] : []);      // [2,3] (map+filter)
+Use case   : One-to-many transforms, map and filter in one pass.
+
+--------------------------------------------------------------
+copyWithin(target, start, end)
+--------------------------------------------------------------
+Technical Definition:
+  Copies a sequence of elements within the same array to another
+  position, without changing length.
+Mutates    : YES
+Examples:
+  [1,2,3,4,5].copyWithin(0, 3);       // [4,5,3,4,5]
+  [1,2,3,4,5].copyWithin(1, 3, 4);    // [1,4,3,4,5]
+
+--------------------------------------------------------------
+keys() / values() / entries()
+--------------------------------------------------------------
+Technical Definition:
+  Return Array Iterator objects yielding indexes, values, or
+  [index, value] pairs.
+Examples:
+  for (const i of ["a","b"].keys()) {}        // 0, 1
+  for (const [i, v] of ["a","b"].entries()) {}// [0,"a"], [1,"b"]
+  [...["a","b"].entries()];                   // [[0,"a"],[1,"b"]]
+Use case   : Loop with index using for...of.
+
+
+==============================================================
+ 1.4 SEARCH
+==============================================================
+
+--------------------------------------------------------------
+indexOf(item, fromIndex = 0) / lastIndexOf(item, fromIndex)
+--------------------------------------------------------------
+Technical Definition:
+  Returns the first (indexOf) or last (lastIndexOf) index at which the
+  item is found using strict equality (===), or -1.
+Time       : O(n)
+Examples:
+  [1,2,3,2].indexOf(2);         // 1
+  [1,2,3,2].lastIndexOf(2);     // 3
+  [1,2,3].indexOf(9);           // -1
+  [NaN].indexOf(NaN);           // -1  (NaN !== NaN)
+  [1,2,3,2].indexOf(2, 2);      // 3
+Use case   : Position lookup; use with splice to delete by value.
+
+--------------------------------------------------------------
+includes(item, fromIndex = 0)
+--------------------------------------------------------------
+Technical Definition:
+  Returns true if the array contains the item using SameValueZero
+  comparison (so NaN is found).
+Examples:
+  [1,2,3].includes(2);          // true
+  [NaN].includes(NaN);          // true
+  ["a","b"].includes("c");      // false
+  if (["admin","editor"].includes(role)) { }
+Use case   : Permission checks, whitelist/blacklist.
+
+--------------------------------------------------------------
+find(callback) / findIndex(callback)
+--------------------------------------------------------------
+Technical Definition:
+  find returns the first element for which the callback returns a
+  truthy value (else undefined). findIndex returns its index (else -1).
+  Both stop at the first match.
+Examples:
+  [5,12,8].find(n => n > 10);           // 12
+  [5,12,8].findIndex(n => n > 10);      // 1
+  users.find(u => u.id === 3);          // user object | undefined
+  [1,2,3].find(n => n > 9);             // undefined
+Use case   : Lookup by id, first match.
+
+--------------------------------------------------------------
+findLast(callback) / findLastIndex(callback)   (ES2023)
+--------------------------------------------------------------
+Technical Definition:
+  Same as find/findIndex but iterates from the end.
+Examples:
+  [1,2,3,4].findLast(n => n % 2 === 1);        // 3
+  [1,2,3,4].findLastIndex(n => n % 2 === 1);   // 2
+
+--------------------------------------------------------------
+some(callback)
+--------------------------------------------------------------
+Technical Definition:
+  Returns true if at least one element satisfies the callback.
+  Short-circuits on the first true. Empty array returns false.
+Examples:
+  [1,2,3].some(n => n > 2);             // true
+  [].some(n => n > 0);                  // false
+  cart.some(i => i.stock === 0);        // any out of stock?
+Use case   : "Does any item match?"
+
+--------------------------------------------------------------
+every(callback)
+--------------------------------------------------------------
+Technical Definition:
+  Returns true if all elements satisfy the callback. Short-circuits on
+  the first false. Empty array returns TRUE (vacuous truth).
+Examples:
+  [1,2,3].every(n => n > 0);            // true
+  [1,-2,3].every(n => n > 0);           // false
+  [].every(n => n > 0);                 // true
+  fields.every(f => f.value !== "");    // form validation
+Use case   : "Do all items match?"
+
+
+==============================================================
+ 1.5 ITERATION AND TRANSFORMATION
+==============================================================
+
+--------------------------------------------------------------
+forEach(callback)
+--------------------------------------------------------------
+Technical Definition:
+  Executes the callback once for each element in order. Always returns
+  undefined. Cannot be stopped with break/return (except by throwing).
+  Skips empty slots. Does not wait for async callbacks.
+Examples:
+  [1,2,3].forEach((n, i, arr) => console.log(n, i));
+  items.forEach(item => list.append(item.name));
+Edge case  : await inside forEach does NOT pause the loop.
+             Use for...of for async iteration.
+Use case   : Side effects (logging, DOM updates).
+
+--------------------------------------------------------------
+map(callback)
+--------------------------------------------------------------
+Technical Definition:
+  Creates a new array populated with the result of calling the
+  callback on each element. Output length equals input length.
+Returns    : new array
+Mutates    : No
+Examples:
+  [1,2,3].map(n => n * 2);              // [2,4,6]
+  users.map(u => u.name);               // ["A","B"]
+  users.map(u => ({ ...u, active: true }));
+  ["1","2","3"].map(Number);            // [1,2,3]
+  ["1","2","3"].map(parseInt);          // [1,NaN,NaN]  (famous gotcha)
+Use case   : Rendering lists (React), extracting fields, converting.
+
+--------------------------------------------------------------
+filter(callback)
+--------------------------------------------------------------
+Technical Definition:
+  Creates a new array with only the elements for which the callback
+  returns a truthy value.
+Returns    : new array (possibly shorter or empty)
+Examples:
+  [1,2,3,4].filter(n => n % 2 === 0);       // [2,4]
+  users.filter(u => u.age >= 18);
+  arr.filter(Boolean);                      // removes falsy values
+  arr.filter((x, i) => arr.indexOf(x) === i);   // unique values
+  items.filter(i => i.id !== removeId);     // delete by id
+Use case   : Search, conditional lists, deleting items immutably.
+
+--------------------------------------------------------------
+reduce(callback(acc, cur, i, arr), initialValue)
+--------------------------------------------------------------
+Technical Definition:
+  Executes a reducer on each element from left to right, passing the
+  accumulated result from one call to the next, producing a single
+  output value. If initialValue is omitted, the first element is the
+  initial accumulator and iteration starts at index 1. Calling on an
+  empty array without initialValue throws TypeError.
+Examples:
+  // sum
+  [1,2,3,4].reduce((sum, n) => sum + n, 0);            // 10
+  // max
+  [3,9,2].reduce((m, n) => Math.max(m, n));            // 9
+  // frequency count
+  ["a","b","a"].reduce((acc, c) => {
+    acc[c] = (acc[c] || 0) + 1;
+    return acc;
+  }, {});                                              // {a:2, b:1}
+  // group by
+  people.reduce((acc, p) => {
+    (acc[p.age] ||= []).push(p);
+    return acc;
+  }, {});
+  // flatten
+  [[1,2],[3]].reduce((a, b) => a.concat(b), []);       // [1,2,3]
+  // array to object by id
+  users.reduce((acc, u) => ({ ...acc, [u.id]: u }), {});
+Use case   : Totals, counting, grouping, pipelines.
+
+--------------------------------------------------------------
+reduceRight(callback, initialValue)
+--------------------------------------------------------------
+Technical Definition:
+  Same as reduce but iterates from right to left.
+Examples:
+  ["a","b","c"].reduceRight((acc, c) => acc + c, "");  // "cba"
+
+
+==============================================================
+ 1.6 SORTING AND REORDERING
+==============================================================
+
+--------------------------------------------------------------
+sort(compareFn?)
+--------------------------------------------------------------
+Technical Definition:
+  Sorts elements IN PLACE and returns the same array. Without a
+  compareFn, elements are converted to strings and compared by UTF-16
+  code units. compareFn(a, b): negative = a first, positive = b first,
+  0 = keep order. Sort is stable (ES2019+).
+Time       : O(n log n)
+Mutates    : YES
+Examples:
+  [10,9,1].sort();                       // [1,10,9]  (string order)
+  [10,9,1].sort((a,b) => a - b);         // [1,9,10]  ascending
+  [10,9,1].sort((a,b) => b - a);         // [10,9,1]  descending
+  ["b","a"].sort();                      // ["a","b"]
+  names.sort((a,b) => a.localeCompare(b));        // strings, locale
+  people.sort((a,b) => a.age - b.age);            // by property
+  people.sort((a,b) => a.dept.localeCompare(b.dept) || a.age - b.age);
+Use case   : Ordering lists, leaderboards, tables.
+
+--------------------------------------------------------------
+reverse()
+--------------------------------------------------------------
+Technical Definition:
+  Reverses the array in place and returns it.
+Mutates    : YES
+Examples:
+  [1,2,3].reverse();                     // [3,2,1]
+  [..."abc"].reverse().join("");         // "cba"
+
+--------------------------------------------------------------
+toSorted(compareFn) / toReversed()   (ES2023)
+--------------------------------------------------------------
+Technical Definition:
+  Copying versions of sort and reverse; the original is unchanged.
+Examples:
+  const a = [3,1,2];
+  a.toSorted((x,y) => x - y);            // [1,2,3]
+  a.toReversed();                        // [2,1,3]
+  a;                                     // [3,1,2]
+
+
+==============================================================
+ 1.7 CONVERSION AND GROUPING
+==============================================================
+
+toString()
+  Technical Definition: Returns elements joined with commas.
+  [1,[2,3]].toString();                  // "1,2,3"
+
+Object.groupBy(array, callback)   (ES2024)
+  Technical Definition: Groups elements into an object whose keys are
+  the strings returned by the callback.
+  Object.groupBy([1,2,3,4], n => n % 2 ? "odd" : "even");
+  // { odd:[1,3], even:[2,4] }
+
+Remove duplicates (pattern):
+  [...new Set([1,1,2,3,3])];             // [1,2,3]
+
+MUTATING ARRAY METHODS:
+  push, pop, shift, unshift, splice, sort, reverse, fill, copyWithin
+
+
+##############################################################
+ PART 2: STRING METHODS
+##############################################################
+
+Strings are IMMUTABLE primitives. No method changes the original;
+each returns a new string or value. Indexes are UTF-16 code units.
+
+==============================================================
+ 2.1 ACCESS
+==============================================================
+
+--------------------------------------------------------------
+length (property)
+--------------------------------------------------------------
+Technical Definition:
+  Number of UTF-16 code units in the string (emoji may count as 2).
+Examples:
+  "Hello".length;               // 5
+  "".length;                    // 0
+  "😀".length;                  // 2
+  [..."😀"].length;             // 1
+
+--------------------------------------------------------------
+charAt(index) / str[index]
+--------------------------------------------------------------
+Technical Definition:
+  Returns the character at index. charAt returns "" if out of range;
+  bracket notation returns undefined.
+Examples:
+  "Hello".charAt(1);            // "e"
+  "Hello"[1];                   // "e"
+  "Hello".charAt(9);            // ""
+  "Hello"[9];                   // undefined
+
+--------------------------------------------------------------
+at(index)
+--------------------------------------------------------------
+Technical Definition:
+  Returns the character at index; negative index counts from the end.
+Examples:
+  "Hello".at(-1);               // "o"
+  "Hello".at(0);                // "H"
+
+--------------------------------------------------------------
+charCodeAt(index) / codePointAt(index)
+--------------------------------------------------------------
+Technical Definition:
+  charCodeAt returns the UTF-16 code unit (0-65535). codePointAt
+  returns the full Unicode code point (handles emoji). Returns NaN /
+  undefined if out of range.
+Examples:
+  "A".charCodeAt(0);            // 65
+  "a".charCodeAt(0);            // 97
+  "😀".codePointAt(0);          // 128512
+Use case   : Caesar cipher, character math, sorting.
+
+--------------------------------------------------------------
+String.fromCharCode(...codes) / String.fromCodePoint(...codes)
+--------------------------------------------------------------
+Technical Definition:
+  Static methods that build a string from UTF-16 codes / code points.
+Examples:
+  String.fromCharCode(72, 105);       // "Hi"
+  String.fromCharCode(97 + 2);        // "c"
+  String.fromCodePoint(128512);       // "😀"
+
+
+==============================================================
+ 2.2 SEARCH AND COMPARE
+==============================================================
+
+--------------------------------------------------------------
+indexOf(search, from = 0) / lastIndexOf(search, from)
+--------------------------------------------------------------
+Technical Definition:
+  Returns the index of the first / last occurrence of the substring
+  (case-sensitive), or -1.
+Examples:
+  "Hello World".indexOf("o");        // 4
+  "Hello World".indexOf("o", 5);     // 7
+  "Hello World".lastIndexOf("o");    // 7
+  "Hello".indexOf("z");              // -1
+  "".indexOf("");                    // 0
+
+--------------------------------------------------------------
+includes(search, position = 0)
+--------------------------------------------------------------
+Technical Definition:
+  Returns true if the substring exists (case-sensitive). Throws if
+  given a RegExp.
+Examples:
+  "Hello World".includes("World");   // true
+  "Hello".includes("hello");         // false
+  "Hello".toLowerCase().includes("hell");   // true
+Use case   : Search filtering.
+
+--------------------------------------------------------------
+startsWith(search, position = 0) / endsWith(search, length)
+--------------------------------------------------------------
+Technical Definition:
+  Check whether the string begins / ends with the given substring.
+Examples:
+  "Hello".startsWith("He");          // true
+  "Hello".startsWith("ll", 2);       // true
+  "photo.png".endsWith(".png");      // true
+  "https://x.com".startsWith("https");   // true
+Use case   : Protocol checks, file extension checks.
+
+--------------------------------------------------------------
+search(regex)
+--------------------------------------------------------------
+Technical Definition:
+  Returns the index of the first regex match, or -1. Ignores the
+  g flag and lastIndex.
+Examples:
+  "Hello World".search(/W/);         // 6
+  "abc123".search(/\d/);             // 3
+
+--------------------------------------------------------------
+match(regex)
+--------------------------------------------------------------
+Technical Definition:
+  Without g flag: returns first match with capture groups and index
+  (or null). With g flag: returns array of all matches (or null).
+Examples:
+  "a1b22".match(/\d+/g);             // ["1","22"]
+  "a1b22".match(/\d+/);              // ["1", index:1, ...]
+  "abc".match(/\d/);                 // null
+  "2024-05-12".match(/(\d+)-(\d+)-(\d+)/);   // groups
+Use case   : Extracting numbers, emails, dates.
+
+--------------------------------------------------------------
+matchAll(regex)
+--------------------------------------------------------------
+Technical Definition:
+  Returns an iterator of all matches, including capture groups and
+  index. Regex MUST have the g flag.
+Examples:
+  [..."a1b22".matchAll(/\d+/g)].map(m => m[0]);   // ["1","22"]
+  for (const m of "x1y2".matchAll(/(\w)(\d)/g)) {
+    console.log(m[1], m[2], m.index);
+  }
+
+--------------------------------------------------------------
+localeCompare(other, locales?, options?)
+--------------------------------------------------------------
+Technical Definition:
+  Compares two strings according to locale rules. Returns negative,
+  0, or positive.
+Examples:
+  "a".localeCompare("b");            // -1
+  "b".localeCompare("a");            // 1
+  "a".localeCompare("A", undefined, { sensitivity: "base" });   // 0
+  ["é","e","z"].sort((a,b) => a.localeCompare(b));
+Use case   : Correct alphabetical sorting.
+
+
+==============================================================
+ 2.3 EXTRACTION
+==============================================================
+
+--------------------------------------------------------------
+slice(start, end)
+--------------------------------------------------------------
+Technical Definition:
+  Returns the part of the string from start (inclusive) to end
+  (exclusive). Negative indexes count from the end.
+Examples:
+  "Hello World".slice(0, 5);         // "Hello"
+  "Hello World".slice(6);            // "World"
+  "Hello World".slice(-5);           // "World"
+  "Hello World".slice(2, -2);        // "llo Wor"
+  "Hello".slice(3, 1);               // ""  (start > end)
+
+--------------------------------------------------------------
+substring(start, end)
+--------------------------------------------------------------
+Technical Definition:
+  Like slice but negative/NaN values become 0, and if start > end
+  the arguments are swapped.
+Examples:
+  "Hello".substring(1, 3);           // "el"
+  "Hello".substring(3, 1);           // "el"  (swapped)
+  "Hello".substring(-2);             // "Hello"
+
+--------------------------------------------------------------
+substr(start, length)      [DEPRECATED]
+--------------------------------------------------------------
+  "Hello World".substr(6, 5);        // "World"
+  Use slice instead.
+
+
+==============================================================
+ 2.4 TRANSFORMATION
+==============================================================
+
+--------------------------------------------------------------
+toUpperCase() / toLowerCase()
+--------------------------------------------------------------
+Technical Definition:
+  Return the string converted to upper / lower case.
+Examples:
+  "Hi".toUpperCase();                // "HI"
+  "Hi".toLowerCase();                // "hi"
+  str[0].toUpperCase() + str.slice(1);   // capitalize first letter
+  a.toLowerCase() === b.toLowerCase();   // case-insensitive compare
+
+toLocaleUpperCase() / toLocaleLowerCase()
+  Technical Definition: Locale-aware conversion (e.g., Turkish i).
+  "i".toLocaleUpperCase("tr");       // "İ"
+
+--------------------------------------------------------------
+trim() / trimStart() / trimEnd()
+--------------------------------------------------------------
+Technical Definition:
+  Remove whitespace (spaces, tabs, newlines) from both ends / start /
+  end. Inner whitespace is untouched.
+Examples:
+  "  hi  ".trim();                   // "hi"
+  "  hi  ".trimStart();              // "hi  "
+  "  hi  ".trimEnd();                // "  hi"
+  email.trim().toLowerCase();        // normalize input
+Use case   : Cleaning form input.
+
+--------------------------------------------------------------
+padStart(targetLength, padString = " ") / padEnd(...)
+--------------------------------------------------------------
+Technical Definition:
+  Pads the string to the target length by repeating padString at the
+  start / end. Returns unchanged if already long enough.
+Examples:
+  "5".padStart(3, "0");              // "005"
+  "5".padEnd(3, "*");                // "5**"
+  "abc".padStart(2, "0");            // "abc"
+  String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+  card.slice(-4).padStart(card.length, "*");   // "************1234"
+Use case   : Time formatting, IDs, masking.
+
+--------------------------------------------------------------
+repeat(count)
+--------------------------------------------------------------
+Technical Definition:
+  Returns the string repeated count times. Throws RangeError for
+  negative or Infinity.
+Examples:
+  "ab".repeat(3);                    // "ababab"
+  "-".repeat(20);                    // divider line
+  "x".repeat(0);                     // ""
+
+--------------------------------------------------------------
+replace(pattern, replacement | fn)
+--------------------------------------------------------------
+Technical Definition:
+  Returns a new string with the FIRST match of a string pattern (or
+  all matches if a regex with g flag) replaced. Replacement may be a
+  string (supports $1, $& patterns) or a function.
+Examples:
+  "aaa".replace("a", "b");           // "baa"
+  "aaa".replace(/a/g, "b");          // "bbb"
+  "John Smith".replace(/(\w+) (\w+)/, "$2, $1");   // "Smith, John"
+  "a-b".replace(/-(\w)/g, (_, c) => c.toUpperCase());   // "aB"
+Use case   : Sanitizing, formatting, camelCase conversion.
+
+--------------------------------------------------------------
+replaceAll(pattern, replacement | fn)
+--------------------------------------------------------------
+Technical Definition:
+  Replaces ALL occurrences. If pattern is a regex it must have the
+  g flag.
+Examples:
+  "a.b.c".replaceAll(".", "-");      // "a-b-c"
+  "aaa".replaceAll("a", "b");        // "bbb"
+
+--------------------------------------------------------------
+concat(...strings)
+--------------------------------------------------------------
+  "a".concat("b", "c");              // "abc"
+  Prefer + or template literals.
+
+--------------------------------------------------------------
+normalize(form = "NFC")
+--------------------------------------------------------------
+Technical Definition:
+  Returns the Unicode normalization form of the string so visually
+  identical characters compare equal.
+Examples:
+  "\u0065\u0301".normalize() === "\u00e9";   // true
+
+
+==============================================================
+ 2.5 SPLIT AND CONVERT
+==============================================================
+
+--------------------------------------------------------------
+split(separator, limit)
+--------------------------------------------------------------
+Technical Definition:
+  Divides the string into an array of substrings at each occurrence
+  of the separator (string or regex).
+Examples:
+  "a,b,c".split(",");                // ["a","b","c"]
+  "abc".split("");                   // ["a","b","c"]
+  "a b  c".split(/\s+/);             // ["a","b","c"]
+  "a,b,c".split(",", 2);             // ["a","b"]
+  "abc".split();                     // ["abc"]
+  [..."😀a"];                        // ["😀","a"] (safe for emoji)
+Use case   : CSV parsing, word splitting, reversing strings.
+
+--------------------------------------------------------------
+String.raw`template`
+--------------------------------------------------------------
+Technical Definition:
+  Tag function returning the raw string; escape sequences are not
+  processed.
+  String.raw`C:\new\table`;          // "C:\new\table"
+
+--------------------------------------------------------------
+Template literals
+--------------------------------------------------------------
+  `Hello ${name}, total: ${price * qty}`
+  `line1
+   line2`                            // multi-line
+
+COMMON INTERVIEW PATTERNS:
+  Reverse        : str.split("").reverse().join("")
+  Palindrome     : s === s.split("").reverse().join("")
+  Word count     : str.trim().split(/\s+/).length
+  Char frequency : [...str].reduce((a,c) => (a[c]=(a[c]||0)+1, a), {})
+  Anagram        : [...a].sort().join("") === [...b].sort().join("")
+  Title case     : s.split(" ").map(w => w[0].toUpperCase()+w.slice(1)).join(" ")
+
+
+##############################################################
+ PART 3: OBJECT METHODS
+##############################################################
+
+Terms:
+  Own property      = defined directly on the object (not inherited)
+  Enumerable        = shows up in for...in, Object.keys, etc.
+  Shallow vs deep   = nested objects shared vs recursively cloned
+
+==============================================================
+ 3.1 STATIC METHODS
+==============================================================
+
+--------------------------------------------------------------
+Object.keys(obj)
+--------------------------------------------------------------
+Technical Definition:
+  Returns an array of the object's OWN, ENUMERABLE, string-keyed
+  property names in insertion order (integer keys come first,
+  ascending).
+Examples:
+  Object.keys({ a:1, b:2 });                   // ["a","b"]
+  Object.keys({ 2:"x", 1:"y", a:"z" });        // ["1","2","a"]
+  Object.keys("hi");                           // ["0","1"]
+  Object.keys(obj).length;                     // property count
+  Object.keys(obj).length === 0;               // is empty?
+
+--------------------------------------------------------------
+Object.values(obj)
+--------------------------------------------------------------
+Technical Definition:
+  Returns an array of the object's own enumerable property values.
+Examples:
+  Object.values({ a:1, b:2 });                 // [1,2]
+  Object.values(scores).reduce((s, n) => s + n, 0);   // total
+
+--------------------------------------------------------------
+Object.entries(obj)
+--------------------------------------------------------------
+Technical Definition:
+  Returns an array of [key, value] pairs for own enumerable
+  string-keyed properties.
+Examples:
+  Object.entries({ a:1, b:2 });                // [["a",1],["b",2]]
+  for (const [k, v] of Object.entries(obj)) console.log(k, v);
+  new Map(Object.entries(obj));                // object to Map
+  Object.entries(obj).filter(([k, v]) => v > 1);
+Use case   : Looping, filtering/transforming objects.
+
+--------------------------------------------------------------
+Object.fromEntries(iterable)
+--------------------------------------------------------------
+Technical Definition:
+  Transforms an iterable of [key, value] pairs into an object.
+  Inverse of Object.entries.
+Examples:
+  Object.fromEntries([["a",1],["b",2]]);       // {a:1,b:2}
+  Object.fromEntries(new Map([["x",1]]));      // {x:1}
+  // double all values
+  Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v * 2])
+  );
+  // filter properties
+  Object.fromEntries(
+    Object.entries(obj).filter(([k, v]) => v > 1)
+  );
+  // query string to object
+  Object.fromEntries(new URLSearchParams("a=1&b=2"));
+Use case   : Transforming/filtering objects.
+
+--------------------------------------------------------------
+Object.assign(target, ...sources)
+--------------------------------------------------------------
+Technical Definition:
+  Copies all own enumerable properties from sources into target
+  (left to right; later sources override). MUTATES target. Shallow
+  copy. Invokes getters/setters.
+Examples:
+  Object.assign({}, { a:1 }, { b:2 });         // {a:1,b:2}
+  Object.assign({ a:1 }, { a:9 });             // {a:9}
+  const copy = Object.assign({}, original);    // shallow clone
+  const merged = { ...a, ...b };               // modern equivalent
+Edge case  : Nested objects are copied by reference.
+Use case   : Merging configs, default options.
+
+--------------------------------------------------------------
+Object.create(proto, descriptors?)
+--------------------------------------------------------------
+Technical Definition:
+  Creates a new object whose [[Prototype]] is the given object.
+  Object.create(null) creates an object with no prototype.
+Examples:
+  const animal = { speak() { return "..."; } };
+  const dog = Object.create(animal);
+  dog.speak();                                 // "..." (inherited)
+  Object.getPrototypeOf(dog) === animal;       // true
+  const dict = Object.create(null);            // pure dictionary
+Use case   : Prototypal inheritance, safe dictionaries.
+
+--------------------------------------------------------------
+Object.getPrototypeOf(obj) / Object.setPrototypeOf(obj, proto)
+--------------------------------------------------------------
+Technical Definition:
+  Read / change an object's [[Prototype]]. setPrototypeOf is slow;
+  prefer Object.create.
+Examples:
+  Object.getPrototypeOf([]) === Array.prototype;   // true
+  Object.getPrototypeOf(Object.prototype);         // null
+
+--------------------------------------------------------------
+Object.freeze(obj) / Object.isFrozen(obj)
+--------------------------------------------------------------
+Technical Definition:
+  Freezes an object: no adding, removing, or changing properties, and
+  descriptors become non-configurable. SHALLOW only. Fails silently
+  in sloppy mode, throws TypeError in strict mode.
+Examples:
+  const c = Object.freeze({ x:1, nested:{ y:2 } });
+  c.x = 5;               // ignored
+  c.z = 1;               // ignored
+  delete c.x;            // ignored
+  c.nested.y = 99;       // WORKS (shallow freeze)
+  Object.isFrozen(c);    // true
+  // deep freeze
+  function deepFreeze(o) {
+    Object.values(o).forEach(v => typeof v === "object" && v && deepFreeze(v));
+    return Object.freeze(o);
+  }
+Use case   : Constants, config, immutable state.
+
+--------------------------------------------------------------
+Object.seal(obj) / Object.isSealed(obj)
+--------------------------------------------------------------
+Technical Definition:
+  Prevents adding and deleting properties; existing values remain
+  writable.
+Examples:
+  const s = Object.seal({ a:1 });
+  s.a = 2;               // allowed
+  s.b = 3;               // ignored
+  delete s.a;            // ignored
+
+--------------------------------------------------------------
+Object.preventExtensions(obj) / Object.isExtensible(obj)
+--------------------------------------------------------------
+Technical Definition:
+  Prevents adding new properties; existing ones can be changed or
+  deleted.
+Comparison:
+  preventExtensions < seal < freeze   (increasing restriction)
+
+--------------------------------------------------------------
+Object.defineProperty(obj, key, descriptor)
+--------------------------------------------------------------
+Technical Definition:
+  Defines or modifies a property with fine-grained control using a
+  descriptor. Data descriptor: value, writable. Accessor descriptor:
+  get, set. Shared: enumerable, configurable. Defaults are all false.
+Examples:
+  Object.defineProperty(user, "id", {
+    value: 101,
+    writable: false,       // cannot reassign
+    enumerable: false,     // hidden from keys/for...in
+    configurable: false    // cannot delete or redefine
+  });
+  Object.defineProperty(user, "full", {
+    get() { return this.first + " " + this.last; },
+    enumerable: true
+  });
+Use case   : Read-only or hidden properties, computed properties.
+
+--------------------------------------------------------------
+Object.defineProperties(obj, descriptors)
+--------------------------------------------------------------
+  Object.defineProperties(o, {
+    a: { value: 1, enumerable: true },
+    b: { value: 2 }
+  });
+
+--------------------------------------------------------------
+Object.getOwnPropertyNames(obj) / getOwnPropertySymbols(obj)
+--------------------------------------------------------------
+Technical Definition:
+  Return ALL own string keys (including non-enumerable) / all own
+  Symbol keys.
+Examples:
+  Object.getOwnPropertyNames([1]);             // ["0","length"]
+  Object.keys([1]);                            // ["0"]
+
+--------------------------------------------------------------
+Object.getOwnPropertyDescriptor(obj, key) / ...Descriptors(obj)
+--------------------------------------------------------------
+Examples:
+  Object.getOwnPropertyDescriptor({ a:1 }, "a");
+  // { value:1, writable:true, enumerable:true, configurable:true }
+
+--------------------------------------------------------------
+Object.hasOwn(obj, key)
+--------------------------------------------------------------
+Technical Definition:
+  Returns true if the key is an OWN property. Safer replacement for
+  obj.hasOwnProperty (works on Object.create(null) objects).
+Examples:
+  Object.hasOwn({ a:1 }, "a");                 // true
+  Object.hasOwn({ a:1 }, "toString");          // false (inherited)
+  "toString" in { a:1 };                       // true (in checks chain)
+
+--------------------------------------------------------------
+Object.is(a, b)
+--------------------------------------------------------------
+Technical Definition:
+  SameValue comparison. Like === except NaN equals NaN and +0 is not
+  equal to -0.
+Examples:
+  Object.is(NaN, NaN);        // true     (NaN === NaN is false)
+  Object.is(0, -0);           // false    (0 === -0 is true)
+  Object.is("a", "a");        // true
+
+--------------------------------------------------------------
+Object.groupBy(items, callback)   (ES2024)
+--------------------------------------------------------------
+  Object.groupBy(
+    [{n:"a",t:"x"},{n:"b",t:"y"},{n:"c",t:"x"}],
+    o => o.t
+  );
+  // { x:[{n:"a",...},{n:"c",...}], y:[{n:"b",...}] }
+
+
+==============================================================
+ 3.2 INSTANCE METHODS
+==============================================================
+
+hasOwnProperty(key)
+  true if key is an own property (use Object.hasOwn in new code).
+  ({ a:1 }).hasOwnProperty("a");               // true
+
+isPrototypeOf(obj)
+  true if this object is in obj's prototype chain.
+  Array.prototype.isPrototypeOf([]);           // true
+
+propertyIsEnumerable(key)
+  true if the own property is enumerable.
+  [1].propertyIsEnumerable("length");          // false
+
+toString()
+  Returns a string representation. Default is "[object Object]".
+  Reliable type check:
+  Object.prototype.toString.call([]);          // "[object Array]"
+  Object.prototype.toString.call(null);        // "[object Null]"
+  Object.prototype.toString.call(new Date());  // "[object Date]"
+
+toLocaleString() / valueOf()
+  Locale string / primitive value of the object.
+  ({}).valueOf();                              // the object itself
+
+
+==============================================================
+ 3.3 RELATED SYNTAX AND PATTERNS
+==============================================================
+
+Property access
+  user.name;   user["name"];   user[dynamicKey];
+
+Optional chaining (?.)
+  Technical Definition: Short-circuits to undefined if the left side
+  is null/undefined instead of throwing.
+  user?.address?.city;
+  user.getName?.();
+  arr?.[0];
+
+Nullish coalescing (??)
+  Technical Definition: Returns the right side only if the left is
+  null or undefined (unlike || which treats 0, "", false as falsy).
+  0 ?? 5;        // 0
+  0 || 5;        // 5
+  null ?? 5;     // 5
+
+Computed keys and shorthand
+  const key = "age";
+  const name = "Ravi";
+  const o = { [key]: 25, name, greet() { return "hi"; } };
+
+Destructuring
+  const { name, age: years = 18, ...rest } = user;
+  const { address: { city } } = user;            // nested
+  function f({ a, b = 2 }) {}                    // in parameters
+
+Spread
+  const copy = { ...user, age: 30 };             // shallow, override
+  const merged = { ...defaults, ...options };
+
+Shallow vs deep copy
+  const shallow = { ...obj };
+  const deep = structuredClone(obj);
+  const deep2 = JSON.parse(JSON.stringify(obj));
+  // JSON way loses: functions, undefined, Date (becomes string),
+  // Map/Set, circular references (throws)
+
+Looping
+  for (const key in obj) {}                      // incl. inherited
+  for (const [k, v] of Object.entries(obj)) {}
+  Object.keys(obj).forEach(k => {});
+
+delete and in
+  delete obj.key;                                // remove property
+  "key" in obj;                                  // checks prototype too
+
+Getters and setters
+  const person = {
+    first: "A", last: "B",
+    get full() { return `${this.first} ${this.last}`; },
+    set full(v) { [this.first, this.last] = v.split(" "); }
+  };
+  person.full;                 // "A B"
+  person.full = "X Y";
+
+JSON
+  JSON.stringify(obj);                           // object to string
+  JSON.stringify(obj, null, 2);                  // pretty print
+  JSON.stringify(obj, ["a","b"]);                // pick keys
+  JSON.parse(str);                               // string to object
+
+
+##############################################################
+ QUICK COMPARISON TABLE
+##############################################################
+
+ Task                  Array             String          Object
+ --------------------  ----------------  --------------  -------------------
+ Size                  .length           .length         Object.keys().length
+ Exists?               .includes()       .includes()     Object.hasOwn() / in
+ Position              .indexOf()        .indexOf()      -
+ Copy part             .slice()          .slice()        {...obj}
+ Merge                 spread/.concat()  + / .concat()    spread/Object.assign
+ Loop                  .forEach/.map     for...of        Object.entries()
+ Transform             .map()            .replace()      Object.fromEntries()
+ To string             .join()           -               JSON.stringify()
+ From string           -                 .split()        JSON.parse()
+ Mutates original?     some methods      never           assign/defineProperty
+
+==============================================================
+ END
+==============================================================
