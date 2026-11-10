@@ -1,0 +1,338 @@
+Password hashing with bcrypt nodejs
+==================================
+  
+Password hashing is the process of converting a plain-text password into a secure, irreversible hash before storing it in the database.
+
+RegistrationApi.js
+==================
+  
+const express = require("express");
+const bcrypt = require("bcrypt");
+const User = require("./models/User");
+
+const app = express();
+
+app.use(express.json());
+
+app.post("/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Generate password hash
+    const saltRounds = 10;
+
+    const hashedPassword = await bcrypt.hash(
+      password,
+      saltRounds
+    );
+
+    // Save user in database
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+LoginApi.js
+===========
+  
+  app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Compare password
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid password",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+Important bcrypt methods
+Method	                  Purpose
+bcrypt.hash()	            Password hashing
+bcrypt.compare()        	Verify password
+bcrypt.genSalt()        	Generate salt
+bcrypt.hashSync()	        Synchronous hashing
+bcrypt.compareSync()    	Synchronous comparison
+
+  CRUD RESTAPI with MongoDB
+  ==========================
+npm init -y
+npm install express mongoose dotenv
+npm install --save-dev nodemon
+  
+db.js
+const mongoose = require("mongoose");
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+
+    console.log("MongoDB connected successfully");
+  } catch (error) {
+    console.error("MongoDB connection failed:", error.message);
+    process.exit(1);
+  }
+};
+
+module.exports = connectDB;
+
+.env
+
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/crudDB
+
+User.js
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+    },
+
+    age: {
+      type: Number,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const User = mongoose.model("User", userSchema);
+
+module.exports = User;
+
+userController.js
+
+const User = require("../models/User");
+
+exports.createUser = async (req, res) => {
+  try {
+    const { name, email, age } = req.body;
+
+    const user = await User.create({
+      name,
+      email,
+      age,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: user,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+
+    return res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: user,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      data: updatedUser,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+router.js
+const express = require("express");
+
+const router = express.Router();
+
+const {
+  createUser,
+  getUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+} = require("../controllers/userController");
+
+router.post("/", createUser);
+
+router.get("/", getUsers);
+
+router.get("/:id", getUserById);
+
+router.put("/:id", updateUser);
+
+router.delete("/:id", deleteUser);
+
+module.exports = router;
+
+
+server.js
+const express = require("express");
+const dotenv = require("dotenv");
+
+const connectDB = require("./config/db");
+const userRoutes = require("./routes/userRoutes");
+
+dotenv.config();
+
+const app = express();
+
+app.use(express.json());
+
+// Database connection
+connectDB();
+
+// Routes
+app.use("/api/users", userRoutes);
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
