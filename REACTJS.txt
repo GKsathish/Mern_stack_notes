@@ -660,7 +660,7 @@ const id = useId();
 <input id={id} />
 
 useTransition:
-Technical definition: useTransition is a React Hook that lets you mark state updates as non-urgent transitions so urgent UI updates can remain responsive.
+Technical definition: A React Hook that lets you mark a state update as a non-urgent transition, so urgent updates (typing, clicking) stay responsive while React renders the heavy update in the background.
 
 import { useState, useTransition } from "react";
 
@@ -704,6 +704,7 @@ Generally, no. The state update controlling the input value must remain urgent; 
 
 useDeferredValue:
 Technical definition: useDeferredValue lets React defer updating a value used by part of the UI, allowing more urgent updates to render first.
+Technical definition: A React Hook that lets you defer updating a value used by part of the UI. React first re-renders with the old value, then re-renders in the background with the new value.
 
 import { useDeferredValue, useMemo, useState } from "react";
 
@@ -741,6 +742,7 @@ Large lists, search filters, heavy rendering, concurrent UI.
 Internal working:
 These hooks support React concurrent rendering. Urgent updates such as typing happen immediately, while expensive updates can be deferred.
 
+usetransition and usedeferedvalue are  conncurent rendering  features
 Follow-up questions:
 1. Difference between useTransition and useDeferredValue?
 2. What is concurrent rendering?
