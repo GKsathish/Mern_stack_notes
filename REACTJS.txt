@@ -619,8 +619,11 @@ useReducer centralizes state update logic in a pure reducer function. I use it w
 --------------------------------------------------------------------
 3. useContext
 
+The Context API is a built-in React feature that allows you to share global data (such as user authentication, themes, or language preferences) across the component tree without manually passing props through every intermediate component—a problem known as prop drilling .   
+
 Definition:
-useContext lets a component read data from a React Context without passing props through every level.
+useContext lets a component read data from a React Context without passing props through every level. or 
+useContextis a built-in React Hook used inside functional components to read and subscribe to data provided by a Context object.   
 
 Example:
 const ThemeContext = createContext();
@@ -657,15 +660,80 @@ const id = useId();
 <input id={id} />
 
 useTransition:
-Marks state updates as non-urgent so UI remains responsive.
+Technical definition: useTransition is a React Hook that lets you mark state updates as non-urgent transitions so urgent UI updates can remain responsive.
 
-const [isPending, startTransition] = useTransition();
-startTransition(() => setSearch(value));
+import { useState, useTransition } from "react";
+
+function Search({ items }) {
+  const [input, setInput] = useState("");
+  const [query, setQuery] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(event) {
+    const value = event.target.value;
+
+    setInput(value);
+
+    startTransition(() => {
+      setQuery(value);
+    });
+  }
+
+  const results = items.filter(item =>
+    item.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <>
+      <input value={input} onChange={handleChange} />
+      {isPending && <p>Updating results...</p>}
+
+      {results.map(item => (
+        <p key={item.id}>{item.name}</p>
+      ))}
+    </>
+  );
+}
+
+Real-project use case: A large search result list should not make typing feel unresponsive.
+
+Important: useTransition does not make an expensive calculation inherently faster or debounce network requests. It allows React to prioritize rendering work.
+
+Follow-up: Can a controlled text input's own state update be placed inside a transition?
+Generally, no. The state update controlling the input value must remain urgent; transition updates are for non-urgent work.
 
 useDeferredValue:
-Delays updating a value while keeping the UI responsive.
+Technical definition: useDeferredValue lets React defer updating a value used by part of the UI, allowing more urgent updates to render first.
 
-const deferredSearch = useDeferredValue(search);
+import { useDeferredValue, useMemo, useState } from "react";
+
+function Search({ items }) {
+  const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+
+  const results = useMemo(() => {
+    return items.filter(item =>
+      item.name.toLowerCase().includes(
+        deferredQuery.toLowerCase()
+      )
+    );
+  }, [items, deferredQuery]);
+
+  return (
+    <>
+      <input
+        value={query}
+        onChange={event => setQuery(event.target.value)}
+      />
+
+      {results.map(item => (
+        <p key={item.id}>{item.name}</p>
+      ))}
+    </>
+
+  );
+}
+Real-project use case: The search input updates immediately while an expensive result list can update at a lower priority.
 
 Use case:
 Large lists, search filters, heavy rendering, concurrent UI.
@@ -690,7 +758,7 @@ Rules of Hooks:
 3. Call hooks only in React functions or custom hooks.
 
 Stale closure:
-A callback remembers old state or props because it was created during an earlier render.
+A stale closure occurs when a function retains values from an earlier render and uses those values after the state or props have changed.
 
 Example problem:
 useEffect(() => {
