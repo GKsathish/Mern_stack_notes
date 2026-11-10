@@ -419,6 +419,7 @@ I follow a layered structure: routes define endpoints, controllers handle HTTP, 
 Repository pattern :
 
 Repository Pattern is a design pattern that separates database logic from business logic. It acts as a middle layer between the application and the database.
+
 // userRepository.js
 class UserRepository {
   async findAll() {
@@ -444,7 +445,9 @@ class UserRepository {
 
 module.exports = new UserRepository();
 
-controller.js
+controller
+
+A controller is a function that handles incoming HTTP requests, processes the request data, interacts with the required services or models, and sends an appropriate HTTP response to the client.
 
 const userRepository = require("./userRepository");
 
@@ -454,9 +457,9 @@ app.get("/users", async (req, res) => {
 });
 
 
-DTODTO (Data Transfer Object)
+DTO (Data Transfer Object)
 
-DTO  is an object used to transfer data between layers, usually between client and server. It contains only required fields.
+A Data Transfer Object (DTO) is an object used to transfer specific data between different layers of an application. It controls which fields are accepted or returned, without exposing the complete internal data structure.
 
 // userDTO.js
 function toUserDTO(user) {
@@ -500,10 +503,110 @@ app.post(
   }
 );
 
+Model: 
+A Model is a Mongoose object created from a Schema that provides an interface to interact with a MongoDB collection, including creating, reading, updating, and deleting documents.
+const mongoose = require("mongoose");
 
+// Define Schema
+const employeeSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+
+  age: {
+    type: Number
+  },
+
+  salary: {
+    type: Number
+  },
+
+  department: {
+    type: String
+  }
+
+}, { timestamps: true });
+
+// Create Model
+const Employee = mongoose.model(
+  "Employee",
+  employeeSchema
+);
+
+module.exports = Employee;
+
+Service Layer:
+A Service Layer is an architectural layer that contains business logic and separates business operations from HTTP request-response handling in controllers.
+
+service.js
+const Employee = require("../models/Employee");
+
+const createEmployee = async (data) => {
+
+  // Check duplicate email
+  const existingEmployee = await Employee.findOne({
+    email: data.email
+  });
+
+  if (existingEmployee) {
+    throw new Error("Employee already exists");
+  }
+
+  // Business validation
+  if (data.salary < 0) {
+    throw new Error("Salary cannot be negative");
+  }
+
+  // Create employee
+  const employee = await Employee.create(data);
+
+  return employee;
+};
+
+module.exports = {
+  createEmployee
+};
+
+controller.js
+const employeeService = require("../services/employeeService");
+
+const createEmployee = async (req, res) => {
+  try {
+
+    const employee = await employeeService.createEmployee(
+      req.body
+    );
+
+    res.status(201).json({
+      success: true,
+      data: employee
+    });
+
+  } catch (error) {
+
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
+
+  }
+};
+
+module.exports = {
+  createEmployee
+};
 
 --------------------------------------------------------------------
 5. REST PRINCIPLES, VERSIONING, PAGINATION AND FILTERING
+REST:
+"REST (Representational State Transfer) is an architectural style used for designing network-based applications. It defines a set of principles for communication between clients and servers using standard HTTP methods and resource-based URLs."
 
 REST principles:
 - Resource-based URLs.
@@ -512,16 +615,63 @@ REST principles:
 - Proper status codes.
 - JSON representation.
 
+All 6 REST principles
+Client-Server: React handles the frontend and Express handles backend APIs.
+Statelessness: We use JWT authentication, and clients send the token with each protected request.
+Cacheability: We cache suitable frequently accessed data to reduce unnecessary database calls.
+Uniform Interface: We use resource-based endpoints and standard HTTP methods like GET, POST, PUT, PATCH and DELETE.
+Layered System: Our application can communicate through load balancers and other intermediate layers.
+Code on Demand: This is optional and is generally not required in our REST API implementation."
+
+RESTfulAPI:
+"A RESTful API is an API that follows REST architectural principles to allow clients to interact with resources using standard HTTP methods."
+
 Versioning:
+"API Versioning is a technique used to manage different versions of an API, allowing developers to introduce changes and new features without affecting existing clients that depend on older versions."
 /api/v1/users
 
+Use cases:
+- Changing response structures.
+- Adding or removing fields in breaking ways.
+- Changing API behaviour.
+- Supporting multiple frontend versions.
+- Mobile applications with older releases.
+
+Type	Example	Version location
+URI Path	/api/v1/users	URL path
+Query Parameter	/api/users?version=1	Query string
+Header	API-Version: 1	HTTP header
+Media Type	Accept: application/vnd.company.v1+json	Accept header
+
 Pagination:
+"Pagination is a technique used to divide a large dataset into smaller, manageable chunks and return a limited number of records per API request."
 GET /users?page=1&limit=20
+Use cases:
+- Employee management systems.
+- E-commerce product listing.
+- Transaction history.
+- User management dashboards.
+- Casino game history.
+- Admin dashboards.
+here are two commonly used approaches.
+1. Offset-based Pagination.
+2. Cursor-based Pagination.
+
+"Offset-based pagination retrieves a specific number of records by skipping a given number of records and returning the next limited set."
+GET /api/employees?page=1&limit=10
+
+"Cursor-based pagination retrieves records using a reference to the last item from the previous page, instead of skipping a fixed number of records."
+GET /api/employees?limit=10
+GET /api/employees?limit=10&cursor=EMPLOYEE_ID_110
+
 
 Sorting:
+Technical definition: Sorting is the process of arranging database records in ascending or descending order based on specified fields.
 GET /users?sortBy=createdAt&order=desc
 
 Filtering:
+Technical definition: Filtering is the process of retrieving only those records from a database that satisfy specific conditions.
+
 GET /users?status=active&role=admin
 
 Use case:
