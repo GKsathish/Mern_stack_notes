@@ -392,19 +392,35 @@ I usually prefer string literal unions over enums in modern TypeScript because t
 8. FUNCTION TYPES, OVERLOADS AND TYPE ASSERTIONS
 
 Function type:
+Technical definition: A function type describes the parameter types and return type of a function, so TypeScript can check every call and every implementation against it.
+
+// 1. Type alias
 type Add = (a: number, b: number) => number;
+const add: Add = (a, b) => a + b;     // a, b types inferred from Add
 
-Overloads:
-Multiple function signatures for one function.
-
-function formatDate(value: string): string;
-function formatDate(value: Date): string;
-function formatDate(value: string | Date): string {
-  return new Date(value).toISOString();
+// 2. Interface with call signature
+interface Add2 {
+  (a: number, b: number): number;
 }
 
+// 3. Inline
+function run(cb: (err: Error | null, data?: string) => void) {}
+
+Overloads:
+Technical definition: Overloads let you declare multiple call signatures for one function. They are a compile-time feature. At runtime there is only one implementation, and it must be compatible with all overload signatures.
+
+function format(value: string): string;       // overload signature 1
+function format(value: number): string;       // overload signature 2
+function format(value: string | number): string {   // implementation signature
+  return typeof value === "string" ? value.trim() : value.toFixed(2);
+}
+
+format("a");     // OK
+format(5);       // OK
+format(true);    // Error: no overload matches
+
 Type assertion:
-Tells TypeScript to treat a value as a specific type.
+Technical definition: A type assertion tells the compiler to treat a value as a specific type, overriding its inferred type. It is erased at compile time and produces no runtime code, no checking, no conversion.
 
 const input = document.getElementById("email") as HTMLInputElement;
 
