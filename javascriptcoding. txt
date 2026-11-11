@@ -1,0 +1,664 @@
+JAVASCRIPT CODING INTERVIEW PRACTICE 30 COMMON STRING, ARRAY AND OBJECT
+PROBLEMS Easy / normal JavaScript methods using loops and basic methods
+
+============================================================ PART 1:
+ARRAY CODING PROBLEMS
+============================================================
+
+1.  SECOND LARGEST DISTINCT NUMBER
+
+function secondLargest(arr) { let largest = -Infinity; let second =
+-Infinity;
+
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] > largest) {
+            second = largest;
+            largest = arr[i];
+        } else if (arr[i] > second && arr[i] !== largest) {
+            second = arr[i];
+        }
+    }
+
+    return second === -Infinity ? null : second;
+
+}
+
+console.log(secondLargest([10, 5, 8, 10])); // 8
+
+2.  REMOVE DUPLICATES FROM ARRAY
+
+function removeDuplicates(arr) { let result = [];
+
+    for (let i = 0; i < arr.length; i++) {
+        if (!result.includes(arr[i])) {
+            result.push(arr[i]);
+        }
+    }
+
+    return result;
+
+}
+
+console.log(removeDuplicates([1, 2, 2, 3, 1])); // [1, 2, 3]
+
+3.  FIND MISSING NUMBER FROM 1 TO N
+
+function missingNumber(arr, n) { let expected = n * (n + 1) / 2; let
+actual = 0;
+
+    for (let i = 0; i < arr.length; i++) {
+        actual += arr[i];
+    }
+
+    return expected - actual;
+
+}
+
+console.log(missingNumber([1, 2, 4, 5], 5)); // 3
+
+4.  FIND DUPLICATE VALUES IN ARRAY
+
+function findDuplicates(arr) { let result = [];
+
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = i + 1; j < arr.length; j++) {
+            if (arr[i] === arr[j] && !result.includes(arr[i])) {
+                result.push(arr[i]);
+            }
+        }
+    }
+
+    return result;
+
+}
+
+console.log(findDuplicates([1, 2, 3, 2, 4, 1])); // [1, 2]
+
+5.  FIRST NON-REPEATING NUMBER
+
+function firstUnique(arr) { for (let i = 0; i < arr.length; i++) { let
+count = 0;
+
+        for (let j = 0; j < arr.length; j++) {
+            if (arr[i] === arr[j]) {
+                count++;
+            }
+        }
+
+        if (count === 1) {
+            return arr[i];
+        }
+    }
+
+    return null;
+
+}
+
+console.log(firstUnique([4, 5, 1, 2, 1, 4])); // 5
+
+6.  MOST FREQUENT NUMBER
+
+function mostFrequent(arr) { let maxCount = 0; let result = null;
+
+    for (let i = 0; i < arr.length; i++) {
+        let count = 0;
+
+        for (let j = 0; j < arr.length; j++) {
+            if (arr[i] === arr[j]) {
+                count++;
+            }
+        }
+
+        if (count > maxCount) {
+            maxCount = count;
+            result = arr[i];
+        }
+    }
+
+    return result;
+
+}
+
+console.log(mostFrequent([1, 2, 2, 3, 3, 3, 4])); // 3
+
+7.  MOVE ZEROS TO END
+
+function moveZeros(arr) { let result = [];
+
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] !== 0) {
+            result.push(arr[i]);
+        }
+    }
+
+    while (result.length < arr.length) {
+        result.push(0);
+    }
+
+    return result;
+
+}
+
+console.log(moveZeros([0, 1, 0, 3, 12])); // [1, 3, 12, 0, 0]
+
+8.  TWO SUM - RETURN INDICES
+
+function twoSum(arr, target) { for (let i = 0; i < arr.length; i++) {
+for (let j = i + 1; j < arr.length; j++) { if (arr[i] + arr[j] ===
+target) { return [i, j]; } } }
+
+    return [];
+
+}
+
+console.log(twoSum([2, 7, 11, 15], 9)); // [0, 1]
+
+9.  THREE SUM - UNIQUE TRIPLETS THAT SUM TO ZERO
+
+function threeSum(arr) { let result = []; let sorted = […arr].sort((a,
+b) => a - b);
+
+    for (let i = 0; i < sorted.length - 2; i++) {
+        if (i > 0 && sorted[i] === sorted[i - 1]) {
+            continue;
+        }
+
+        let left = i + 1;
+        let right = sorted.length - 1;
+
+        while (left < right) {
+            let sum = sorted[i] + sorted[left] + sorted[right];
+
+            if (sum === 0) {
+                result.push([sorted[i], sorted[left], sorted[right]]);
+                left++;
+                right--;
+
+                while (left < right && sorted[left] === sorted[left - 1]) {
+                    left++;
+                }
+
+                while (left < right && sorted[right] === sorted[right + 1]) {
+                    right--;
+                }
+            } else if (sum < 0) {
+                left++;
+            } else {
+                right--;
+            }
+        }
+    }
+
+    return result;
+
+}
+
+console.log(threeSum([-1, 0, 1, 2, -1, -4])); // [[-1, -1, 2], [-1, 0,
+1]]
+
+10. MAXIMUM CONSECUTIVE ONES
+
+function maxConsecutiveOnes(arr) { let count = 0; let max = 0;
+
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === 1) {
+            count++;
+
+            if (count > max) {
+                max = count;
+            }
+        } else {
+            count = 0;
+        }
+    }
+
+    return max;
+
+}
+
+console.log(maxConsecutiveOnes([1, 1, 0, 1, 1, 1])); // 3
+
+============================================================ PART 2:
+STRING CODING PROBLEMS
+============================================================
+
+11. FIRST NON-REPEATING CHARACTER
+
+function firstUniqueChar(str) { for (let i = 0; i < str.length; i++) {
+let count = 0;
+
+        for (let j = 0; j < str.length; j++) {
+            if (str[i] === str[j]) {
+                count++;
+            }
+        }
+
+        if (count === 1) {
+            return str[i];
+        }
+    }
+
+    return null;
+
+}
+
+console.log(firstUniqueChar(“swiss”)); // w
+
+12. CHECK PALINDROME
+
+function isPalindrome(str) { let left = 0; let right = str.length - 1;
+
+    while (left < right) {
+        if (str[left] !== str[right]) {
+            return false;
+        }
+
+        left++;
+        right--;
+    }
+
+    return true;
+
+}
+
+console.log(isPalindrome(“madam”)); // true
+
+13. REVERSE A STRING
+
+function reverseString(str) { let result = ““;
+
+    for (let i = str.length - 1; i >= 0; i--) {
+        result += str[i];
+    }
+
+    return result;
+
+}
+
+console.log(reverseString(“javascript”)); // tpircsavaj
+
+14. REVERSE WORD ORDER
+
+function reverseWordOrder(str) { let words = str.trim().split(/+/); let
+result = ““;
+
+    for (let i = words.length - 1; i >= 0; i--) {
+        result += words[i];
+
+        if (i !== 0) {
+            result += " ";
+        }
+    }
+
+    return result;
+
+}
+
+console.log(reverseWordOrder(“I love JavaScript”)); // JavaScript love I
+
+15. REVERSE EACH WORD, KEEP WORD ORDER
+
+function reverseEachWord(str) { let words = str.split(” “); let result =
+[];
+
+    for (let i = 0; i < words.length; i++) {
+        let reversed = "";
+
+        for (let j = words[i].length - 1; j >= 0; j--) {
+            reversed += words[i][j];
+        }
+
+        result.push(reversed);
+    }
+
+    return result.join(" ");
+
+}
+
+console.log(reverseEachWord(“hello world”)); // olleh dlrow
+
+16. CHARACTER FREQUENCY
+
+function charFrequency(str) { let counts = {};
+
+    for (let i = 0; i < str.length; i++) {
+        let ch = str[i];
+
+        if (counts[ch]) {
+            counts[ch]++;
+        } else {
+            counts[ch] = 1;
+        }
+    }
+
+    return counts;
+
+}
+
+console.log(charFrequency(“hello”)); // { h: 1, e: 1, l: 2, o: 1 }
+
+17. CHECK ANAGRAM
+
+function isAnagram(str1, str2) { let a = str1.toLowerCase().replace(//g,
+““); let b = str2.toLowerCase().replace(//g,”“);
+
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    let counts = {};
+
+    for (let i = 0; i < a.length; i++) {
+        let ch = a[i];
+        counts[ch] = (counts[ch] || 0) + 1;
+    }
+
+    for (let i = 0; i < b.length; i++) {
+        let ch = b[i];
+
+        if (!counts[ch]) {
+            return false;
+        }
+
+        counts[ch]--;
+    }
+
+    return true;
+
+}
+
+console.log(isAnagram(“listen”, “silent”)); // true
+
+18. REMOVE DUPLICATE CHARACTERS FROM STRING
+
+function removeDuplicateChars(str) { let result = ““;
+
+    for (let i = 0; i < str.length; i++) {
+        if (!result.includes(str[i])) {
+            result += str[i];
+        }
+    }
+
+    return result;
+
+}
+
+console.log(removeDuplicateChars(“programming”)); // progamin
+
+19. MOST FREQUENT CHARACTER
+
+function mostFrequentChar(str) { let maxCount = 0; let result = null;
+
+    for (let i = 0; i < str.length; i++) {
+        let count = 0;
+
+        for (let j = 0; j < str.length; j++) {
+            if (str[i] === str[j]) {
+                count++;
+            }
+        }
+
+        if (count > maxCount) {
+            maxCount = count;
+            result = str[i];
+        }
+    }
+
+    return result;
+
+}
+
+console.log(mostFrequentChar(“javascript”)); // a
+
+20. FIND THE LONGEST WORD
+
+function longestWord(str) { let words = str.trim().split(/+/); let
+longest = ““;
+
+    for (let i = 0; i < words.length; i++) {
+        if (words[i].length > longest.length) {
+            longest = words[i];
+        }
+    }
+
+    return longest;
+
+}
+
+console.log(longestWord(“I love JavaScript programming”)); //
+programming
+
+21. COUNT WORDS IN A STRING
+
+function countWords(str) { let trimmed = str.trim();
+
+    if (trimmed === "") {
+        return 0;
+    }
+
+    let words = trimmed.split(/\s+/);
+    return words.length;
+
+}
+
+console.log(countWords(“I love JavaScript”)); // 3
+
+22. CHECK STRING ROTATION
+
+function isRotation(str1, str2) { if (str1.length !== str2.length) {
+return false; }
+
+    return (str1 + str1).includes(str2);
+
+}
+
+console.log(isRotation(“abcd”, “cdab”)); // true
+
+23. LONGEST SUBSTRING WITHOUT REPEATING CHARACTERS Easy nested-loop
+    approach
+
+function longestUniqueSubstring(str) { let maxLength = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        let current = "";
+
+        for (let j = i; j < str.length; j++) {
+            if (current.includes(str[j])) {
+                break;
+            }
+
+            current += str[j];
+
+            if (current.length > maxLength) {
+                maxLength = current.length;
+            }
+        }
+    }
+
+    return maxLength;
+
+}
+
+console.log(longestUniqueSubstring(“abcabcbb”)); // 3
+
+============================================================ PART 3:
+OBJECT AND RECURSION CODING PROBLEMS
+============================================================
+
+24. GROUP USERS BY ROLE
+
+function groupByRole(users) { let result = {};
+
+    for (let i = 0; i < users.length; i++) {
+        let role = users[i].role;
+
+        if (!result[role]) {
+            result[role] = [];
+        }
+
+        result[role].push(users[i].name);
+    }
+
+    return result;
+
+}
+
+let users = [ { name: “Asha”, role: “admin” }, { name: “Ravi”, role:
+“user” }, { name: “Sam”, role: “admin” }];
+
+console.log(groupByRole(users)); // { admin: [“Asha”, “Sam”], user:
+[“Ravi”] }
+
+25. ARRAY OF OBJECTS TO OBJECT BY ID
+
+function convertById(users) { let result = {};
+
+    for (let i = 0; i < users.length; i++) {
+        result[users[i].id] = users[i];
+    }
+
+    return result;
+
+}
+
+let employees = [ { id: 1, name: “Asha” }, { id: 2, name: “Ravi” }];
+
+console.log(convertById(employees)); // { 1: { id: 1, name: “Asha” }, 2:
+{ id: 2, name: “Ravi” } }
+
+26. MERGE TWO OBJECTS
+
+function mergeObjects(obj1, obj2) { let result = {};
+
+    for (let key in obj1) {
+        if (Object.hasOwn(obj1, key)) {
+            result[key] = obj1[key];
+        }
+    }
+
+    for (let key in obj2) {
+        if (Object.hasOwn(obj2, key)) {
+            result[key] = obj2[key];
+        }
+    }
+
+    return result;
+
+}
+
+console.log(mergeObjects( { name: “Asha”, age: 25 }, { age: 26, city:
+“Hyderabad” } )); // { name: “Asha”, age: 26, city: “Hyderabad” }
+
+27. COUNT OBJECT PROPERTIES
+
+function countProperties(obj) { let count = 0;
+
+    for (let key in obj) {
+        if (Object.hasOwn(obj, key)) {
+            count++;
+        }
+    }
+
+    return count;
+
+}
+
+console.log(countProperties({ name: “Asha”, age: 25, city: “Hyderabad”
+})); // 3
+
+28. FIND KEY WITH MAXIMUM VALUE
+
+function keyWithMaxValue(obj) { let keys = Object.keys(obj);
+
+    if (keys.length === 0) {
+        return null;
+    }
+
+    let maxKey = keys[0];
+
+    for (let i = 1; i < keys.length; i++) {
+        if (obj[keys[i]] > obj[maxKey]) {
+            maxKey = keys[i];
+        }
+    }
+
+    return maxKey;
+
+}
+
+console.log(keyWithMaxValue({ a: 10, b: 25, c: 15 })); // b
+
+29. FLATTEN A NESTED OBJECT
+
+function flattenObject(obj, prefix = ““, result = {}) { for (let key in
+obj) { if (!Object.hasOwn(obj, key)) { continue; }
+
+        let newKey = prefix ? prefix + "." + key : key;
+        let value = obj[key];
+
+        if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+            flattenObject(value, newKey, result);
+        } else {
+            result[newKey] = value;
+        }
+    }
+
+    return result;
+
+}
+
+let data = { user: { name: “Asha”, address: { city: “Hyderabad” } } };
+
+console.log(flattenObject(data)); // { “user.name”: “Asha”,
+“user.address.city”: “Hyderabad” }
+
+30. K ELEMENTS THAT SUM TO A TARGET
+
+function combinationsSumTarget(arr, k, target) { let result = [];
+
+    function backtrack(start, current, sum) {
+        if (current.length === k) {
+            if (sum === target) {
+                result.push([...current]);
+            }
+            return;
+        }
+
+        for (let i = start; i < arr.length; i++) {
+            current.push(arr[i]);
+
+            backtrack(i + 1, current, sum + arr[i]);
+
+            current.pop();
+        }
+    }
+
+    backtrack(0, [], 0);
+    return result;
+
+}
+
+console.log(combinationsSumTarget([1, 2, 3, 4, 5], 2, 6)); // [[1, 5],
+[2, 4]]
+
+============================================================ IMPORTANT
+INTERVIEW NOTES
+============================================================
+
+1.  These are beginner-friendly / normal coding approaches.
+2.  Nested loops are easy to understand but may take O(n^2) time.
+3.  Set and Map can improve many lookup and frequency problems.
+4.  Two Sum with nested loops takes O(n^2); a Map solution can take O(n)
+    average time.
+5.  Longest substring with nested loops is an easy approach; sliding
+    window is the optimized interview approach.
+6.  Three Sum uses sorting and two pointers to avoid duplicate triplets.
+7.  Object.hasOwn(obj, key) checks whether a property belongs directly
+    to the object.
+8.  The examples assume the input types and constraints described in
+    each problem.
+9.  For real interviews, explain your approach, edge cases, time
+    complexity and space complexity.
+
+END OF JAVASCRIPT CODING PRACTICE
+
