@@ -96,6 +96,41 @@ count = 0;
 
 console.log(firstUnique([4, 5, 1, 2, 1, 4])); // 5
 
+let arr = [4, 5, 1, 2, 1, 4, 5];
+
+let map = new Map();
+
+for (let num of arr) {
+    if (map.has(num)) {
+        map.set(num, map.get(num) + 1);
+    } else {
+        map.set(num, 1);
+    }
+}
+
+for (let num of arr) {
+    if (map.get(num) === 1) {
+        console.log(num);
+        break;
+    }
+}
+
+let arr = [4, 5, 1, 2, 1, 4, 5];
+
+let map = new Map();
+
+arr.forEach((num) => {
+    if (map.has(num)) {
+        map.set(num, map.get(num) + 1);
+    } else {
+        map.set(num, 1);
+    }
+});
+
+let result = arr.find((num) => map.get(num) === 1);
+
+console.log(result);
+
 6.  MOST FREQUENT NUMBER
 
 function mostFrequent(arr) { let maxCount = 0; let result = null;
@@ -121,9 +156,59 @@ function mostFrequent(arr) { let maxCount = 0; let result = null;
 
 console.log(mostFrequent([1, 2, 2, 3, 3, 3, 4])); // 3
 
+let arr = [1, 2, 3, 2, 4, 2, 5, 3];
+
+let map = new Map();
+
+for (let num of arr) {
+    if (map.has(num)) {
+        map.set(num, map.get(num) + 1);
+    } else {
+        map.set(num, 1);
+    }
+}
+
+let maxCount = 0;
+let result = null;
+
+for (let num of arr) {
+    if (map.get(num) > maxCount) {
+        maxCount = map.get(num);
+        result = num;
+    }
+}
+
+console.log(result);
+
+
+let arr = [1, 2, 3, 2, 4, 2, 5, 3];
+
+let map = new Map();
+
+arr.forEach((num) => {
+    if (map.has(num)) {
+        map.set(num, map.get(num) + 1);
+    } else {
+        map.set(num, 1);
+    }
+});
+
+let result = null;
+let maxCount = 0;
+
+map.forEach((count, num) => {
+    if (count > maxCount) {
+        maxCount = count;
+        result = num;
+    }
+});
+
+console.log(result);
+
 7.  MOVE ZEROS TO END
 
-function moveZeros(arr) { let result = [];
+function moveZeros(arr) { 
+    let result = [];
 
     for (let i = 0; i < arr.length; i++) {
         if (arr[i] !== 0) {
@@ -140,6 +225,33 @@ function moveZeros(arr) { let result = [];
 }
 
 console.log(moveZeros([0, 1, 0, 3, 12])); // [1, 3, 12, 0, 0]
+
+let arr = [0, 1, 0, 3, 12];
+
+let result = arr.filter(num => num !== 0);
+
+let zeros = arr.filter(num => num === 0);
+
+console.log([...result, ...zeros]);
+
+let arr = [0, 1, 0, 3, 12];
+
+let result = [];
+let count = 0;
+
+for (let i = 0; i < arr.length; i++) {
+    if (arr[i] !== 0) {
+        result.push(arr[i]);
+    } else {
+        count++;
+    }
+}
+
+for (let i = 0; i < count; i++) {
+    result.push(0);
+}
+
+console.log(result);
 
 8.  TWO SUM - RETURN INDICES
 
@@ -337,6 +449,22 @@ function charFrequency(str) { let counts = {};
 
 console.log(charFrequency(“hello”)); // { h: 1, e: 1, l: 2, o: 1 }
 
+let str = "hello";
+
+let map = new Map();
+
+for (let char of str) {
+    if (map.has(char)) {
+        map.set(char, map.get(char) + 1);
+    } else {
+        map.set(char, 1);
+    }
+}
+
+console.log(map);
+
+
+
 17. CHECK ANAGRAM
 
 function isAnagram(str1, str2) { let a = str1.toLowerCase().replace(//g,
@@ -368,6 +496,19 @@ function isAnagram(str1, str2) { let a = str1.toLowerCase().replace(//g,
 }
 
 console.log(isAnagram(“listen”, “silent”)); // true
+
+let str1 = "listen";
+let str2 = "silent";
+
+let s1 = str1.split("").sort().join("");
+let s2 = str2.split("").sort().join("");
+
+if (s1 === s2) {
+    console.log("Anagram");
+} else {
+    console.log("Not Anagram");
+}
+
 
 18. REMOVE DUPLICATE CHARACTERS FROM STRING
 
