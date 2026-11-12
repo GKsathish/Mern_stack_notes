@@ -1,0 +1,916 @@
+==============================================================
+AWS, DOCKER & KUBERNETES
+PRACTICAL / SCENARIO INTERVIEW QUESTIONS WITH SAMPLE ANSWERS
+(4+ YRS MERN)
+==============================================================
+Prepared for: Sathish Kumar Reddy Gandhaviti
+
+How to answer practical questions (4 steps):
+  1. Problem ni confirm cheyandi (error enti, ekkada)
+  2. Check order cheppandi (logs -> process -> port -> firewall)
+  3. Command cheppandi
+  4. Fix + prevention cheppandi
+
+Interviewers ki commands + logic kavali, theory kadu. Prathi answer
+lo "nenu ila chesanu" ani mee project (ritzzy / Pyro portals) tho
+link cheyandi.
+
+NOTE: Docker = basic, Kubernetes = concepts + minikube practice ani
+honest ga cheppandi.
+
+
+##############################################################
+PART 1 : AWS PRACTICAL QUESTIONS
+##############################################################
+
+
+--------------------------------------------------------------
+A1. Deploy a MERN app on EC2 from scratch. Steps cheppandi.
+--------------------------------------------------------------
+SAMPLE ANSWER
+1. EC2 launch: Ubuntu, t3.small, key pair, Security Group (22 from my
+   IP, 80, 443).
+2. SSH: ssh -i key.pem ubuntu@<ip>
+3. Install: Node 20, Nginx, Git, PM2.
+4. Backend: git clone, npm ci --omit=dev, create .env, pm2 start
+   server.js --name api, pm2 startup, pm2 save.
+5. Frontend: npm run build, copy build to /var/www/ritzzy/build (or
+   build locally and scp).
+6. Nginx: serve build, proxy /api and /socket.io to localhost:5000.
+7. Domain: Route 53 A record to Elastic IP.
+8. SSL: sudo certbot --nginx -d admin.example.com
+9. Verify: curl https://admin.example.com/api/health
+
+COMMANDS
+sudo apt update && sudo apt install -y nginx git
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+npm install -g pm2
+git clone <repo> && cd <repo> && npm ci --omit=dev
+pm2 start server.js --name api && pm2 startup && pm2 save
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d admin.example.com
+
+
+--------------------------------------------------------------
+A2. Deploy chesaka website open avvatledu. Ela debug chestaru?
+--------------------------------------------------------------
+SAMPLE ANSWER (outside to inside order)
+1. DNS: nslookup admin.example.com -> correct IP vastunda?
+2. Security Group: 80/443 open unda?
+3. Instance running unda? (EC2 console / status checks)
+4. Nginx running unda?
+     sudo systemctl status nginx
+     sudo nginx -t
+5. App running unda?
+     pm2 list
+     pm2 logs api --lines 100
+6. Port listening unda?
+     sudo lsof -i :5000
+     curl http://localhost:5000/health
+7. Logs:
+     sudo tail -f /var/log/nginx/error.log
+
+Mostly root cause: Security Group lo port close, Nginx config error,
+leka PM2 process crash.
+
+
+--------------------------------------------------------------
+A3. Nginx "502 Bad Gateway" vastundi. Reason enti?
+--------------------------------------------------------------
+SAMPLE ANSWER
+502 ante Nginx upstream (Node app) ni reach cheyaledu.
+Causes:
+  - Node app crash ayindi / run avvatledu
+  - Wrong port in proxy_pass
+  - App different port lo run avtundi
+
+Debug:
+  pm2 list
+  pm2 logs api
+  curl http://localhost:5000/health
+  grep proxy_pass /etc/nginx/sites-enabled/*
+
+Fix: app restart (pm2 restart api), port correct cheyadam, crash
+reason logs lo chusi fix cheyadam.
+Prevention: pm2 startup save, health check alerts.
+
+Related codes:
+  504 Gateway Timeout : app respond cheyadaniki chala time
+                        (proxy_read_timeout penchali, or slow API fix)
+  413 Request Entity Too Large : client_max_body_size 20M; set cheyali
+
+
+--------------------------------------------------------------
+A4. SSH "Permission denied (publickey)" or "UNPROTECTED PRIVATE KEY
+    FILE" error vastundi. Em chestaru?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  - Key permission: chmod 400 key.pem
+  - Correct user: Ubuntu AMI ki ubuntu, Amazon Linux ki ec2-user
+  - Correct key pair instance ki attach ayyinda check
+  - Security Group lo port 22 open + my IP correct (IP marindemo)
+  - Verbose debug: ssh -v -i key.pem ubuntu@<ip>
+Key lost ayithe: AMI create chesi kotha instance new key tho launch,
+leka SSM Session Manager vadochu.
+
+
+--------------------------------------------------------------
+A5. EC2 disk full ayindi, app crash avtundi. Ela fix chestaru?
+--------------------------------------------------------------
+SAMPLE ANSWER
+1. Confirm:
+     df -h
+2. Peddha folders find:
+     sudo du -h --max-depth=1 / 2>/dev/null | sort -hr | head -10
+     sudo du -h --max-depth=1 /var | sort -hr | head
+3. Common culprits and cleanup:
+     - Logs:  sudo journalctl --vacuum-size=200M
+              pm2 flush
+              sudo truncate -s 0 /var/log/nginx/access.log
+     - Docker: docker system prune -a
+     - Old builds, node_modules, uploads
+     - apt cache: sudo apt clean
+4. Permanent fix:
+     - logrotate configure
+     - EBS volume size penchadam:
+         aws ec2 modify-volume --volume-id vol-0abc --size 50
+         sudo growpart /dev/xvda 1
+         sudo resize2fs /dev/xvda1
+     - Uploads S3 ki move
+     - CloudWatch alarm disk usage meeda
+
+
+--------------------------------------------------------------
+A6. Server CPU 100% ayindi. Em chestaru?
+--------------------------------------------------------------
+SAMPLE ANSWER
+1. Identify: top / htop (which process)
+2. Node process ayithe: pm2 monit, pm2 logs
+3. Reasons: infinite loop, heavy sync operation, unindexed MongoDB
+   query, traffic spike
+4. Quick relief: pm2 restart api
+5. Fix:
+     - Slow query find (MongoDB profiler, explain), index add
+     - Heavy work ni background job / queue ki move
+     - PM2 cluster mode: pm2 start server.js -i max
+     - Scale out: ALB + Auto Scaling Group
+6. Prevention: CloudWatch CPU alarm (80% for 10 min)
+
+
+--------------------------------------------------------------
+A7. React app ni S3 + CloudFront lo host chesam. Refresh chesthe
+    404/403 vastundi. Enduku? Fix?
+--------------------------------------------------------------
+SAMPLE ANSWER
+Reason: React Router client-side routing. /dashboard refresh chesthe
+CloudFront/S3 lo aa file ledu, anduke 403/404.
+
+Fix: CloudFront Custom Error Responses:
+  403 -> /index.html -> response code 200
+  404 -> /index.html -> response code 200
+
+Also: kotha build upload chesaka cache clear:
+  aws s3 sync ./build s3://ritzzy-admin-web --delete
+  aws cloudfront create-invalidation --distribution-id E1ABC --paths "/*"
+
+Best practice: hashed JS/CSS files ki long cache, index.html ki short
+cache.
+
+
+--------------------------------------------------------------
+A8. EC2 nundi S3 upload chesthe "AccessDenied" vastundi.
+--------------------------------------------------------------
+SAMPLE ANSWER
+Check order:
+  1. EC2 ki IAM role attach ayyinda? (Instance profile)
+  2. Role policy lo s3:PutObject action and correct bucket ARN
+     (arn:aws:s3:::bucket/* for objects) undha?
+  3. Bucket policy lo explicit deny undha?
+  4. Region / bucket name correct?
+  5. Server lo identity check:
+       aws sts get-caller-identity
+
+Fix: policy update:
+{
+  "Effect": "Allow",
+  "Action": ["s3:PutObject", "s3:GetObject"],
+  "Resource": "arn:aws:s3:::ritzzy-uploads/*"
+}
+Access keys code lo pettakudadu, IAM role vadali.
+
+
+--------------------------------------------------------------
+A9. Socket.io / WebSocket connection tarachu disconnect avtundi
+    (Nginx / ALB venuka). Fix?
+--------------------------------------------------------------
+SAMPLE ANSWER
+Nginx:
+  proxy_http_version 1.1;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "upgrade";
+  proxy_read_timeout 3600s;       # idle timeout penchadam
+  proxy_send_timeout 3600s;
+
+ALB:
+  - Idle timeout penchali (default 60 sec)
+  - Multiple instances unte sticky sessions enable cheyali
+  - Socket.io multiple servers lo Redis adapter vadali
+Client side: heartbeat/ping, auto reconnect enable.
+
+
+--------------------------------------------------------------
+A10. Downtime lekunda deploy ela chestaru?
+--------------------------------------------------------------
+SAMPLE ANSWER
+Single EC2:
+  pm2 start in cluster mode, then:  pm2 reload api
+  (reload workers ni okokati restart chestundi, downtime ledu)
+Multiple servers:
+  ALB venuka instances; oka instance ni deregister chesi update chesi
+  malli register (rolling deployment).
+Kubernetes:
+  Rolling update with readiness probe.
+Rollback plan: previous version tag/commit ready ga undali.
+
+
+--------------------------------------------------------------
+A11. MongoDB daily backup S3 ki ela pettali?
+--------------------------------------------------------------
+SAMPLE ANSWER
+Script /home/ubuntu/backup.sh:
+
+#!/bin/bash
+DATE=$(date +%F)
+mongodump --uri="mongodb://localhost:27017/ritzzy" \
+  --archive=/tmp/ritzzy-$DATE.gz --gzip
+aws s3 cp /tmp/ritzzy-$DATE.gz s3://ritzzy-backups/mongo/ritzzy-$DATE.gz
+rm /tmp/ritzzy-$DATE.gz
+
+crontab -e
+0 2 * * * /home/ubuntu/backup.sh >> /var/log/backup.log 2>&1
+
+Add: S3 lifecycle rule (30 days taruvata delete / Glacier), restore
+test chesi chudali:
+  mongorestore --uri="mongodb://localhost:27017" --gzip \
+    --archive=ritzzy-2026-11-06.gz
+
+
+--------------------------------------------------------------
+A12. Database ni secure ga ela pettali?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  - DB private subnet lo (public IP ledu)
+  - DB Security Group: inbound 27017/3306 only from API Security Group
+    (CIDR kakunda SG reference)
+  - Authentication on, strong password, Secrets Manager
+  - Encryption at rest (EBS/RDS) and in transit (TLS)
+  - Regular backups
+  - 0.0.0.0/0 tho DB port open cheyakudadu
+
+
+--------------------------------------------------------------
+A13. AWS cost ela taggistaru?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  - Right-size instances (CloudWatch metrics chusi)
+  - Unused EC2, EBS volumes, Elastic IPs, snapshots delete
+  - Dev/staging servers night stop (schedule)
+  - Reserved Instances / Savings Plans for steady load
+  - S3 lifecycle policies, CloudFront caching
+  - Billing alarm and Cost Explorer budgets
+
+
+--------------------------------------------------------------
+A14. Server pai Node app crash ayithe automatic ga restart avvali.
+     Ela?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  pm2 start server.js --name api      # auto restart on crash
+  pm2 startup && pm2 save             # server reboot taruvata kuda start
+  pm2 start server.js -i max          # cluster mode
+  pm2 start server.js --max-memory-restart 300M
+
+Alternative: systemd service.
+
+
+##############################################################
+PART 2 : DOCKER PRACTICAL QUESTIONS
+##############################################################
+
+
+--------------------------------------------------------------
+D1. LIVE TASK: Node + Express API ki Dockerfile rayandi.
+--------------------------------------------------------------
+SAMPLE ANSWER
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+ENV NODE_ENV=production
+EXPOSE 5000
+USER node
+CMD ["node", "server.js"]
+
+.dockerignore:
+node_modules
+.git
+.env
+npm-debug.log
+
+Build and run:
+docker build -t ritzzy-api:1.0 .
+docker run -d -p 5000:5000 --env-file .env --name api ritzzy-api:1.0
+curl http://localhost:5000/health
+
+Explain: package.json first (layer cache), npm ci (reproducible),
+USER node (non-root, safer).
+
+
+--------------------------------------------------------------
+D2. LIVE TASK: React app ki Dockerfile (production).
+--------------------------------------------------------------
+SAMPLE ANSWER
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+
+nginx.conf:
+server {
+  listen 80;
+  root /usr/share/nginx/html;
+  location / { try_files $uri /index.html; }
+}
+
+(Vite project ayithe /app/dist copy cheyali.)
+
+
+--------------------------------------------------------------
+D3. LIVE TASK: Compose file: React + Node + MongoDB.
+--------------------------------------------------------------
+SAMPLE ANSWER
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ritzzy
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  web:
+    build: ./client
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  mongo_data:
+
+Run: docker compose up -d --build
+
+
+--------------------------------------------------------------
+D4. Container start ayyi ventane exit avtundi. Debug?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  docker ps -a                  # status and exit code
+  docker logs <container>       # error message
+  docker inspect <c> --format '{{.State.ExitCode}}'
+
+Common reasons:
+  - App error / missing env variable (Cannot find module, DB URL undefined)
+  - CMD wrong path or file name
+  - Foreground process ledu (process end ayithe container end avtundi)
+  - Exit code 137 = OOM killed / killed, 1 = app error
+
+Interactive debug:
+  docker run -it --entrypoint sh ritzzy-api:1.0
+  ls, cat package.json, node server.js
+
+
+--------------------------------------------------------------
+D5. Container run avtundi kani localhost:5000 open avvatledu.
+--------------------------------------------------------------
+SAMPLE ANSWER
+Check:
+  1. Port publish chesara? docker run -p 5000:5000 (EXPOSE matrame
+     saripodu)
+  2. Host port vs container port correct na? (-p host:container)
+  3. App container lo 127.0.0.1 ki bind ayyindemo. 0.0.0.0 ki bind
+     avvali:
+       app.listen(5000, "0.0.0.0")
+  4. docker ps lo PORTS column chudali:   0.0.0.0:5000->5000/tcp
+  5. Firewall / Security Group (server ayithe)
+  6. docker logs api
+
+
+--------------------------------------------------------------
+D6. API container MongoDB ki connect avvatledu (ECONNREFUSED
+    127.0.0.1:27017).
+--------------------------------------------------------------
+SAMPLE ANSWER
+Reason: container lo "localhost" ante aa container ne. Mongo vere
+container.
+
+Fix: same network lo pettali and service/container name vadali:
+  MONGO_URI=mongodb://mongo:27017/ritzzy
+Compose lo automatic ga same network untundi.
+Plain docker run ayithe:
+  docker network create ritzzy-net
+  docker run -d --name mongo --network ritzzy-net mongo:7
+  docker run -d --network ritzzy-net -e MONGO_URI=mongodb://mongo:27017/ritzzy ritzzy-api:1.0
+
+Mongo start avvadaniki time padithe API crash avtundi: healthcheck +
+depends_on condition leka app lo retry logic.
+
+
+--------------------------------------------------------------
+D7. Container delete chesthe DB data poyindi. Fix?
+--------------------------------------------------------------
+SAMPLE ANSWER
+Reason: container filesystem temporary. Volume vadaledu.
+Fix:
+  docker run -d --name mongo -v mongo_data:/data/db mongo:7
+  (Compose lo volumes: - mongo_data:/data/db)
+Gotcha: "docker compose down -v" volumes kuda delete chestundi.
+Production lo managed DB (Atlas/RDS) better, and regular backups.
+
+
+--------------------------------------------------------------
+D8. Image size 1.2 GB undi. Ela taggistaru?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  1. Base image: node:20 (900 MB) -> node:20-alpine (~150 MB)
+  2. Multi-stage build (build tools final image lo undav)
+  3. npm ci --omit=dev
+  4. .dockerignore (node_modules, .git, tests)
+  5. Layers combine, cache clean
+  6. Check layers: docker history <image>
+
+React: node build stage + nginx:alpine final = ~25 MB.
+
+
+--------------------------------------------------------------
+D9. Code change chesanu, kani container lo kotha code kanapadatledu.
+--------------------------------------------------------------
+SAMPLE ANSWER
+  - Image rebuild cheyaledu: docker compose up -d --build
+  - Old container run avtundi: docker compose down, then up
+  - Cache issue: docker build --no-cache -t app .
+  - Development lo: bind mount + nodemon
+      docker run -v $(pwd):/app -v /app/node_modules app:dev npx nodemon server.js
+  - Browser cache (React build) kuda check.
+
+
+--------------------------------------------------------------
+D10. Server lo Docker disk full chesindi.
+--------------------------------------------------------------
+SAMPLE ANSWER
+  docker system df               # usage breakdown
+  docker system prune -a         # stopped containers, unused images
+  docker volume prune            # careful: data volumes
+  docker builder prune
+Container logs peddaga avthayi: log rotation set cheyali:
+  docker run --log-opt max-size=10m --log-opt max-file=3 ...
+Compose:
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+
+--------------------------------------------------------------
+D11. Secrets (DB password, JWT) Docker lo ela handle chestaru?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  - Image lo bake cheyakudadu (docker history lo kanapadatayi)
+  - Runtime lo inject: --env-file .env, compose environment
+  - .env .gitignore and .dockerignore lo undali
+  - Production: AWS Secrets Manager / Kubernetes Secrets / Docker
+    secrets
+  - Check: docker history <image> --no-trunc lo secrets leka povali.
+
+
+--------------------------------------------------------------
+D12. Container root ga run avtundi. Security ela improve?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  - Dockerfile lo USER node (non-root)
+  - Minimal base image (alpine)
+  - Image vulnerability scan (docker scout / trivy)
+  - Secrets image lo petakapovadam
+  - Read-only filesystem, resource limits:
+      docker run --memory=256m --cpus=0.5 ...
+
+
+##############################################################
+PART 3 : KUBERNETES PRACTICAL QUESTIONS
+##############################################################
+
+(Resume lo ledu: "Minikube lo practice chesanu" ani cheppandi, and
+real ga chesi undandi.)
+
+
+--------------------------------------------------------------
+K1. LIVE TASK: Node app ni Kubernetes lo deploy cheyandi.
+--------------------------------------------------------------
+SAMPLE ANSWER
+1. Image push:
+     docker build -t sathish/ritzzy-api:1.0 .
+     docker push sathish/ritzzy-api:1.0
+2. Secret:
+     kubectl create secret generic db-secret \
+       --from-literal=uri='mongodb://mongo:27017/ritzzy'
+3. deployment.yaml:
+     apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: api
+     spec:
+       replicas: 3
+       selector:
+         matchLabels:
+           app: api
+       template:
+         metadata:
+           labels:
+             app: api
+         spec:
+           containers:
+             - name: api
+               image: sathish/ritzzy-api:1.0
+               ports:
+                 - containerPort: 5000
+               env:
+                 - name: MONGO_URI
+                   valueFrom:
+                     secretKeyRef:
+                       name: db-secret
+                       key: uri
+               readinessProbe:
+                 httpGet:
+                   path: /health
+                   port: 5000
+               resources:
+                 requests:
+                   cpu: "100m"
+                   memory: "128Mi"
+                 limits:
+                   cpu: "500m"
+                   memory: "256Mi"
+4. service.yaml:
+     apiVersion: v1
+     kind: Service
+     metadata:
+       name: api-service
+     spec:
+       type: NodePort
+       selector:
+         app: api
+       ports:
+         - port: 80
+           targetPort: 5000
+5. Apply and verify:
+     kubectl apply -f deployment.yaml -f service.yaml
+     kubectl get pods
+     kubectl get svc
+     minikube service api-service --url
+
+
+--------------------------------------------------------------
+K2. Pod "CrashLoopBackOff" lo undi. Ela debug?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  kubectl get pods
+  kubectl describe pod <pod>         # Events and Last State
+  kubectl logs <pod>
+  kubectl logs <pod> --previous      # crash ayina container logs
+
+Common causes:
+  - Missing/wrong env variable or Secret
+  - DB not reachable
+  - App code error on startup
+  - Wrong command/entrypoint
+  - Liveness probe fail ayyi restart avtundi (wrong path/port)
+  - OOMKilled (memory limit takkuva)
+
+Fix: cause ni batti env/secret correct, image fix, probe path/delay
+correct (initialDelaySeconds), limits penchadam. Malli apply.
+
+
+--------------------------------------------------------------
+K3. Pod "ImagePullBackOff / ErrImagePull".
+--------------------------------------------------------------
+SAMPLE ANSWER
+  kubectl describe pod <pod>         # Events lo reason
+
+Causes:
+  - Image name/tag spelling thappu
+  - Tag exist cheyadu (push cheyaledu)
+  - Private registry ki credentials ledu
+
+Fix (private registry):
+  kubectl create secret docker-registry regcred \
+    --docker-server=<registry> --docker-username=<user> \
+    --docker-password=<pass>
+  Pod spec lo:
+    imagePullSecrets:
+      - name: regcred
+
+
+--------------------------------------------------------------
+K4. Pod "Pending" lo undi.
+--------------------------------------------------------------
+SAMPLE ANSWER
+  kubectl describe pod <pod>         # Events: "Insufficient cpu/memory"
+
+Causes:
+  - Nodes lo resources saripoledu (requests ekkuva)
+  - PVC bind avvatledu
+  - Node selector / taints match avvatledu
+Fix: requests taggincham, node add, PVC/StorageClass check.
+
+
+--------------------------------------------------------------
+K5. Service ki request vellatledu (connection refused / timeout).
+--------------------------------------------------------------
+SAMPLE ANSWER
+  kubectl get svc api-service
+  kubectl get endpoints api-service       # EMPTY ayithe problem
+  kubectl get pods --show-labels
+
+Reasons:
+  - Service selector labels pod labels tho match avvatledu
+  - Pods Ready kaledu (readiness probe fail)
+  - targetPort thappu (container port 5000, targetPort 5000 undali)
+Test inside cluster:
+  kubectl run tmp --rm -it --image=busybox -- wget -qO- http://api-service
+Local test:
+  kubectl port-forward svc/api-service 8080:80
+
+
+--------------------------------------------------------------
+K6. Zero downtime ga kotha version deploy, bug vasthe rollback.
+--------------------------------------------------------------
+SAMPLE ANSWER
+  kubectl set image deployment/api api=sathish/ritzzy-api:2.0
+  kubectl rollout status deployment/api
+  # issue vasthe
+  kubectl rollout undo deployment/api
+  kubectl rollout history deployment/api
+
+Zero downtime kosam:
+  - RollingUpdate strategy (maxUnavailable 0, maxSurge 1)
+  - Readiness probe correct ga undali (ready ayyaka matrame traffic)
+  - replicas >= 2
+
+
+--------------------------------------------------------------
+K7. Traffic perigithe auto scale avvali.
+--------------------------------------------------------------
+SAMPLE ANSWER
+  1. Deployment lo resources.requests cpu set cheyali
+  2. Metrics server: minikube addons enable metrics-server
+  3. HPA:
+       kubectl autoscale deployment api --cpu-percent=70 --min=2 --max=10
+  4. Verify:
+       kubectl get hpa -w
+       kubectl top pods
+  Load test: hey / ab tho requests pampi replicas perigaya chudali.
+
+
+--------------------------------------------------------------
+K8. Pod OOMKilled ayindi.
+--------------------------------------------------------------
+SAMPLE ANSWER
+  kubectl describe pod <pod>
+    Last State: Terminated, Reason: OOMKilled, Exit Code: 137
+
+Reason: container memory limit dhatindi.
+Fix:
+  - Memory leak unda check (heap usage)
+  - limits.memory penchadam (256Mi -> 512Mi)
+  - Node: --max-old-space-size set cheyadam
+  - kubectl top pods tho actual usage chudali
+
+
+--------------------------------------------------------------
+K9. Config marchali (image rebuild lekunda). Ela?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  ConfigMap/Secret update chesi pods restart:
+    kubectl apply -f configmap.yaml
+    kubectl rollout restart deployment/api
+  (envFrom tho teesukunna values pods restart ayyaka matrame
+  marutayi)
+
+
+--------------------------------------------------------------
+K10. App ni internet ki ela expose chestaru?
+--------------------------------------------------------------
+SAMPLE ANSWER
+  - Service type LoadBalancer (cloud lo ELB create avtundi)
+  - Better: Ingress + NGINX Ingress Controller (host/path routing,
+    SSL), oka LoadBalancer tho multiple services
+  - Minikube: minikube service <svc> --url, leka ingress addon
+  - SSL: cert-manager + Let's Encrypt
+
+
+--------------------------------------------------------------
+K11. Database ni Kubernetes lo run cheyala?
+--------------------------------------------------------------
+SAMPLE ANSWER
+Cheyochu StatefulSet + PVC tho, kani production lo managed DB (Atlas,
+RDS) prefer chestam, because backups, failover, upgrades
+complicated. Stateless API Kubernetes lo, DB managed service lo
+(honest, practical answer).
+
+
+##############################################################
+PART 4 : CROSS-TOOL PRACTICAL TASKS
+##############################################################
+
+
+--------------------------------------------------------------
+X1. CI/CD pipeline rayandi (GitHub Actions: test -> Docker build ->
+    push -> deploy).
+--------------------------------------------------------------
+SAMPLE ANSWER
+.github/workflows/deploy.yml
+
+name: ci-cd
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: sathish/ritzzy-api:${{ github.sha }}
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            docker pull sathish/ritzzy-api:${{ github.sha }}
+            docker stop api || true
+            docker rm api || true
+            docker run -d --name api -p 5000:5000 --env-file /home/ubuntu/.env sathish/ritzzy-api:${{ github.sha }}
+
+Explain: image tag = commit SHA (rollback easy), secrets GitHub
+Secrets lo.
+
+
+--------------------------------------------------------------
+X2. Health check endpoint (Docker, ALB, K8s anni vadatayi).
+--------------------------------------------------------------
+SAMPLE ANSWER
+// Express
+app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
+
+app.get("/ready", (req, res) => {
+  const dbReady = mongoose.connection.readyState === 1;
+  res.status(dbReady ? 200 : 503).json({ db: dbReady });
+});
+
+Docker HEALTHCHECK (Dockerfile):
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -qO- http://localhost:5000/health || exit 1
+
+
+--------------------------------------------------------------
+X3. Graceful shutdown (deploy time lo requests drop avvakunda).
+--------------------------------------------------------------
+SAMPLE ANSWER
+const server = app.listen(5000);
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, closing server");
+  server.close(async () => {
+    await mongoose.connection.close();
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10000);   // force exit
+});
+
+Docker stop and Kubernetes pod termination SIGTERM pamputayi, so
+ee handler zero downtime ki important.
+
+
+--------------------------------------------------------------
+X4. Linux practical commands (adigite chepali).
+--------------------------------------------------------------
+Q: Port 5000 ni evaru vadutunnaru?
+   sudo lsof -i :5000        or   sudo netstat -tulpn | grep 5000
+Q: Process kill?
+   kill -9 <pid>
+Q: Last 100 log lines + live follow?
+   tail -n 100 -f app.log
+Q: Logs lo "error" search?
+   grep -i "error" app.log | tail -20
+Q: Disk, memory, CPU?
+   df -h ; free -m ; top
+Q: Biggest folders?
+   du -h --max-depth=1 / | sort -hr | head
+Q: File permission?
+   chmod 400 key.pem ; chown ubuntu:ubuntu file
+Q: Service restart and status?
+   sudo systemctl restart nginx ; sudo systemctl status nginx
+Q: Env variables set?
+   export NODE_ENV=production ; printenv
+Q: File server ki copy?
+   scp -i key.pem build.zip ubuntu@<ip>:/home/ubuntu/
+Q: Background job schedule?
+   crontab -e   (0 2 * * * /path/script.sh)
+
+
+--------------------------------------------------------------
+X5. Rapid-fire "Command cheppandi" round
+--------------------------------------------------------------
+Running containers list         : docker ps
+Container lo login              : docker exec -it <c> sh
+Container logs follow           : docker logs -f <c>
+Unused images clean             : docker system prune -a
+Compose build and run           : docker compose up -d --build
+Pods list with node             : kubectl get pods -o wide
+Pod crash logs                  : kubectl logs <pod> --previous
+Pod details and events          : kubectl describe pod <pod>
+Scale replicas                  : kubectl scale deployment api --replicas=5
+Update image                    : kubectl set image deployment/api api=img:2.0
+Rollback                        : kubectl rollout undo deployment/api
+Local access to service         : kubectl port-forward svc/api-service 8080:80
+Restart deployment              : kubectl rollout restart deployment/api
+S3 folder upload                : aws s3 sync ./build s3://bucket --delete
+CloudFront cache clear          : aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+Who am I on AWS                 : aws sts get-caller-identity
+Nginx config test               : sudo nginx -t
+SSL certificate                 : sudo certbot --nginx -d example.com
+
+
+##############################################################
+PART 5 : PRACTICE PLAN (1 WEEKEND)
+##############################################################
+Day 1 (AWS + Docker)
+  [ ] Free-tier EC2 launch, Node app + Nginx + PM2 deploy
+  [ ] Security Group, Elastic IP, domain, certbot SSL
+  [ ] S3 bucket: React build upload, pre-signed URL from Node
+  [ ] Dockerfile for API, multi-stage Dockerfile for React
+  [ ] docker-compose: React + Node + Mongo with volume and healthcheck
+Day 2 (Kubernetes + CI/CD)
+  [ ] minikube start; deploy API (Deployment + Service)
+  [ ] ConfigMap + Secret, probes
+  [ ] Scale, delete a pod (self-healing), rolling update, undo
+  [ ] HPA with metrics-server
+  [ ] GitHub Actions: test -> build -> push -> deploy
+Break things on purpose (wrong env var, wrong port, wrong image tag)
+and fix them. Interview lo adhe adugutaru.
+
+Tip: Free tier lo kharchu avvakunda, practice ayyaka instances
+terminate cheyandi and billing alarm pettandi.
+
+All the best for the interview!
