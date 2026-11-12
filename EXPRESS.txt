@@ -689,6 +689,12 @@ Follow-up questions:
 Interview-ready answer:
 REST APIs should be resource-oriented, stateless and use proper HTTP semantics. I version APIs, paginate results, whitelist sortable/filterable fields, and enforce limits to protect database performance.
 
+Idempotency:
+
+Idempotency: Idempotency is a property of an API where executing the same request multiple times produces the same intended result as executing it once.
+
+Idempotency Key: An idempotency key is a unique identifier assigned to a logical API operation. It helps the backend recognize duplicate requests and prevents the same operation from being processed multiple times.
+
 ====================================================================
 DAY 3: SECURITY AND AUTHENTICATION
 ====================================================================
@@ -696,10 +702,12 @@ DAY 3: SECURITY AND AUTHENTICATION
 1. AUTHENTICATION VS AUTHORIZATION
 
 Authentication:
-Verifies who the user is.
+Technical definition: Authentication is the process of verifying the identity of a user or system.
 
 Authorization:
-Checks what the user can do.
+Technical definition: Authorization is the process of determining what resources or actions an authenticated user is allowed to access.
+
+In my MERN applications, I implement authentication using JWT and bcrypt. After successful login, the backend generates a JWT token. For protected APIs, authentication middleware verifies the token and identifies the user. Then authorization middleware checks the user's role or permissions before allowing access to the API."
 
 Example:
 Authentication: JWT validation.
@@ -725,12 +733,44 @@ Authentication identifies the user; authorization decides access. I enforce auth
 
 JWT:
 JSON Web Token containing header, payload and signature.
+Technical definition: JWT (JSON Web Token) is a compact, URL-safe token format used to securely transmit claims between parties. In authentication systems, it is commonly used to represent an authenticated user's identity and related claims.
+
+JWT helps us:
+- Identify authenticated users.
+- Protect APIs.
+- Avoid sending email and password on every request.
+- Support stateless authentication
+
+JWT contains three parts:
+Header,Payload,Signature
+
+1. Header
+Contains token type and signing algorithm.
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+
+2. Payload
+Contains claims about the user.
+{
+  "userId": "USER101",
+  "role": "admin"
+}
+
+3. Signature
+Used to verify that the token was signed using the expected secret or private key and has not been modified.
+
+
+Important interview point: JWT payload is encoded, not encrypted. Don't store passwords, bank details or other secrets inside JWT payload.
 
 Access token:
-Short-lived token sent with API requests.
+Definition: An access token is a short-lived credential used to access protected APIs.
 
 Refresh token:
-Longer-lived token used to obtain new access token.
+Definition: A refresh token is a longer-lived credential used to obtain a new access token after the existing access token expires.
+
+Refresh token rotation is a security mechanism in which a new refresh token is issued every time an existing refresh token is successfully used. The previous refresh token is invalidated.
 
 Example:
 Authorization: Bearer <accessToken>
@@ -740,6 +780,7 @@ Stateless authentication for APIs and mobile clients.
 
 Internal working:
 Server signs JWT using secret or private key. Client sends token; server verifies signature and expiry. Refresh tokens should be stored securely and rotated on reuse.
+
 
 Follow-up questions:
 1. Where should JWT be stored?
