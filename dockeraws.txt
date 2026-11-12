@@ -1,0 +1,1474 @@
+==============================================================
+AWS, DOCKER & KUBERNETES
+DEFINITION + REAL EXAMPLE FOR EVERY TOPIC (MERN, 4+ YRS)
+==============================================================
+Prepared for: Sathish Kumar Reddy Gandhaviti
+
+Format of every topic:
+  DEFINITION : interview lo cheppadaniki English definition
+  REAL EXAMPLE : mee MERN project lo ela vadatharu (working
+                 commands / code / config)
+  SAY IT LIKE THIS : 1-2 lines lo answer cheppadam
+
+Project used in examples: "ritzzy" app
+  - React admin panel (client)
+  - Node + Express + Socket.io API on port 5000 (server)
+  - MongoDB for data
+  - Region: ap-south-1 (Mumbai)
+
+NOTE: Resume lo AWS (EC2, S3) and Docker (basic) undi.
+Kubernetes resume lo ledu, so adigite "concepts + minikube practice"
+ani honest ga cheppandi.
+
+
+##############################################################
+PART 1 : AWS
+##############################################################
+
+
+--------------------------------------------------------------
+1.1 AWS (Cloud Computing)
+--------------------------------------------------------------
+DEFINITION
+AWS (Amazon Web Services) is a cloud platform that gives on-demand
+computing, storage, networking and database services over the
+internet on a pay-as-you-go model, so you do not buy or maintain
+physical servers.
+
+REAL EXAMPLE
+Own server konte 2 lakhs kharchu + maintenance. AWS lo t3.small EC2
+instance ni hour ki konchem paise tho rent ki teesukuni, traffic
+perigithe instances penchi, taggithe teesey vachu.
+
+SAY IT LIKE THIS
+"Physical server lekunda, cloud lo compute, storage, DB services ni
+pay-as-you-go ga vadatam. Nenu API ni EC2 lo, assets ni S3 lo host
+chesanu."
+
+
+--------------------------------------------------------------
+1.2 Region and Availability Zone (AZ)
+--------------------------------------------------------------
+DEFINITION
+A Region is a geographic area (for example ap-south-1 Mumbai,
+ap-south-2 Hyderabad). An Availability Zone is one or more isolated
+data centers inside a region. Spreading across AZs gives high
+availability.
+
+REAL EXAMPLE
+Users India lo unte ap-south-1 (Mumbai) select chestam, latency
+takkuva. Two EC2 instances ni ap-south-1a and ap-south-1b lo run
+chesthe, oka data center down ayina app run avtundi.
+
+aws configure set region ap-south-1
+aws ec2 describe-availability-zones --region ap-south-1
+
+SAY IT LIKE THIS
+"Users ki daggara ga unde region select chesanu, and HA kosam
+multiple AZs lo instances run cheyochu."
+
+
+--------------------------------------------------------------
+1.3 EC2 (Elastic Compute Cloud)
+--------------------------------------------------------------
+DEFINITION
+EC2 provides resizable virtual servers (instances) in the cloud.
+You choose the OS (AMI), CPU/RAM (instance type), storage (EBS) and
+network settings.
+
+Related terms:
+  AMI : template (OS + software) used to launch an instance
+  Instance type : t3.small = 2 vCPU, 2 GB RAM
+  EBS : network disk attached to the instance
+  Key pair : SSH login keys
+  User data : script that runs on first boot
+
+REAL EXAMPLE (launch a server for the Node API)
+
+aws ec2 run-instances \
+  --image-id ami-0abcdef1234567890 \
+  --instance-type t3.small \
+  --key-name ritzzy-key \
+  --security-group-ids sg-0123456789abcdef0 \
+  --subnet-id subnet-0123456789abcdef0 \
+  --count 1 \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=ritzzy-api}]'
+
+# Login and deploy
+chmod 400 ritzzy-key.pem
+ssh -i ritzzy-key.pem ubuntu@13.233.10.25
+
+sudo apt update && sudo apt install -y nginx git
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+git clone https://github.com/GKsathish/ritzzy-api.git
+cd ritzzy-api && npm ci --omit=dev
+npm install -g pm2
+pm2 start server.js --name api
+pm2 startup && pm2 save
+
+# Stop / start / terminate
+aws ec2 stop-instances --instance-ids i-0abc123
+aws ec2 start-instances --instance-ids i-0abc123
+aws ec2 terminate-instances --instance-ids i-0abc123
+
+SAY IT LIKE THIS
+"EC2 lo Ubuntu instance launch chesi, Node API ni PM2 tho run chesi,
+Nginx reverse proxy and SSL configure chesanu."
+
+
+--------------------------------------------------------------
+1.4 EBS (Elastic Block Store)
+--------------------------------------------------------------
+DEFINITION
+EBS is a persistent block storage volume that attaches to an EC2
+instance like a hard disk. Data stays even if the instance stops.
+
+REAL EXAMPLE
+Disk full ayithe volume size penchadam:
+
+aws ec2 modify-volume --volume-id vol-0abc123 --size 50
+# then on the server
+sudo growpart /dev/xvda 1
+sudo resize2fs /dev/xvda1
+df -h
+
+SAY IT LIKE THIS
+"EBS ante EC2 ki attach ayye persistent disk. Disk full issue vachinappudu
+volume size penchi resize chesanu."
+
+
+--------------------------------------------------------------
+1.5 Elastic IP
+--------------------------------------------------------------
+DEFINITION
+An Elastic IP is a static public IPv4 address you own. Normal public
+IP instance restart ayithe marutundi, Elastic IP marladu.
+
+REAL EXAMPLE
+aws ec2 allocate-address --domain vpc
+aws ec2 associate-address \
+  --instance-id i-0abc123 --allocation-id eipalloc-0abc123
+
+Ippudu domain A record ki ee IP ni vadochu, restart ayina break avvadu.
+
+
+--------------------------------------------------------------
+1.6 S3 (Simple Storage Service)
+--------------------------------------------------------------
+DEFINITION
+S3 is object storage. Files (objects) are stored in buckets, with
+very high durability (99.999999999%). Used for static websites,
+uploads, backups and logs.
+
+REAL EXAMPLE 1 : Host React build
+
+npm run build
+aws s3 mb s3://ritzzy-admin-web --region ap-south-1
+aws s3 sync ./build s3://ritzzy-admin-web --delete
+aws s3 website s3://ritzzy-admin-web \
+  --index-document index.html --error-document index.html
+
+REAL EXAMPLE 2 : Node.js file upload using AWS SDK v3
+
+npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+
+// s3.js
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+const s3 = new S3Client({ region: "ap-south-1" });
+
+export async function uploadFile(key, buffer, contentType) {
+  await s3.send(new PutObjectCommand({
+    Bucket: "ritzzy-uploads",
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+  }));
+}
+
+// temporary private download link (valid 5 minutes)
+export async function getDownloadUrl(key) {
+  const cmd = new GetObjectCommand({ Bucket: "ritzzy-uploads", Key: key });
+  return getSignedUrl(s3, cmd, { expiresIn: 300 });
+}
+
+// Express route
+app.post("/api/upload", upload.single("file"), async (req, res) => {
+  const key = `invoices/${Date.now()}-${req.file.originalname}`;
+  await uploadFile(key, req.file.buffer, req.file.mimetype);
+  res.json({ key });
+});
+
+Other useful commands:
+aws s3 ls
+aws s3 cp ./logo.png s3://ritzzy-uploads/logo.png
+aws s3 rm s3://ritzzy-uploads/logo.png
+
+SAY IT LIKE THIS
+"Private bucket lo files store chesi, pre-signed URLs tho temporary
+access ichanu. React build ni S3 + CloudFront tho host cheyochu."
+
+
+--------------------------------------------------------------
+1.7 IAM (Identity and Access Management)
+--------------------------------------------------------------
+DEFINITION
+IAM controls who (users, roles, services) can do what (policies) on
+which AWS resources. Principle: least privilege.
+
+  User : person or app with long-term credentials
+  Role : temporary credentials assumed by a service
+  Policy : JSON document that allows or denies actions
+
+REAL EXAMPLE : EC2 should only read/write one bucket (no access keys
+stored on the server)
+
+Policy (s3-ritzzy-uploads-policy.json):
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": "arn:aws:s3:::ritzzy-uploads/*"
+    }
+  ]
+}
+
+aws iam create-policy --policy-name ritzzy-s3-access \
+  --policy-document file://s3-ritzzy-uploads-policy.json
+
+Attach that policy to a Role, attach the Role to the EC2 instance
+(instance profile). The AWS SDK on the server automatically picks up
+temporary credentials. No keys in code or .env.
+
+SAY IT LIKE THIS
+"Access keys code lo pettakunda, EC2 ki IAM role attach chesi least
+privilege policy ichanu."
+
+
+--------------------------------------------------------------
+1.8 VPC and Security Group
+--------------------------------------------------------------
+DEFINITION
+VPC (Virtual Private Cloud) is your own isolated network in AWS with
+subnets, route tables and gateways. A Security Group is a stateful
+virtual firewall at instance level that controls inbound and outbound
+traffic. NACL is a stateless firewall at subnet level.
+
+REAL EXAMPLE : Open only SSH (my IP), HTTP and HTTPS
+
+aws ec2 create-security-group --group-name ritzzy-web-sg \
+  --description "web sg" --vpc-id vpc-0abc123
+
+aws ec2 authorize-security-group-ingress --group-id sg-0123 \
+  --protocol tcp --port 22 --cidr 203.0.113.10/32
+aws ec2 authorize-security-group-ingress --group-id sg-0123 \
+  --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id sg-0123 \
+  --protocol tcp --port 443 --cidr 0.0.0.0/0
+
+Port 5000 (Node) and 27017 (MongoDB) public ga open cheyakudadu.
+Nginx 80/443 matrame expose chestundi, Node localhost lo untundi.
+
+Public subnet : internet gateway route undi (web server)
+Private subnet : direct internet ledu (database)
+
+SAY IT LIKE THIS
+"Security Group lo 22 (nenu IP matrame), 80, 443 open chesanu. DB
+private subnet lo untundi."
+
+
+--------------------------------------------------------------
+1.9 Route 53
+--------------------------------------------------------------
+DEFINITION
+Route 53 is AWS's DNS service. It maps domain names to IPs or AWS
+resources, and supports health checks and routing policies.
+
+REAL EXAMPLE : api.example.com to the Elastic IP
+
+record.json:
+{
+  "Changes": [{
+    "Action": "UPSERT",
+    "ResourceRecordSet": {
+      "Name": "api.example.com",
+      "Type": "A",
+      "TTL": 300,
+      "ResourceRecords": [{ "Value": "13.233.10.25" }]
+    }
+  }]
+}
+
+aws route53 change-resource-record-sets \
+  --hosted-zone-id Z0123456789ABC --change-batch file://record.json
+
+Common record types: A (domain to IPv4), CNAME (domain to domain),
+Alias (domain to AWS resource like CloudFront or ALB).
+
+
+--------------------------------------------------------------
+1.10 CloudFront
+--------------------------------------------------------------
+DEFINITION
+CloudFront is a CDN (Content Delivery Network). It caches your
+content at edge locations near users, so pages load faster and the
+origin (S3/EC2) gets less load.
+
+REAL EXAMPLE : React app on S3 behind CloudFront
+
+Flow: User -> Route 53 -> CloudFront -> S3 (private bucket via OAC)
+
+New build upload chesaka cache clear:
+aws s3 sync ./build s3://ritzzy-admin-web --delete
+aws cloudfront create-invalidation \
+  --distribution-id E1ABCDEF234567 --paths "/*"
+
+SPA fix: error page 403/404 ni /index.html ki redirect (200) cheyali,
+leka React Router routes refresh lo fail avtayi.
+
+
+--------------------------------------------------------------
+1.11 RDS
+--------------------------------------------------------------
+DEFINITION
+RDS (Relational Database Service) is a managed database service
+(MySQL, PostgreSQL etc.). AWS handles backups, patching and failover
+(Multi-AZ).
+
+REAL EXAMPLE : MySQL for transaction data
+
+aws rds create-db-instance \
+  --db-instance-identifier ritzzy-mysql \
+  --db-instance-class db.t3.micro \
+  --engine mysql \
+  --allocated-storage 20 \
+  --master-username admin \
+  --master-user-password 'StrongPass#123' \
+  --no-publicly-accessible
+
+mysql -h ritzzy-mysql.abc123.ap-south-1.rds.amazonaws.com -u admin -p
+
+Node.js (mysql2):
+import mysql from "mysql2/promise";
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: "ritzzy",
+  connectionLimit: 10,
+});
+
+Note: MongoDB ki AWS lo managed option DocumentDB leka MongoDB Atlas.
+
+
+--------------------------------------------------------------
+1.12 Application Load Balancer (ELB / ALB)
+--------------------------------------------------------------
+DEFINITION
+A load balancer distributes incoming traffic across multiple targets
+(EC2 instances) and removes unhealthy ones using health checks.
+
+REAL EXAMPLE
+2 EC2 instances (az-a, az-b) behind an ALB. Health check path /health.
+
+// Express health endpoint
+app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
+
+Target group health check: path /health, healthy threshold 3,
+interval 30s. Unhealthy instance ki traffic aapesthundi.
+
+WebSocket/Socket.io: sticky sessions enable cheyali (target group
+setting) leka socket.io polling fallback lo issues vastayi.
+
+
+--------------------------------------------------------------
+1.13 Auto Scaling Group (ASG)
+--------------------------------------------------------------
+DEFINITION
+An Auto Scaling Group automatically adds or removes EC2 instances
+based on load or a schedule, keeping a minimum and maximum count.
+
+REAL EXAMPLE
+Launch template (AMI with Node + Nginx) + ASG:
+  min = 2, desired = 2, max = 6
+  Policy: target tracking, average CPU 60%
+
+aws autoscaling create-auto-scaling-group \
+  --auto-scaling-group-name ritzzy-asg \
+  --launch-template LaunchTemplateName=ritzzy-lt,Version='$Latest' \
+  --min-size 2 --max-size 6 --desired-capacity 2 \
+  --vpc-zone-identifier "subnet-aaa,subnet-bbb" \
+  --target-group-arns arn:aws:elasticloadbalancing:ap-south-1:123456789012:targetgroup/ritzzy-tg/abc123
+
+CPU 60% dhatite new instance add avtundi, taggithe remove avtundi.
+
+
+--------------------------------------------------------------
+1.14 CloudWatch
+--------------------------------------------------------------
+DEFINITION
+CloudWatch collects metrics, logs and alarms from AWS resources and
+applications, so you can monitor and get notified.
+
+REAL EXAMPLE : CPU alarm that sends an email (SNS)
+
+aws cloudwatch put-metric-alarm \
+  --alarm-name ritzzy-high-cpu \
+  --namespace AWS/EC2 --metric-name CPUUtilization \
+  --dimensions Name=InstanceId,Value=i-0abc123 \
+  --statistic Average --period 300 --evaluation-periods 2 \
+  --threshold 80 --comparison-operator GreaterThanThreshold \
+  --alarm-actions arn:aws:sns:ap-south-1:123456789012:ops-alerts
+
+Logs: aws logs tail /ritzzy/api --follow
+Memory and disk metrics ki CloudWatch Agent install cheyali.
+
+
+--------------------------------------------------------------
+1.15 Secrets Manager / Parameter Store
+--------------------------------------------------------------
+DEFINITION
+Secrets Manager stores and rotates sensitive values (DB passwords,
+API keys) securely, so they are not kept in code or Git.
+
+REAL EXAMPLE
+aws secretsmanager create-secret --name ritzzy/prod/db \
+  --secret-string '{"user":"admin","password":"StrongPass#123"}'
+
+aws secretsmanager get-secret-value --secret-id ritzzy/prod/db
+
+Node.js:
+import { SecretsManagerClient, GetSecretValueCommand }
+  from "@aws-sdk/client-secrets-manager";
+const client = new SecretsManagerClient({ region: "ap-south-1" });
+const r = await client.send(new GetSecretValueCommand({ SecretId: "ritzzy/prod/db" }));
+const db = JSON.parse(r.SecretString);
+
+
+--------------------------------------------------------------
+1.16 ECR (Elastic Container Registry)
+--------------------------------------------------------------
+DEFINITION
+ECR is AWS's private Docker image registry (like Docker Hub, but
+inside your AWS account).
+
+REAL EXAMPLE
+aws ecr create-repository --repository-name ritzzy-api
+
+aws ecr get-login-password --region ap-south-1 | \
+  docker login --username AWS --password-stdin \
+  123456789012.dkr.ecr.ap-south-1.amazonaws.com
+
+docker build -t ritzzy-api:1.0 .
+docker tag ritzzy-api:1.0 123456789012.dkr.ecr.ap-south-1.amazonaws.com/ritzzy-api:1.0
+docker push 123456789012.dkr.ecr.ap-south-1.amazonaws.com/ritzzy-api:1.0
+
+
+--------------------------------------------------------------
+1.17 Lambda (Serverless)
+--------------------------------------------------------------
+DEFINITION
+Lambda runs your code without managing servers. You pay only for
+execution time. It is triggered by events (API Gateway, S3, schedule).
+
+REAL EXAMPLE : Resize/log when a file is uploaded to S3
+
+// index.mjs
+export const handler = async (event) => {
+  const key = event.Records[0].s3.object.key;
+  console.log("New file uploaded:", key);
+  return { statusCode: 200 };
+};
+
+Trigger: S3 event (PUT) -> Lambda.
+
+
+--------------------------------------------------------------
+1.18 Nginx Reverse Proxy + SSL on EC2 (most asked)
+--------------------------------------------------------------
+DEFINITION
+A reverse proxy sits in front of your app server, receives client
+requests and forwards them to the app. Benefits: SSL termination,
+hiding internal ports, static file serving, load balancing.
+
+REAL EXAMPLE : /etc/nginx/sites-available/ritzzy
+
+server {
+  listen 80;
+  server_name admin.example.com;
+
+  location / {
+    root /var/www/ritzzy/build;
+    try_files $uri /index.html;
+  }
+
+  location /api/ {
+    proxy_pass http://localhost:5000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+
+  location /socket.io/ {
+    proxy_pass http://localhost:5000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+  }
+}
+
+sudo ln -s /etc/nginx/sites-available/ritzzy /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+sudo certbot --nginx -d admin.example.com
+sudo certbot renew --dry-run
+
+Key points:
+  - try_files ... /index.html : React Router refresh fix
+  - Upgrade + Connection headers : WebSocket work avvadaniki must
+
+
+--------------------------------------------------------------
+1.19 AWS Interview Questions
+--------------------------------------------------------------
+1. EC2 vs S3?
+   EC2 = compute (server). S3 = object storage.
+2. Security Group vs NACL?
+   SG: stateful, instance-level. NACL: stateless, subnet-level.
+3. IAM user vs role?
+   User = long-term credentials. Role = temporary credentials assumed
+   by a service.
+4. How do you host a React app on AWS?
+   S3 static hosting + CloudFront + Route 53.
+5. How do you scale a Node API?
+   ALB + Auto Scaling Group (stateless API, sessions in JWT/Redis).
+6. S3 bucket public or private?
+   Private by default. Use CloudFront OAC or pre-signed URLs.
+7. How do you secure the server?
+   Key-based SSH, SG limited ports, IAM roles, HTTPS, secrets in
+   Secrets Manager.
+8. Elastic IP enduku?
+   Static IP that survives restart.
+9. How do you debug a server that is down?
+   SSH, pm2 logs, journalctl -u nginx, df -h, top, CloudWatch.
+
+
+##############################################################
+PART 2 : DOCKER
+##############################################################
+
+
+--------------------------------------------------------------
+2.1 Docker
+--------------------------------------------------------------
+DEFINITION
+Docker is a containerization platform that packages an application
+with its dependencies, libraries and runtime into a lightweight,
+portable unit called a container, so it runs the same everywhere.
+
+REAL EXAMPLE
+Mee laptop lo Node 20 tho app run avtundi, server lo Node 14 undi,
+crash avtundi. Docker lo "node:20-alpine" image tho package chesthe
+dev, test, prod anni chota same ga run avtundi.
+
+SAY IT LIKE THIS
+"Docker tho app + dependencies oka container ga package chesanu, so
+'works on my machine' problem ledu."
+
+
+--------------------------------------------------------------
+2.2 Container vs Virtual Machine
+--------------------------------------------------------------
+DEFINITION
+A container shares the host OS kernel and packages only the app and
+its dependencies. A VM runs a full guest OS on a hypervisor.
+
+REAL EXAMPLE
+  Container : MB size, starts in seconds, 20 containers on one server
+  VM        : GB size, starts in minutes, 3-4 VMs on same server
+
+
+--------------------------------------------------------------
+2.3 Image
+--------------------------------------------------------------
+DEFINITION
+An image is a read-only template (layers) that contains the app code,
+runtime and dependencies. A container is created from an image.
+
+REAL EXAMPLE
+docker build -t ritzzy-api:1.0 .
+docker images
+docker history ritzzy-api:1.0     # shows layers
+
+
+--------------------------------------------------------------
+2.4 Container
+--------------------------------------------------------------
+DEFINITION
+A container is a running instance of an image with its own isolated
+filesystem, network and process space.
+
+REAL EXAMPLE
+docker run -d -p 5000:5000 --name api \
+  -e NODE_ENV=production -e MONGO_URI=mongodb://host:27017/ritzzy \
+  ritzzy-api:1.0
+
+docker ps
+docker logs -f api
+docker exec -it api sh
+docker stop api && docker rm api
+
+
+--------------------------------------------------------------
+2.5 Dockerfile
+--------------------------------------------------------------
+DEFINITION
+A Dockerfile is a text file with step-by-step instructions to build
+an image.
+
+REAL EXAMPLE : Node + Express API
+
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+ENV NODE_ENV=production
+EXPOSE 5000
+CMD ["node", "server.js"]
+
+Common instructions:
+  FROM : base image
+  WORKDIR : working folder inside the image
+  COPY : copy files from host to image
+  RUN : command executed while building
+  ENV : environment variable
+  EXPOSE : documents the port (does not publish it)
+  CMD : default command when the container starts
+  ENTRYPOINT : fixed executable, CMD becomes its arguments
+
+
+--------------------------------------------------------------
+2.6 Layer Caching
+--------------------------------------------------------------
+DEFINITION
+Every Dockerfile instruction creates a layer. Docker reuses unchanged
+layers from cache, so rebuilds are fast.
+
+REAL EXAMPLE
+package.json ni first copy chesi npm ci run chesthe, code matrame
+marithe npm ci layer cache nunchi vastundi (10 sec). Leka pothe
+"COPY . ." first pettithe prathi code change ki npm ci malli run
+avtundi (2 min).
+
+
+--------------------------------------------------------------
+2.7 .dockerignore
+--------------------------------------------------------------
+DEFINITION
+.dockerignore lists files that must not be sent to the build context
+(smaller, faster, safer images).
+
+REAL EXAMPLE (.dockerignore)
+node_modules
+.git
+.env
+npm-debug.log
+build
+Dockerfile
+docker-compose.yml
+
+
+--------------------------------------------------------------
+2.8 Multi-stage Build
+--------------------------------------------------------------
+DEFINITION
+A multi-stage build uses multiple FROM statements. Build tools stay in
+the first stage, and only the final output is copied to the small
+last stage.
+
+REAL EXAMPLE : React app served by Nginx
+
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+
+nginx.conf (React Router support):
+server {
+  listen 80;
+  root /usr/share/nginx/html;
+  location / { try_files $uri /index.html; }
+}
+
+Result: image around 25 MB instead of 500+ MB with Node and source.
+
+
+--------------------------------------------------------------
+2.9 Volume and Bind Mount
+--------------------------------------------------------------
+DEFINITION
+Containers are temporary: data is lost when removed. A volume is
+Docker-managed persistent storage. A bind mount maps a host folder
+into the container (used for development).
+
+REAL EXAMPLE
+# Volume : MongoDB data safe
+docker volume create mongo_data
+docker run -d --name mongo -v mongo_data:/data/db mongo:7
+
+# Bind mount : live code reload in development
+docker run -d -p 5000:5000 -v $(pwd):/app -v /app/node_modules \
+  ritzzy-api:dev npx nodemon server.js
+
+
+--------------------------------------------------------------
+2.10 Docker Network
+--------------------------------------------------------------
+DEFINITION
+Docker networks let containers talk to each other. On a user-defined
+network, containers reach each other by container/service name.
+
+REAL EXAMPLE
+docker network create ritzzy-net
+docker run -d --name mongo --network ritzzy-net mongo:7
+docker run -d --name api --network ritzzy-net -p 5000:5000 \
+  -e MONGO_URI=mongodb://mongo:27017/ritzzy ritzzy-api:1.0
+
+API container "mongo" ane hostname tho DB ni reach avtundi.
+Types: bridge (default), host, none.
+
+
+--------------------------------------------------------------
+2.11 Docker Compose
+--------------------------------------------------------------
+DEFINITION
+Docker Compose defines and runs multi-container applications with a
+single YAML file.
+
+REAL EXAMPLE : docker-compose.yml (React + Node + MongoDB)
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/ritzzy
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - mongo
+
+  web:
+    build: ./client
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  mongo_data:
+
+docker compose up -d --build
+docker compose ps
+docker compose logs -f api
+docker compose down          # containers remove, volumes safe
+docker compose down -v       # volumes kuda delete
+
+
+--------------------------------------------------------------
+2.12 Docker Registry (Docker Hub / ECR)
+--------------------------------------------------------------
+DEFINITION
+A registry stores and distributes Docker images. Docker Hub is
+public/private; ECR is AWS private.
+
+REAL EXAMPLE
+docker login
+docker tag ritzzy-api:1.0 sathish/ritzzy-api:1.0
+docker push sathish/ritzzy-api:1.0
+
+# On the server
+docker pull sathish/ritzzy-api:1.0
+docker run -d -p 5000:5000 sathish/ritzzy-api:1.0
+
+
+--------------------------------------------------------------
+2.13 Environment Variables and Secrets
+--------------------------------------------------------------
+DEFINITION
+Configuration (DB URL, keys) should be injected at runtime, not
+baked into the image.
+
+REAL EXAMPLE
+docker run -d --env-file .env -p 5000:5000 ritzzy-api:1.0
+
+In production use AWS Secrets Manager or Kubernetes Secrets.
+Never COPY .env into the image and never commit .env to Git.
+
+
+--------------------------------------------------------------
+2.14 Docker Commands Cheat Sheet
+--------------------------------------------------------------
+docker build -t name:tag .          # build image
+docker run -d -p 5000:5000 img      # run container
+docker ps / docker ps -a            # running / all containers
+docker images                       # list images
+docker logs -f <c>                  # follow logs
+docker exec -it <c> sh              # enter container
+docker stop <c> / docker rm <c>     # stop / remove
+docker rmi <img>                    # remove image
+docker volume ls / docker network ls
+docker system prune -a              # clean unused
+docker stats                        # live CPU/memory
+docker inspect <c>                  # full details
+docker cp <c>:/app/log.txt .        # copy file out
+
+
+--------------------------------------------------------------
+2.15 Docker Interview Questions
+--------------------------------------------------------------
+1. Image vs container?
+   Image = template. Container = running instance.
+2. CMD vs ENTRYPOINT?
+   CMD = default, overridable. ENTRYPOINT = fixed executable.
+3. COPY vs ADD?
+   COPY copies only. ADD also extracts tar and fetches URLs. Use COPY.
+4. EXPOSE vs -p?
+   EXPOSE documents. -p publishes the port to the host.
+5. How to reduce image size?
+   Alpine base, multi-stage, .dockerignore, --omit=dev.
+6. How to persist data?
+   Volumes or bind mounts.
+7. How do containers communicate?
+   Same user-defined network, service name as hostname.
+8. Container exits immediately, how do you debug?
+   docker logs <c>, docker ps -a (exit code), run with sh to inspect.
+9. Volume vs bind mount?
+   Volume = Docker-managed. Bind mount = host path (dev).
+
+HONEST LINE (resume says basic):
+"Node API and React app ni Dockerize chesanu, multi-stage build tho,
+and MongoDB tho docker-compose lo run chesanu."
+
+
+##############################################################
+PART 3 : KUBERNETES
+##############################################################
+
+Practice setup (free, local):
+  minikube start
+  kubectl get nodes
+
+
+--------------------------------------------------------------
+3.1 Kubernetes
+--------------------------------------------------------------
+DEFINITION
+Kubernetes (K8s) is an open-source container orchestration platform
+that automates deployment, scaling, load balancing, self-healing and
+management of containerized applications across a cluster of
+machines.
+
+REAL EXAMPLE
+Docker tho oka container run chesam. Traffic perigi 10 containers,
+5 servers kavali ante manual ga cheyadam kashtam. K8s: "api ki 5
+replicas kavali" ani cheppithe, ela distribute cheyalo, crash ayithe
+restart cheyadam anni adhe chusukuntundi.
+
+Docker vs K8s: Docker builds and runs containers. K8s manages many
+containers across many servers.
+
+
+--------------------------------------------------------------
+3.2 Architecture
+--------------------------------------------------------------
+DEFINITION
+Control Plane:
+  - API Server : entry point, every kubectl command goes here
+  - etcd : key-value store holding cluster state
+  - Scheduler : picks which node runs a new pod
+  - Controller Manager : keeps actual state = desired state
+Worker Node:
+  - kubelet : agent that starts and monitors pods
+  - kube-proxy : handles networking rules
+  - Container runtime : runs containers (containerd)
+
+REAL EXAMPLE
+kubectl apply -f deployment.yaml
+  1. API Server receives it, saves in etcd
+  2. Scheduler picks a node
+  3. kubelet on that node pulls the image and starts the pod
+  4. Controller Manager keeps replicas count correct
+
+
+--------------------------------------------------------------
+3.3 Pod
+--------------------------------------------------------------
+DEFINITION
+A Pod is the smallest deployable unit in Kubernetes. It holds one or
+more containers sharing the same network and storage.
+
+REAL EXAMPLE (pod.yaml)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-pod
+  labels:
+    app: api
+spec:
+  containers:
+    - name: api
+      image: sathish/ritzzy-api:1.0
+      ports:
+        - containerPort: 5000
+
+kubectl apply -f pod.yaml
+kubectl get pods
+kubectl logs api-pod
+kubectl delete pod api-pod
+
+Pod delete ayithe malli radu. Anduke direct ga Pod kakunda
+Deployment vadatam.
+
+
+--------------------------------------------------------------
+3.4 Deployment (and ReplicaSet)
+--------------------------------------------------------------
+DEFINITION
+A Deployment manages a set of identical pods through a ReplicaSet. It
+gives replicas, self-healing, rolling updates and rollbacks. A
+ReplicaSet makes sure the desired number of pods is always running.
+
+REAL EXAMPLE (deployment.yaml)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: sathish/ritzzy-api:1.0
+          ports:
+            - containerPort: 5000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+kubectl apply -f deployment.yaml
+kubectl get deployments
+kubectl get pods
+kubectl scale deployment api --replicas=5
+kubectl set image deployment/api api=sathish/ritzzy-api:2.0
+kubectl rollout status deployment/api
+kubectl rollout undo deployment/api        # bad release rollback
+kubectl rollout history deployment/api
+
+Self-healing demo: oka pod delete cheyandi, 2 seconds lo kotha pod
+create avtundi.
+kubectl delete pod <one-pod-name>
+kubectl get pods -w
+
+
+--------------------------------------------------------------
+3.5 Service (ClusterIP, NodePort, LoadBalancer)
+--------------------------------------------------------------
+DEFINITION
+Pods' IPs keep changing. A Service gives a stable IP/DNS name and
+load-balances traffic to matching pods.
+
+Types:
+  ClusterIP : internal only (default)
+  NodePort : exposes a port (30000-32767) on every node
+  LoadBalancer : creates a cloud load balancer (AWS ELB)
+
+REAL EXAMPLE (service.yaml)
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+spec:
+  type: ClusterIP
+  selector:
+    app: api
+  ports:
+    - port: 80
+      targetPort: 5000
+
+Other pods access it at: http://api-service
+Local test:
+kubectl port-forward svc/api-service 8080:80
+curl http://localhost:8080/health
+
+For external access (NodePort):
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 5000
+      nodePort: 30080
+
+
+--------------------------------------------------------------
+3.6 Ingress
+--------------------------------------------------------------
+DEFINITION
+Ingress routes external HTTP/HTTPS traffic into the cluster to
+Services by host or path, and can terminate SSL. It needs an Ingress
+Controller (for example NGINX Ingress).
+
+REAL EXAMPLE (ingress.yaml)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ritzzy-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: admin.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-service
+                port:
+                  number: 80
+
+minikube addons enable ingress
+kubectl apply -f ingress.yaml
+kubectl get ingress
+
+
+--------------------------------------------------------------
+3.7 ConfigMap
+--------------------------------------------------------------
+DEFINITION
+A ConfigMap stores non-sensitive configuration as key-value pairs,
+kept outside the image.
+
+REAL EXAMPLE
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+data:
+  NODE_ENV: "production"
+  PORT: "5000"
+  LOG_LEVEL: "info"
+
+Use in Deployment container:
+          envFrom:
+            - configMapRef:
+                name: api-config
+
+
+--------------------------------------------------------------
+3.8 Secret
+--------------------------------------------------------------
+DEFINITION
+A Secret stores sensitive data (passwords, tokens, keys). Values are
+base64 encoded (not encrypted by default), so restrict access with
+RBAC and enable encryption at rest.
+
+REAL EXAMPLE
+kubectl create secret generic db-secret \
+  --from-literal=uri='mongodb://user:pass@mongo:27017/ritzzy' \
+  --from-literal=jwt='myJwtSecretValue'
+
+Use in Deployment container:
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: uri
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: jwt
+
+kubectl get secrets
+kubectl describe secret db-secret
+
+
+--------------------------------------------------------------
+3.9 Namespace
+--------------------------------------------------------------
+DEFINITION
+A Namespace is a logical partition inside a cluster to separate
+environments, teams or apps.
+
+REAL EXAMPLE
+kubectl create namespace dev
+kubectl create namespace prod
+kubectl apply -f deployment.yaml -n prod
+kubectl get pods -n prod
+kubectl get pods --all-namespaces
+
+
+--------------------------------------------------------------
+3.10 PersistentVolume (PV) and PersistentVolumeClaim (PVC)
+--------------------------------------------------------------
+DEFINITION
+PV is a piece of storage in the cluster. PVC is a pod's request for
+storage. Data survives pod restarts.
+
+REAL EXAMPLE : MongoDB data
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+
+Mount in pod:
+      containers:
+        - name: mongo
+          image: mongo:7
+          volumeMounts:
+            - name: mongo-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+
+For databases, StatefulSet use cheyadam better (stable pod names and
+storage per pod).
+
+
+--------------------------------------------------------------
+3.11 Liveness and Readiness Probes
+--------------------------------------------------------------
+DEFINITION
+Liveness probe : decides when to RESTART a container (it is stuck).
+Readiness probe : decides when a pod can RECEIVE traffic.
+
+REAL EXAMPLE (inside the container spec)
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+// Express
+app.get("/health", (req, res) => res.sendStatus(200));
+app.get("/ready", (req, res) =>
+  mongoose.connection.readyState === 1 ? res.sendStatus(200) : res.sendStatus(503));
+
+DB connect avvakamunde traffic raakunda readiness probe aapesthundi.
+
+
+--------------------------------------------------------------
+3.12 HPA (Horizontal Pod Autoscaler)
+--------------------------------------------------------------
+DEFINITION
+HPA automatically increases or decreases the number of pod replicas
+based on CPU, memory or custom metrics.
+
+REAL EXAMPLE
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+kubectl apply -f hpa.yaml
+kubectl get hpa
+(Resource requests set cheyakapothe HPA work avvadu. Metrics server
+kavali: minikube addons enable metrics-server)
+
+
+--------------------------------------------------------------
+3.13 Rolling Update and Rollback
+--------------------------------------------------------------
+DEFINITION
+Rolling update replaces old pods with new ones gradually, so the app
+has zero downtime. Rollback returns to the previous version.
+
+REAL EXAMPLE
+kubectl set image deployment/api api=sathish/ritzzy-api:2.0
+kubectl rollout status deployment/api
+# v2 lo bug vachindi
+kubectl rollout undo deployment/api
+kubectl rollout undo deployment/api --to-revision=1
+
+
+--------------------------------------------------------------
+3.14 Job and CronJob
+--------------------------------------------------------------
+DEFINITION
+A Job runs a task to completion once. A CronJob runs a Job on a
+schedule.
+
+REAL EXAMPLE : Daily database report at 2 AM
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: daily-report
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: report
+              image: sathish/ritzzy-api:1.0
+              command: ["node", "scripts/report.js"]
+
+
+--------------------------------------------------------------
+3.15 StatefulSet and DaemonSet (know the difference)
+--------------------------------------------------------------
+StatefulSet
+  DEFINITION : Manages stateful apps with stable pod names (mongo-0,
+  mongo-1) and own persistent storage per pod.
+  EXAMPLE : MongoDB replica set, MySQL, Kafka.
+
+DaemonSet
+  DEFINITION : Runs one pod on every node.
+  EXAMPLE : Log collector or monitoring agent on each node.
+
+
+--------------------------------------------------------------
+3.16 kubectl Commands Cheat Sheet
+--------------------------------------------------------------
+kubectl get pods / deployments / svc / nodes / all
+kubectl get pods -o wide
+kubectl get pods -n <namespace>
+kubectl apply -f file.yaml
+kubectl delete -f file.yaml
+kubectl describe pod <pod>
+kubectl logs <pod> / kubectl logs -f <pod>
+kubectl logs <pod> --previous       # crashed container logs
+kubectl exec -it <pod> -- sh
+kubectl scale deployment api --replicas=5
+kubectl set image deployment/api api=img:2.0
+kubectl rollout status|undo|history deployment/api
+kubectl port-forward svc/api-service 8080:80
+kubectl top pods
+kubectl get events --sort-by=.metadata.creationTimestamp
+
+
+--------------------------------------------------------------
+3.17 Troubleshooting (very commonly asked)
+--------------------------------------------------------------
+Pod status: CrashLoopBackOff
+  Meaning : container starts and keeps crashing.
+  Debug   : kubectl logs <pod> --previous
+            kubectl describe pod <pod>
+  Causes  : wrong env variable, DB not reachable, app error,
+            OOMKilled (memory limit too low).
+
+Pod status: ImagePullBackOff
+  Meaning : image cannot be pulled.
+  Causes  : wrong image name/tag, private registry without
+            imagePullSecret.
+
+Pod status: Pending
+  Meaning : not scheduled.
+  Causes  : not enough CPU/memory on nodes, PVC not bound.
+
+Service not reachable
+  Debug : kubectl get endpoints api-service
+          (empty ayithe selector labels match avvatledu)
+
+
+--------------------------------------------------------------
+3.18 Kubernetes Interview Questions
+--------------------------------------------------------------
+1. Pod vs Deployment?
+   Pod = single instance. Deployment = replicas + update + rollback.
+2. Service types?
+   ClusterIP (internal), NodePort (node port), LoadBalancer (cloud LB).
+3. How does a rolling update work?
+   New pods are created gradually, old ones terminated, zero downtime.
+4. CrashLoopBackOff debug?
+   logs --previous, describe pod, check env, DB, resource limits.
+5. Liveness vs readiness?
+   Liveness = restart. Readiness = receive traffic.
+6. ConfigMap vs Secret?
+   ConfigMap = plain config. Secret = sensitive (base64).
+7. How does autoscaling work?
+   HPA watches metrics and changes replicas.
+8. What is self-healing?
+   Crashed or deleted pod is recreated automatically.
+9. What is Ingress?
+   Host/path based HTTP routing and SSL into the cluster.
+10. Why Namespace?
+   Separate dev, staging, prod or teams.
+11. Deployment vs StatefulSet?
+   Stateless apps vs stateful apps with stable identity and storage.
+
+HONEST LINE:
+"Kubernetes lo basic concepts telusu: pods, deployments, services,
+scaling, rollouts. Minikube lo practice chesanu."
+
+Practice plan (1 weekend):
+  1. minikube start
+  2. Build and push ritzzy-api image to Docker Hub
+  3. Apply Deployment + Service, access with port-forward
+  4. Add ConfigMap and Secret
+  5. Scale to 5, delete a pod, watch self-healing
+  6. Update image version, then rollout undo
+  7. Add HPA and probes
+
+
+##############################################################
+PART 4 : DEPLOYMENT FLOW QUESTIONS (4+ YRS MERN)
+##############################################################
+
+Q: Mee app ni production ki ela deploy chesaru?
+A: Git push -> CI runs Jest tests -> build -> deploy to EC2 (pull
+   code, npm ci, pm2 reload) -> Nginx serves React and proxies API ->
+   SSL with certbot.
+
+Q: Simple CI/CD example (GitHub Actions)?
+A: .github/workflows/deploy.yml
+
+   name: deploy
+   on:
+     push:
+       branches: [main]
+   jobs:
+     build-test-deploy:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-node@v4
+           with:
+             node-version: 20
+         - run: npm ci
+         - run: npm test
+         - run: npm run build
+         - name: Deploy over SSH
+           uses: appleboy/ssh-action@v1.0.3
+           with:
+             host: ${{ secrets.EC2_HOST }}
+             username: ubuntu
+             key: ${{ secrets.EC2_KEY }}
+             script: |
+               cd /home/ubuntu/ritzzy-api
+               git pull origin main
+               npm ci --omit=dev
+               pm2 reload api
+
+Q: Zero downtime deployment ela?
+A: PM2 reload (cluster mode), K8s rolling update, or blue-green with
+   ALB.
+
+Q: Env variables and secrets ela manage?
+A: .env not in Git. Server env vars or Secrets Manager / K8s Secrets.
+
+Q: Server down ayithe ela debug?
+A: pm2 logs, journalctl -u nginx, nginx error log, top, df -h,
+   CloudWatch.
+
+Q: Nginx lo WebSocket proxy ela?
+A: proxy_http_version 1.1 + Upgrade + Connection "upgrade" headers.
+
+Q: Performance improvement example?
+A: Dashboard load 4.5s to 3.1s (~30%) with code splitting, lazy
+   loading, memoization and API-loading optimization.
+
+USEFUL LINUX COMMANDS
+top / htop                    # CPU and memory
+df -h                         # disk usage
+free -m                       # memory
+netstat -tulpn                # ports in use
+sudo lsof -i :5000            # which process uses a port
+tail -f /var/log/nginx/error.log
+sudo journalctl -u nginx -f
+sudo nginx -t                 # test config before reload
+
+
+##############################################################
+QUICK REVISION SHEET
+##############################################################
+AWS     : EC2 server | S3 storage | IAM access | SG firewall |
+          Route 53 DNS | CloudFront CDN | RDS managed DB |
+          ALB + ASG scale | CloudWatch monitor | ECR images
+Docker  : Image = blueprint | Container = running instance |
+          Volume = persistent | Compose = multi-container |
+          Multi-stage = small image
+K8s     : Pod < Deployment < Service < Ingress |
+          ConfigMap/Secret = config | HPA = autoscale |
+          rollout undo = rollback | probes = health
+Your story : React + Node on EC2 (Ubuntu), Nginx reverse proxy,
+          WebSocket headers, SSL, PM2, S3 for assets.
+Be honest  : Docker = basic, Kubernetes = concepts + minikube.
+
+All the best for the interview!
