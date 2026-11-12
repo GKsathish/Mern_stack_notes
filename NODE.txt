@@ -933,7 +933,7 @@ I create custom AppError classes with status codes and use centralized error mid
 4. GRACEFUL SHUTDOWN, SIGTERM AND SIGINT
 
 Graceful shutdown:
-Stop accepting new requests, complete ongoing requests, close DB/Redis connections, then exit.
+Graceful Shutdown is the process of safely stopping a Node.js application by completing ongoing requests, closing active connections and releasing resources before terminating the process.
 
 Example:
 process.on("SIGTERM", async () => {
@@ -945,6 +945,21 @@ process.on("SIGTERM", async () => {
 
 Use case:
 Kubernetes deployments, Docker containers, zero-downtime releases.
+
+SIGTERM (Signal Terminate) is an operating-system signal sent to a process to request that it terminate gracefully.
+
+Use cases:
+- Deploying a new application version.
+- Kubernetes stopping a container.
+- AWS or other infrastructure shutting down an instance.
+- Process managers stopping or restarting a Node.js application.
+
+SIGINT (Signal Interrupt) is a signal sent to a process to request interruption, commonly when a user presses Ctrl + C in the terminal.
+
+Use Cases:
+Stopping a local Node.js development server.
+Interrupting a running script.
+Manually stopping a server from the terminal.
 
 Internal working:
 SIGTERM and SIGINT are OS signals. Graceful shutdown prevents dropped requests and data corruption.
