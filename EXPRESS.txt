@@ -616,12 +616,24 @@ REST principles:
 - JSON representation.
 
 All 6 REST principles
-Client-Server: React handles the frontend and Express handles backend APIs.
+
+Client-Server:  React handles the frontend and Express handles backend APIs.
+  “In our MERN application, React acts as the client and Express provides REST APIs. The client and server are independent and communicate through HTTP.”
+
 Statelessness: We use JWT authentication, and clients send the token with each protected request.
+  “Our APIs are stateless. We use JWT authentication, where the client sends the token with each request, and the server does not store session state.”
+
 Cacheability: We cache suitable frequently accessed data to reduce unnecessary database calls.
+  “We improve performance by caching frequently accessed and rarely changing data, reducing repeated database queries.”
+
 Uniform Interface: We use resource-based endpoints and standard HTTP methods like GET, POST, PUT, PATCH and DELETE.
+  “We follow a uniform interface using resource-based endpoints and standard HTTP methods such as GET, POST, PUT, PATCH, and DELETE.”
+
 Layered System: Our application can communicate through load balancers and other intermediate layers.
+  “Our system follows a layered architecture where requests can pass through load balancers, proxies, or middleware without the client knowing the internal implementation.”
+
 Code on Demand: This is optional and is generally not required in our REST API implementation."
+  “Code on Demand is an optional REST constraint where the server can send executable code to the client. In most MERN applications, it is not commonly used.”
 
 RESTfulAPI:
 "A RESTful API is an API that follows REST architectural principles to allow clients to interact with resources using standard HTTP methods."
