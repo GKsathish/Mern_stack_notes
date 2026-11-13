@@ -446,7 +446,7 @@ DAY 2: TYPE NARROWING AND ADVANCED TYPES
 1. TYPE NARROWING AND TYPE GUARDS
 
 Definition:
-Type narrowing is the process of reducing a broad type to a more specific type based on checks.
+Type narrowing is the process of reducing a union type to a more specific type based on runtime checks.
 
 Example:
 function printId(id: string | number) {
@@ -458,7 +458,7 @@ function printId(id: string | number) {
 }
 
 Type guards:
-typeof, instanceof, in, custom type guards.
+Type guards are checks that help TypeScript narrow types. typeof, instanceof, in, are the  custom type guards.
 
 function isUser(value: unknown): value is User {
   return typeof value === "object" && value !== null && "id" in value;
@@ -469,6 +469,94 @@ API responses, event handling, union types, error handling.
 
 Internal working:
 TypeScript control-flow analysis tracks checks inside conditions. After a check, it narrows the possible type within that branch.
+
+typeof Type Guard
+Used for primitive types.
+
+ts
+
+
+function example(value: string | number) {
+  if (typeof value === "string") {
+    console.log(value.length);
+  } else {
+    console.log(value.toFixed(2));
+  }
+}
+Works With
+text
+
+
+string
+number
+boolean
+undefined
+symbol
+bigint
+4. instanceof Type Guard
+Used for class instances.
+
+ts
+
+
+class Dog {
+  bark() {
+    console.log("Woof");
+  }
+}
+
+class Cat {
+  meow() {
+    console.log("Meow");
+  }
+}
+
+function makeSound(animal: Dog | Cat) {
+  if (animal instanceof Dog) {
+    animal.bark();
+  } else {
+    animal.meow();
+  }
+}
+5. in Type Guard
+Used to check if a property exists in an object.
+
+ts
+
+
+interface Bird {
+  fly(): void;
+}
+
+interface Fish {
+  swim(): void;
+}
+
+function move(animal: Bird | Fish) {
+  if ("fly" in animal) {
+    animal.fly();
+  } else {
+    animal.swim();
+  }
+}
+6. Custom Type Guard
+ts
+
+
+interface User {
+  name: string;
+}
+
+function isUser(obj: any): obj is User {
+  return "name" in obj;
+}
+
+function printUser(data: unknown) {
+  if (isUser(data)) {
+    console.log(data.name);
+  }
+}
+
 
 Follow-up questions:
 1. What is a type predicate?
