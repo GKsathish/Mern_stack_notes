@@ -980,7 +980,7 @@ DAY 5: PERFORMANCE AND SCALING
 1. MEMORY LEAKS, HEAP SNAPSHOTS AND CPU PROFILING
 
 Memory leak:
-Memory that is no longer needed but not released.
+A memory leak occurs when a Node.js application keeps references to unused objects, preventing garbage collection from freeing memory.
 
 Common causes:
 - Global variables.
@@ -989,11 +989,67 @@ Common causes:
 - Closures holding large objects.
 - Unbounded caches.
 
+Example: Timer Leak
+js
+
+
+setInterval(() => {
+  console.log("Running");
+}, 1000);
+If not cleared:
+
+js
+
+
+clearInterval(intervalId);
+Memory leak happens.
+
+Example: Event Listener Leak
+js
+
+
+emitter.on("event", handler);
+If not removed:
+
+js
+
+
+emitter.off("event", handler);
+Memory leak happens.
+
+Example: Closure Leak
+js
+
+
+function createLeak() {
+  const bigData = new Array(1000000);
+
+  return function () {
+    console.log(bigData.length);
+  };
+}
+Here bigData stays in memory.
+
+How to Detect Memory Leaks
+
+1. Monitor memory usage
+2. Use heap snapshots
+3. Use Chrome DevTools
+4. Use clinic.js
+
 Heap snapshot:
-Captures objects in memory for analysis.
+A heap snapshot is a snapshot of the JavaScript heap at a specific point in time, used to analyze memory usage.
+
+How to Take Heap Snapshot
+Using Chrome DevTools
+1. Run Node.js with inspector
+2. Open Chrome DevTools
+3. Go to Memory tab
+4. Take heap snapshot
+5. Compare snapshots
 
 CPU profiling:
-Identifies functions consuming CPU time.
+CPU profiling is the process of analyzing where CPU time is spent in a Node.js application.
 
 Use case:
 Slow API, increasing memory usage, frequent restarts.
@@ -1013,15 +1069,29 @@ I monitor memory and CPU metrics, capture heap snapshots when memory grows, and 
 --------------------------------------------------------------------
 2. BLOCKING EVENT LOOP AND CPU-INTENSIVE WORK
 
+Blocking the event loop occurs when synchronous CPU-heavy code prevents Node.js from handling other requests.
+
 Blocking example:
-while (true) {}
+function heavyTask() {
+  for (let i = 0; i < 1000000000; i++) {
+    // heavy work
+  }
+}
 
-JSON.parse of very large payload.
-Large synchronous loops.
-Complex crypto operations.
+heavyTask();
+console.log('done');
 
-Use case:
-File processing, image resizing, password hashing, report generation.
+Server cannot handle other requests
+API becomes slow
+Users experience delay
+
+CPU-intensive work refers to tasks that require heavy computation and block the event loop.
+
+Image processing
+Video encoding
+Encryption
+Large loops
+Data transformation
 
 Internal working:
 Long synchronous JavaScript execution prevents event loop from processing other requests, increasing latency for all users.
