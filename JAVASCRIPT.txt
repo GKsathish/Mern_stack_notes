@@ -1064,6 +1064,9 @@ console.log(s.course); // JavaScript
 - Event listener regular function — `this` = element.
 - `setTimeout` regular callback — `this` lost; use arrow or `bind()`.
 
+
+“call, apply, and bind are used to explicitly set the this value of a function. call() and apply() invoke the function immediately, while bind() returns a new function with a fixed this value. They are mainly used when the default this context is lost or when we want to reuse a function with different objects.”
+
 3. Closures, Higher-Order Functions and Callbacks
 
  Closure:
