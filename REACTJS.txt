@@ -955,8 +955,7 @@ Component identity in React is how the Fiber reconciler tracks whether a compone
 
 State preservation:
 
-State preservation is how React keeps a component's useStateand useReducervalues ​​alive across re-renders. Under the hood, React stores hook state directly on the underlying Fiber node's memoizedStatelinked list rather than inside the component function—so as long as a component keeps the same type, tree position, and key, its state is automatically preserved. In production, if we want to preserve state when hiding a tab, we keep the Fiber mounted and toggle CSS visibility; and if we want to cleanly reset state when switching between records, we pass a dynamic keyprop like <EditForm key="{userId}"/>, which resets everything in a single render pass without needing a useEffect."
-
+“State preservation in React means React retains the values of hooks like useState and useReducer across re-renders. Internally, React stores hook state in the Fiber node’s memoizedState linked list. As long as the component keeps the same type, tree position, and key, its state is preserved. To preserve state while hiding a tab, we keep the component mounted and toggle CSS visibility. To reset state when switching records, we can use a dynamic key prop like <EditForm key={userId} />, which remounts the component and resets its state.”
 --------------------------------------------------------------------
 6. STRICT MODE AND CONCURRENT RENDERING
 
@@ -971,7 +970,6 @@ In development, React may render components twice and run effects twice to expos
 Use case:
 Detecting impure renders, missing cleanup, unsafe lifecycle patterns.
 
-Concurrent Rendering is a React rendering model that allows React to prepare multiple versions of the UI concurrently, pause an in-progress render, prioritize urgent updates, and safely discard stale render work before committing changes to the DOM.
 
 Concurrent Rendering is React’s priority-based, interruptible rendering mechanism that prepares UI updates in the background and commits only consistent, completed render results to the DOM.
 
@@ -1021,18 +1019,18 @@ React Router maps URL paths to React components. BrowserRouter uses the History 
 2. useNavigate, useParams, useLocation
 
 useNavigate:
-Programmatically navigate.
+“useNavigate is a React Router hook used to programmatically navigate between routes.”
 
 const navigate = useNavigate();
 navigate("/dashboard");
 
 useParams:
-Read dynamic route parameters.
+“useParams is used to read dynamic URL parameters like /user/:id.”
 
 const { id } = useParams();
 
 useLocation:
-Read current location, search params and state.
+“useLocation is used to access current location information like pathname, search params, and state.”
 
 const location = useLocation();
 
@@ -1050,10 +1048,15 @@ Follow-up questions:
 Interview-ready answer:
 I use useNavigate for programmatic navigation, useParams for dynamic route values, and useLocation for current path, search parameters and navigation state.
 
+<Link> is a React Router component used to create navigable links between routes without reloading the page.
+<NavLink> is a React Router component used to create navigation links with active state styling.
+
 --------------------------------------------------------------------
 3. NESTED AND PROTECTED ROUTES
 
 Nested routes:
+Nested routes are routes defined inside another route, allowing child components to render inside a parent layout.
+
 <Routes>
   <Route path="/dashboard" element={<Dashboard />}>
     <Route path="profile" element={<Profile />} />
@@ -1061,6 +1064,8 @@ Nested routes:
 </Routes>
 
 Protected route:
+Protected routes are routes that allow access only to authenticated users, otherwise redirect them to login.
+
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" />;
@@ -1083,10 +1088,13 @@ I wrap private routes with a ProtectedRoute component that checks authentication
 --------------------------------------------------------------------
 4. FORMS, VALIDATION, MULTI-STEP FORMS AND FILE UPLOADS
 
+“Forms in React are handled using controlled components where input value is managed through state.”
+
 Controlled form example:
 const [form, setForm] = useState({ name: "", email: "" });
 
-const handleChange = e => {
+const handleChange = e =
+> {
   setForm(prev => ({
     ...prev,
     [e.target.name]: e.target.value
@@ -1094,11 +1102,17 @@ const handleChange = e => {
 };
 
 Validation:
+“Form validation ensures user input meets required rules before submitting data.”
+
 const errors = {};
 if (!form.name.trim()) errors.name = "Name is required";
 if (!/\S+@\S+\.\S+/.test(form.email)) errors.email = "Invalid email";
 
+Multi-step forms divide a large form into multiple steps to improve user experience.
+
 File upload:
+“File uploads are handled using FormData and sent to the server using multipart/form-data.”
+
 const fileRef = useRef();
 <input type="file" ref={fileRef} />
 
