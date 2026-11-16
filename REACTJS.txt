@@ -1146,11 +1146,13 @@ DAY 7: STATE MANAGEMENT
 1. LOCAL VS GLOBAL STATE
 
 Local state:
-Used by one component or a small component tree.
-Example: modal open/close, input value.
+Local state is data managed within a particular component and primarily used by that component or its nearby children.
+
+We commonly manage local state using useState or useReducer. Example: modal open/close, input value.
 
 Global state:
-Shared across many components.
+Global state is application data shared across multiple components or different sections of an application.
+
 Example: authenticated user, theme, cart, permissions.
 
 Use case:
@@ -1171,7 +1173,7 @@ I keep state local when possible. I use global state only for data shared across
 2. CONTEXT API
 
 Definition:
-Context API provides a way to pass data through the component tree without prop drilling.
+React Context is a built-in React feature that allows data to be shared across a component tree without manually passing props through every intermediate component.
 
 Example:
 const AuthContext = createContext();
@@ -1188,6 +1190,9 @@ function App() {
 Use case:
 Theme, language, current user, feature flags.
 
+prop drilling:
+Prop drilling happens when we pass props through multiple intermediate components just to deliver data to a deeply nested component.
+
 Internal working:
 Provider stores context value. Consumers subscribe to it. When value changes, all consumers re-render.
 
@@ -1199,11 +1204,58 @@ Follow-up questions:
 Interview-ready answer:
 Context avoids prop drilling for global values. I split contexts by concern and avoid putting frequently changing data in a large context because every consumer re-renders when the value changes.
 
+Context API limitations
+1. When a provider's value changes, components consuming that context are scheduled to re-render.
+2. Large, frequently changing contexts can make performance harder to manage.
+3. Context does not provide built-in async data fetching, caching, or sophisticated update workflows.
+4. It does not automatically provide Redux-style DevTools and middleware architecture.
+
 --------------------------------------------------------------------
 3. REDUX DATA FLOW
 
 Definition:
-Redux is a predictable state container. Redux Toolkit is the official recommended way to write Redux logic.
+Redux is a predictable state container.
+
+Store:
+The Store is the single source of truth that holds your application's global state tree. Instead of scattering state across dozens of components, everything lives in one centralized place.
+
+Action:
+An Action is a plain JavaScript object that describes what happened in the app. Every action must have a typeproperty.
+{
+  type: "cart/addItem",
+  payload: { id: 101, name: "Wireless Mouse", price: 25 }
+}
+
+Payload:
+The Payload is the property inside an action object that holds the actual data needed to perform the update.
+
+Dispatch:
+dispatch()is the only way to trigger a state change. When a user clicks a button, your component calls dispatch(action)to send that action object to the Redux store.
+
+const dispatch = useDispatch();
+
+// Sending the action to the store
+dispatch({ type: "cart/addItem", payload: { id: 101, name: "Mouse" } });
+
+Reducer:
+A Reducer is a pure function that decides how the state changes in response to an action. It takes two arguments: (currentState, action)and returns the brand-new state without mutating the old one.
+
+function cartReducer(state = { items: [] }, action) {
+  switch (action.type) {
+    case "cart/addItem":
+      return { ...state, items: [...state.items, action.payload] };
+    default:
+      return state;
+  }
+}
+
+UseSelector:
+useSelectoris a React-Redux hook that lets your component extract and subscribe to a specific slice of data from the store. Whenever that specific slice changes, the component automatically re-renders.
+// Only reads cart items; ignores the rest of the store
+const items = useSelector((state) => state.cart.items);
+
+Redux Toolkit:
+Redux Toolkit (RTK) is the officially recommended approach for writing Redux logic. It simplifies store configuration, reducer creation, immutable state updates, asynchronous workflows, and common Redux patterns.
 
 Flow:
 UI dispatches action -> Reducer processes action -> Store updates state -> Subscribed UI re-renders.
@@ -1229,12 +1281,16 @@ Redux keeps application state in one store and updates it through dispatched act
 --------------------------------------------------------------------
 4. configureStore AND createSlice
 
+configureStore is a Redux Toolkit function used to create and configure the Redux store. It automatically sets up useful defaults, including Redux Thunk middleware and development checks.
+
 Example:
 const store = configureStore({
   reducer: {
     users: userSlice.reducer
   }
 });
+
+createSlice is a Redux Toolkit function that generates action creators and reducer logic for a particular section of the Redux state.
 
 const userSlice = createSlice({
   name: "users",
@@ -1260,6 +1316,9 @@ Follow-up questions:
 Interview-ready answer:
 configureStore creates the Redux store with sensible defaults, including Redux DevTools and thunk middleware. createSlice combines reducers, actions and action types in one feature-based file.
 
+Normally, Redux reducers must not mutate existing state.
+But Redux Toolkit uses a library called Immer internally.
+
 ====================================================================
 DAY 8: ASYNC REDUX AND SERVER STATE
 ====================================================================
@@ -1267,24 +1326,106 @@ DAY 8: ASYNC REDUX AND SERVER STATE
 1. createAsyncThunk
 
 Definition:
-createAsyncThunk creates Redux actions for async operations and generates pending, fulfilled and rejected lifecycle actions.
+createAsyncThunk is a Redux Toolkit function used to handle asynchronous operations, such as API requests. 
+It generates lifecycle actions for pending, fulfilled, and rejected states.
+
+For example, when fetching users:
+- Pending: API request is in progress.
+- Fulfilled: API request succeeds.
+- Rejected: API request fails.
 
 Example:
+// userSlice.js
+
+import {
+  createSlice,
+  createAsyncThunk
+} from "@reduxjs/toolkit";
+
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await fetch("/api/users");
-      if (!response.ok) {
-        const error = await response.json();
-        return rejectWithValue(error.message);
-      }
-      return response.json();
-    } catch (error) {
-      return rejectWithValue(error.message);
+
+  async (_, thunkAPI) => {
+    const response = await fetch("/api/users");
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch users");
     }
+
+    return await response.json();
   }
 );
+const userSlice = createSlice({
+  name: "users",
+
+  initialState: {
+    users: [],
+    loading: false,
+    error: null
+  },
+
+  reducers: {},
+
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = action.payload;
+      })
+
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
+  }
+});
+
+export default userSlice.reducer;
+
+
+// store.js
+
+import { configureStore } from "@reduxjs/toolkit";
+import userReducer from "./userSlice";
+
+export const store = configureStore({
+  reducer: {
+    users: userReducer
+  }
+});
+
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUsers } from "./userSlice";
+
+function Users() {
+  const dispatch = useDispatch();
+
+  const { users, loading, error } = useSelector(
+    state => state.users
+  );
+
+  useEffect(() => {
+    dispatch(fetchUsers());
+  }, [dispatch]);
+
+  if (loading) return <p>Loading...</p>;
+
+  if (error) return <p>{error}</p>;
+
+  return (
+    <div>
+      {users.map(user => (
+        <p key={user._id}>{user.name}</p>
+      ))}
+    </div>
+  );
+}
 
 Use case:
 Fetch users, login, create product, upload file.
