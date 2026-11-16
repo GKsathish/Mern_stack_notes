@@ -2391,6 +2391,9 @@ Failed
 These four Promise methods are very important for experienced JavaScript interviews.
 3.1 Promise.all()
 Interview definition: Promise.all() accepts an iterable of Promises and returns a single Promise that fulfills when all input Promises fulfill. It rejects as soon as one input rejects.
+
+Promise.all()is a concurrency method that takes an iterable of promises and returns a single Promise that resolves with an array of all resolved values ​​once every input promise fulfills. It follows a fail-fast behavior, meaning it immediately rejects with the first error if any single promise rejects.
+
 const p1 = Promise.resolve("User");
 const p2 = Promise.resolve("Orders");
 const p3 = Promise.resolve("Payments");
@@ -2421,6 +2424,9 @@ const [users, products, orders] = await Promise.all([
 All three operations are started without waiting for the previous one.
 3.2 Promise.allSettled()
 Interview definition: Promise.allSettled() waits until every input Promise settles, regardless of whether it fulfills or rejects. It returns an array describing each result.
+
+Promise.allSettled()takes an iterable of promises and returns a single Promise that always resolves after all input promises have settled (either fulfilled or rejected). It never short-circuits and resolves with an array of outcome objects detailing the status( "fulfilled"or "rejected") and corresponding valueor reasonfor each promise.
+
 const promises = [
   Promise.resolve("Success"),
   Promise.reject("Failed"),
@@ -2442,6 +2448,9 @@ Output:
 
 Real-time use case: Loading several independent dashboard widgets where one API failure should not prevent displaying the others.
 3.3 Promise.race()
+
+Promise.race()takes an iterable of promises and returns a single Promise that settles as soon as the first input promise settles—whether it fulfills or rejects—adopting that fastest promise's value or error.
+
 Interview definition: Promise.race() returns a Promise that settles with the outcome of the first input Promise to settle, whether fulfilled or rejected.
 const p1 = new Promise(resolve => {
   setTimeout(() => resolve("First"), 1000);
@@ -2459,7 +2468,11 @@ First
 
 
 Real-time use case: Implementing a timeout race or selecting the first completed result. Remember that racing does not automatically cancel the other operations.
+
 3.4 Promise.any()
+
+Promise.any()takes an iterable of promises and returns a single Promise that resolves as soon as the first input promise fulfills, ignoring any earlier rejections. It only rejects if all input promises to reject, throwing an AggregateErrorcontaining all rejection reasons.
+
 Interview definition: Promise.any() fulfills as soon as the first input Promise fulfills. It rejects with an AggregateError only when all input Promises reject.
 const p1 = Promise.reject("Server 1 failed");
 const p2 = Promise.resolve("Server 2 success");
