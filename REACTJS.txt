@@ -1574,6 +1574,12 @@ Follow-up questions:
 Interview-ready answer:
 Optimistic updates improve perceived speed by updating UI before server confirmation. I use them only when failure is rare and rollback logic is clear; otherwise I wait for server confirmation.
 
+| Term              | Interview definition                                                                                                              | React examples                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Server state      | Data owned by the backend, fetched using APIs, and cached on the client. It can change outside your app.                          | User profile, products, orders, notifications                |
+| Client state      | Data owned by the frontend and used only for UI behavior. It does not come from the server.                                       | Modal open/closed, form inputs, selected tab, filters, theme |
+| Optimistic update | Updating the UI immediately before the API response arrives, assuming the request will succeed; roll back or refetch if it fails. | Like button count, follow button, item added to cart         |
+
 ====================================================================
 DAY 9: PERFORMANCE OPTIMIZATION
 ====================================================================

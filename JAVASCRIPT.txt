@@ -1309,7 +1309,7 @@ Use case: Creating a local scope and executing initialization logic. IIFEs were 
 
 4.3 What is currying?
 
-Interview definition: Currying transforms a function that accepts multiple arguments into a sequence of functions, each accepting one argument.
+Interview definition: Currying is  technique that transforms a function that accepts multiple arguments into a sequence of functions, each accepting one argument.
 
 function multiply(a) {
   return function (b) {
@@ -2390,9 +2390,15 @@ Failed
 3. Promise.all(), allSettled(), race() and any()
 These four Promise methods are very important for experienced JavaScript interviews.
 3.1 Promise.all()
+<<<<<<< Updated upstream
 Interview definition: Promise.all() accepts an iterable of Promises and returns a single Promise that fulfills when all input Promises fulfill. It rejects as soon as one input rejects.
 
 Promise.all()is a concurrency method that takes an iterable of promises and returns a single Promise that resolves with an array of all resolved values ​​once every input promise fulfills. It follows a fail-fast behavior, meaning it immediately rejects with the first error if any single promise rejects.
+=======
+
+Promise.all() takes an array of promises and runs them in parallel.
+ It resolves with an array of all resolved values when every promise succeeds, but rejects immediately with the first rejection error if any promise fails. It is used when all asynchronous operations are required for the next step.
+>>>>>>> Stashed changes
 
 const p1 = Promise.resolve("User");
 const p2 = Promise.resolve("Orders");
@@ -2423,9 +2429,15 @@ const [users, products, orders] = await Promise.all([
 
 All three operations are started without waiting for the previous one.
 3.2 Promise.allSettled()
+<<<<<<< Updated upstream
 Interview definition: Promise.allSettled() waits until every input Promise settles, regardless of whether it fulfills or rejects. It returns an array describing each result.
 
 Promise.allSettled()takes an iterable of promises and returns a single Promise that always resolves after all input promises have settled (either fulfilled or rejected). It never short-circuits and resolves with an array of outcome objects detailing the status( "fulfilled"or "rejected") and corresponding valueor reasonfor each promise.
+=======
+
+Promise.allSettled() accepts an iterable of promises and waits for all of them to finish. 
+It always fulfills with an array of results, where each result shows whether that promise was fulfilled or rejected.
+>>>>>>> Stashed changes
 
 const promises = [
   Promise.resolve("Success"),
@@ -2448,10 +2460,15 @@ Output:
 
 Real-time use case: Loading several independent dashboard widgets where one API failure should not prevent displaying the others.
 3.3 Promise.race()
+<<<<<<< Updated upstream
 
 Promise.race()takes an iterable of promises and returns a single Promise that settles as soon as the first input promise settles—whether it fulfills or rejects—adopting that fastest promise's value or error.
 
 Interview definition: Promise.race() returns a Promise that settles with the outcome of the first input Promise to settle, whether fulfilled or rejected.
+=======
+Promise.race() accepts an iterable of promises and  returns the result of the first promise that finishes first—whether it succeeds or fails. The remaining promises are ignored.
+
+>>>>>>> Stashed changes
 const p1 = new Promise(resolve => {
   setTimeout(() => resolve("First"), 1000);
 });
@@ -2471,9 +2488,15 @@ Real-time use case: Implementing a timeout race or selecting the first completed
 
 3.4 Promise.any()
 
+<<<<<<< Updated upstream
 Promise.any()takes an iterable of promises and returns a single Promise that resolves as soon as the first input promise fulfills, ignoring any earlier rejections. It only rejects if all input promises to reject, throwing an AggregateErrorcontaining all rejection reasons.
 
 Interview definition: Promise.any() fulfills as soon as the first input Promise fulfills. It rejects with an AggregateError only when all input Promises reject.
+=======
+Promise.any() accepts an iterable of promises and returns a new Promise that fulfills with the result of the first promise that fulfills.
+ It ignores earlier rejections and rejects with an AggregateError only if all input promises reject.
+
+>>>>>>> Stashed changes
 const p1 = Promise.reject("Server 1 failed");
 const p2 = Promise.resolve("Server 2 success");
 const p3 = Promise.resolve("Server 3 success");
@@ -2505,6 +2528,20 @@ Promise.any([p1, p2])
   });
 
 
+| Method               | Accepts                    | When it settles                                    | If one promise fails                                               |
+| -------------------- | -------------------------- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| Promise.all()        | Iterable/array of promises | When all succeed, or when the first failure occurs | Rejects immediately with that first error                          |
+| Promise.allSettled() | Iterable/array of promises | When all promises finish, success or failure       | Never rejects because of individual failures; returns every result |
+| Promise.race()       | Iterable/array of promises | When the first promise settles, success or failure | Rejects if the first settled promise failed                        |
+| Promise.any()        | Iterable/array of promises | When the first promise succeeds                    | Rejects only if all promises fail, with an AggregateError          |
+
+| Method               | When it settles                                    | If one promise fails                        | Best project use case               |
+| -------------------- | -------------------------------------------------- | ------------------------------------------- | ----------------------------------- |
+| Promise.all()        | When all promises succeed, or first failure occurs | Whole call rejects immediately              | Dashboard: user + orders + products |
+| Promise.allSettled() | When all promises finish                           | Does not reject; returns each result        | Bulk email/SMS/push notifications   |
+| Promise.race()       | When the first promise settles, success or failure | Rejects if the first settled promise failed | API request timeout                 |
+| Promise.any()        | When the first promise succeeds                    | Rejects only if all promises fail           | Multiple payment gateways or CDNs   |
+
 Follow-up question:
 
 Q. What is the difference between Promise.race() and Promise.any()?
@@ -2512,24 +2549,18 @@ Q. What is the difference between Promise.race() and Promise.any()?
 race() considers the first settled Promise, whether fulfilled or rejected. any() considers the first fulfilled Promise and ignores individual rejections until all inputs reject.
 
 4. Event Loop; Microtasks vs Macrotasks
+
 Very important interview topic
 4.1 What is the event loop?
+
 Interview definition: The event loop is a scheduling mechanism that coordinates JavaScript execution with queued asynchronous callbacks, allowing JavaScript to process asynchronous operations without blocking the main execution thread while those operations are pending.
+
 Important components
 1. Call Stack: Executes synchronous JavaScript functions.
 2. Web APIs: Browser facilities that handle operations such as timers and DOM events.
 3. Task Queue: Holds tasks such as timer callbacks and many event callbacks.
 4. Microtask Queue: Holds Promise reaction callbacks and queueMicrotask() callbacks.
 5. Event Loop: Coordinates when queued work can execute.
-How does the event loop work?
-
-
-
-
-
-
-
-dev.to
 
 
 Simplified browser execution flow:
@@ -2539,23 +2570,34 @@ Simplified browser execution flow:
 4. After the current JavaScript execution completes, the microtask queue is processed.
 5. The browser can then proceed with rendering and later tasks.
 The exact scheduling details differ between browsers and Node.js.
+
 4.2 What are microtasks?
 Interview definition: Microtasks are high-priority queued jobs processed after the current JavaScript execution completes and before the event loop proceeds to the next task in the browser's usual scheduling model.
+
+Microtasks are high-priority, small asynchronous jobs that run immediately after the current synchronous code/task completes and before the event loop starts the next macrotask.
+
 
 Examples:
 - Promise .then(), .catch() and .finally() handlers.
 - queueMicrotask().
 - MutationObserver callbacks in browsers.
+
 4.3 What are macrotasks (tasks)?
 Interview definition: Tasks are scheduled units of work processed by the event loop, such as timer callbacks and many event callbacks.
+
+Macrotasks (tasks) are normal scheduled units of work managed by the event loop; the event loop processes one macrotask per cycle, after which it runs all pending microtasks.
+
+
 
 Examples:
 - setTimeout()
 - setInterval()
 - Browser event callbacks.
 - Many I/O-related callbacks.
+
 Microtasks vs macrotasks
 Microtasks  Tasks (often called macrotasks)
+
 Promise handlers  setTimeout
 queueMicrotask  setInterval
 MutationObserver  DOM events
@@ -2635,9 +2677,12 @@ Q3. Is JavaScript single-threaded even with asynchronous operations?
 JavaScript execution is normally single-threaded per execution context, but browsers and Node.js use runtime facilities and other threads for certain operations.
 
 5. setTimeout, setInterval, setImmediate and queueMicrotask
+
 These functions are used to schedule code for later execution, but their behavior differs.
 5.1 setTimeout()
-Interview definition: setTimeout() schedules a callback to execute after a specified minimum delay.
+
+setTimeout() is a timer function that executes a callback once after a specified delay in milliseconds.
+
 console.log("Start");
 
 setTimeout(() => {
@@ -2655,7 +2700,9 @@ Executed
 
 Use case: Delaying an action, implementing debouncing and scheduling UI-related operations.
 5.2 setInterval()
-Interview definition: setInterval() repeatedly schedules a callback at approximately the specified interval until the interval is cancelled.
+
+setInterval() is a timer function that repeatedly executes a callback after every specified interval in milliseconds until it is cleared.
+
 let count = 0;
 
 const timer = setInterval(() => {
@@ -2677,7 +2724,9 @@ Output:
 
 Use case: Polling an API, periodically refreshing data and running a countdown.
 5.3 setImmediate()
-Interview definition: setImmediate() is a Node.js API that schedules a callback to execute in the check phase of the Node.js event loop.
+setImmediate() is a Node.js timer function that schedules a callback to execute in the check phase of the event loop, after the current I/O callbacks.
+ It runs the callback as soon as possible in the next event-loop iteration.
+
 console.log("Start");
 
 setImmediate(() => {
@@ -2695,6 +2744,7 @@ Immediate
 
 Important: setImmediate() is available in Node.js, not as a standard browser API.
 5.4 queueMicrotask()
+
 Interview definition: queueMicrotask() schedules a callback in the microtask queue, which runs after the current synchronous execution completes and before the next task is processed.
 console.log("Start");
 
