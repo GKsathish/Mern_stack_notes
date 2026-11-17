@@ -133,7 +133,10 @@ DAY 2: EVENT LOOP, THREADS AND PROCESSES
 Definition:
 The event loop is the mechanism that allows Node.js to perform non-blocking operations on a single thread by processing callbacks in phases.
 
-The Event Loop is a mechanism in Node.js that coordinates the execution of eligible asynchronous callbacks and I/O events while JavaScript runs on the main thread.
+The Event Loop is a scheduling  mechanism in Node.js that coordinates the execution of eligible asynchronous callbacks and I/O events while JavaScript runs on the main thread.
+
+The event loop is a scheduling mechanism that coordinates JavaScript execution with queued asynchronous callbacks, allowing JavaScript to process asynchronous operations without blocking the main execution thread while those operations are pending.
+
 
 Main phases:
 1. Timers: executes setTimeout and setInterval callbacks.
@@ -148,6 +151,16 @@ Heavy operations like file system, DNS and crypto are handled by libuv’s threa
 Queues:
 - Microtask queue: process.nextTick and Promise callbacks.
 - Macrotask queues: timers, I/O, setImmediate.
+
+In Node.js, JavaScript runs on a single main thread. However, operations such as database queries, API calls, file reads, and timers are asynchronous. Instead of waiting for them, Node.js offloads them to the operating system or libuv’s worker pool.
+
+Once an operation completes, its callback is placed in a queue. The event loop continuously checks these queues and executes the callbacks in a defined order.
+
+First, the current synchronous code runs. After that, Node.js drains the process.nextTick() queue, followed by the Promise microtask queue. Then it enters the event-loop phases.
+
+The main phases are timers, pending callbacks, poll, check, and close callbacks. Timers execute setTimeout() and setInterval() callbacks. The poll phase handles I/O callbacks. The check phase executes setImmediate() callbacks. Close callbacks handle events such as socket closure.
+
+This design keeps the main thread non-blocking and allows Node.js to handle many concurrent requests efficiently.
 
 Example:
 console.log("1");

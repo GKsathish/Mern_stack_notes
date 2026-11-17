@@ -205,26 +205,27 @@ Category	Range	Meaning
 
 
 3.2 Important Status Codes
-Code	Meaning	Real-Time Scenario
-200	OK	Successfully fetched data
-201	Created	Successfully registered user
-202	Accepted	Request accepted for asynchronous processing
-204	No Content	Successfully deleted resource
-301	Moved Permanently	Permanent redirect
-302	Found	Temporary redirect
-304	Not Modified	Cached resource is still valid
-400	Bad Request	Invalid request format
-401	Unauthorized	Missing or invalid authentication
-403	Forbidden	Insufficient permissions
-404	Not Found	Employee not found
-405	Method Not Allowed	Unsupported HTTP method
-409	Conflict	Duplicate email
-422	Unprocessable Content	Semantic validation error
-429	Too Many Requests	Rate limit exceeded
-500	Internal Server Error	Unexpected backend error
-502	Bad Gateway	Invalid upstream response
-503	Service Unavailable	Server temporarily unavailable
-504	Gateway Timeout	Upstream server timeout
+| Code                      | Meaning                                                              | Real-Time Scenario                                                                                   |
+| ------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 200 OK                    | Request successful                                                   | GET /employees/1 — employee data successfully fetched. developer.mozilla                             |
+| 201 Created               | New resource created successfully                                    | POST /users — user registration completed and new user created. developer.mozilla                    |
+| 202 Accepted              | Request accepted, but processing not completed yet                   | POST /reports/export — report generation started in background. developer.mozilla                    |
+| 204 No Content            | Request successful, but no response body                             | DELETE /employees/10 — employee deleted; no data returned. developer.mozilla                         |
+| 301 Moved Permanently     | Resource permanently moved to a new URL                              | http://example.com permanently redirected to https://example.com. developer.mozilla                  |
+| 302 Found                 | Temporary redirect                                                   | Logged-in user temporarily redirected to dashboard page. developer.mozilla                           |
+| 304 Not Modified          | Cached resource is still valid; no need to send data again           | Browser asks for an image/API response; server says cached version is still valid. developer.mozilla |
+| 400 Bad Request           | Invalid request format or syntax                                     | Missing required field, invalid JSON, or wrong request parameter. developer.mozilla                  |
+| 401 Unauthorized          | Missing or invalid authentication                                    | User calls a protected API without a valid JWT/token. developer.mozilla                              |
+| 403 Forbidden             | Authenticated, but does not have permission                          | Normal user tries to access admin-only API. developer.mozilla                                        |
+| 404 Not Found             | Requested resource not found                                         | GET /employees/999 — employee with ID 999 does not exist. developer.mozilla                          |
+| 405 Method Not Allowed    | HTTP method not supported for that endpoint                          | DELETE /users when only GET /users is allowed. developer.mozilla                                     |
+| 409 Conflict              | Request conflicts with current server state                          | Registering with an email that already exists in the database. developer.mozilla                     |
+| 422 Unprocessable Content | Request format is valid, but semantic validation failed              | Email format is valid JSON but invalid email, or password is too weak. developer.mozilla             |
+| 429 Too Many Requests     | Client exceeded the allowed request rate                             | User calls login API too many times; rate limit applied. developer.mozilla                           |
+| 500 Internal Server Error | Unexpected error in backend/server code                              | Database connection failure or unhandled exception in API. developer.mozilla                         |
+| 502 Bad Gateway           | Gateway/proxy received an invalid response from upstream server      | API gateway gets an invalid response from backend microservice. developer.mozilla                    |
+| 503 Service Unavailable   | Server temporarily unavailable                                       | Server is under maintenance or overloaded. developer.mozilla                                         |
+| 504 Gateway Timeout       | Gateway/proxy did not receive a timely response from upstream server | API gateway waits for backend microservice, but backend does not respond in time. developer.mozilla  |
 
 ====================================================================
 DAY 2: MIDDLEWARE AND ARCHITECTURE
