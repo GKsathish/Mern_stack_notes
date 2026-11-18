@@ -901,7 +901,7 @@ function getUser() {
 
 getUser();
 
-coorect approach:
+correct approach:
 
 getUser()
   .then((user) => {
