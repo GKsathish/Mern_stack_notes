@@ -1847,7 +1847,14 @@ DAY 11: ADVANCED REACT PATTERNS
 1. HOC, RENDER PROPS AND COMPOUND COMPONENTS
 
 HOC:
-A Higher-Order Component (HOC) is a function that takes a component and returns a new component with enhanced behavior.
+
+A Higher-Order Component (HOC) is a function that takes a component as input and returns a new component with enhanced behavior.
+  Use Cases:
+  Logging
+  Authentication
+  Data fetching
+  Permission checks
+  authorization
 
 syntax : const EnhancedComponent = HOC(Component);
 
@@ -1864,14 +1871,10 @@ function Button(props) {
 
 const LoggerButton = withLogger(Button);
 
-Use Cases:
-  Logging
-  Authentication
-  Data fetching
-  Permission checks
-
 Render props:
-Render props is a pattern where a component receives a function as a prop and uses it to render content.
+
+A render prop is a function prop that a component uses to know what to render. It is used to share reusable logic between components.
+
 
 syntax : <DataProvider render={data => <List data={data} />} />
 
@@ -1887,14 +1890,16 @@ function App() {
   );
 }
 Use Cases
-  Sharing logic
-  Data fetching
-  Mouse tracking
-  Toggle state
-
+  Toggle
+  Fetchdata
+  Infinite scroll
+  Form handling
+  Theme
 
 Compound components:
-Compound components are components that work together to share state and behavior implicitly.
+
+Compound components are a set of related components that work together to create a flexible UI. A parent component provides shared state and logic through context, while child components consume that state.
+
 function Tabs({ children }) {
   const [active, setActive] = useState(0);
 
@@ -1936,8 +1941,8 @@ HOCs wrap components to reuse logic, render props share render logic through fun
 2. PORTALS AND REFS
 
 Portal:
-A portal is a React feature that renders children into a different DOM node,
-outside the parent component hierarchy.
+A React Portal is a way to render child components into a DOM node outside the parent component’s DOM hierarchy using createPortal(). The portal content remains part of the same React tree, so it still has access to the parent’s state, context, props, and event bubbling.
+Portals are commonly used for modals, tooltips, and dropdowns to avoid overflow and z-index issues.
 
 syntax :import { createPortal } from "react-dom";
 
@@ -1963,7 +1968,8 @@ Internal working:
 Portal changes DOM placement but keeps React context and event bubbling behavior within React tree.
 
 Refs:
-A ref is a React feature that gives direct access to a DOM element or a class component instance.
+ref is a special JSX attribute used to attach a ref object to a DOM element or React component.
+ When attached to an HTML element, React stores that DOM node in ref.current.
 
 syntax : const ref = useRef(null);
 

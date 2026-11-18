@@ -571,7 +571,8 @@ I narrow union types using typeof, instanceof, in checks or custom type guards. 
 2. DISCRIMINATED UNIONS
 
 Definition:
-A discriminated union is a union of object types sharing a common literal property called discriminator.
+Discriminated union is a union of object types where all types share one common property, called a discriminator. Each type has a different literal value for that property. 
+TypeScript uses that value to narrow the union type, so we can safely access only the properties available in that state. It is mainly used to model API request states, form states, Redux actions, and WebSocket states.
 
 Example:
 type RequestState =
@@ -608,14 +609,28 @@ Discriminated unions model mutually exclusive states clearly. I use a common lit
 3. GENERICS AND GENERIC CONSTRAINTS
 
 Definition:
-Generics allow functions, interfaces and components to work with multiple types while preserving type safety.
+Generics type allow us to write reusable functions, classes, or interfaces that work with multiple types, while still keeping type safety. We use a type parameter like <T> instead of fixing the type in advance.
 
 Example:
 function firstItem<T>(items: T[]): T | undefined {
   return items[0];
 }
 
+// Normal generic function
+function identity<T>(value: T): T {
+  return value;
+}
+
+// Generic arrow function
+const identity = <T>(value: T): T => value;
+
 Generic constraint:
+
+Generic constraints limit which types a generic T can accept. We use the extends keyword to say that T must have certain properties or methods.
+testing-library
++1
+
+
 function getProperty<T, K extends keyof T>(obj: T, key: K) {
   return obj[key];
 }

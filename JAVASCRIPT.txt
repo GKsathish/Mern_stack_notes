@@ -2249,7 +2249,9 @@ return returns a value from a normal function or callback. resolve() fulfills a 
 
 2. Promise Chaining, async/await and try/catch
 2.1 What is Promise chaining?
-Interview definition: Promise chaining is the process of connecting multiple .then() handlers, where each handler returns a value or Promise that determines the next Promise in the chain.
+Promise chaining is the process of connecting multiple .then() handlers, where each handler returns a value or a Promise. That returned value or Promise becomes the input for the next .then() in the chain. It helps handle sequential asynchronous operations in a clean, flat structure instead of callback hell.
+developer.mozilla
++1
 
 Example:
 fetchUser()
@@ -2387,18 +2389,13 @@ Failed
 
 
 
+
 3. Promise.all(), allSettled(), race() and any()
 These four Promise methods are very important for experienced JavaScript interviews.
 3.1 Promise.all()
-<<<<<<< Updated upstream
-Interview definition: Promise.all() accepts an iterable of Promises and returns a single Promise that fulfills when all input Promises fulfill. It rejects as soon as one input rejects.
-
-Promise.all()is a concurrency method that takes an iterable of promises and returns a single Promise that resolves with an array of all resolved values ​​once every input promise fulfills. It follows a fail-fast behavior, meaning it immediately rejects with the first error if any single promise rejects.
-=======
 
 Promise.all() takes an array of promises and runs them in parallel.
  It resolves with an array of all resolved values when every promise succeeds, but rejects immediately with the first rejection error if any promise fails. It is used when all asynchronous operations are required for the next step.
->>>>>>> Stashed changes
 
 const p1 = Promise.resolve("User");
 const p2 = Promise.resolve("Orders");
@@ -2429,15 +2426,9 @@ const [users, products, orders] = await Promise.all([
 
 All three operations are started without waiting for the previous one.
 3.2 Promise.allSettled()
-<<<<<<< Updated upstream
-Interview definition: Promise.allSettled() waits until every input Promise settles, regardless of whether it fulfills or rejects. It returns an array describing each result.
-
-Promise.allSettled()takes an iterable of promises and returns a single Promise that always resolves after all input promises have settled (either fulfilled or rejected). It never short-circuits and resolves with an array of outcome objects detailing the status( "fulfilled"or "rejected") and corresponding valueor reasonfor each promise.
-=======
 
 Promise.allSettled() accepts an iterable of promises and waits for all of them to finish. 
 It always fulfills with an array of results, where each result shows whether that promise was fulfilled or rejected.
->>>>>>> Stashed changes
 
 const promises = [
   Promise.resolve("Success"),
@@ -2460,15 +2451,8 @@ Output:
 
 Real-time use case: Loading several independent dashboard widgets where one API failure should not prevent displaying the others.
 3.3 Promise.race()
-<<<<<<< Updated upstream
-
-Promise.race()takes an iterable of promises and returns a single Promise that settles as soon as the first input promise settles—whether it fulfills or rejects—adopting that fastest promise's value or error.
-
-Interview definition: Promise.race() returns a Promise that settles with the outcome of the first input Promise to settle, whether fulfilled or rejected.
-=======
 Promise.race() accepts an iterable of promises and  returns the result of the first promise that finishes first—whether it succeeds or fails. The remaining promises are ignored.
 
->>>>>>> Stashed changes
 const p1 = new Promise(resolve => {
   setTimeout(() => resolve("First"), 1000);
 });
@@ -2488,15 +2472,10 @@ Real-time use case: Implementing a timeout race or selecting the first completed
 
 3.4 Promise.any()
 
-<<<<<<< Updated upstream
-Promise.any()takes an iterable of promises and returns a single Promise that resolves as soon as the first input promise fulfills, ignoring any earlier rejections. It only rejects if all input promises to reject, throwing an AggregateErrorcontaining all rejection reasons.
 
-Interview definition: Promise.any() fulfills as soon as the first input Promise fulfills. It rejects with an AggregateError only when all input Promises reject.
-=======
 Promise.any() accepts an iterable of promises and returns a new Promise that fulfills with the result of the first promise that fulfills.
  It ignores earlier rejections and rejects with an AggregateError only if all input promises reject.
 
->>>>>>> Stashed changes
 const p1 = Promise.reject("Server 1 failed");
 const p2 = Promise.resolve("Server 2 success");
 const p3 = Promise.resolve("Server 3 success");
@@ -2548,6 +2527,26 @@ Q. What is the difference between Promise.race() and Promise.any()?
 
 race() considers the first settled Promise, whether fulfilled or rejected. any() considers the first fulfilled Promise and ignores individual rejections until all inputs reject.
 
+
+| Point               | Promise                                                                 | async/await                                |
+| ------------------- | ----------------------------------------------------------------------- | ------------------------------------------ |
+| Definition          | An object representing the eventual result of an asynchronous operation | Syntax to handle Promises in a cleaner way |
+| Purpose             | Handle async results and errors                                         | Make async code look like synchronous code |
+| Syntax              | .then(), .catch(), .finally()                                           | async, await, try...catch                  |
+| Code style          | Chain-based                                                             | Sequential / step-by-step                  |
+| Readability         | Medium                                                                  | High                                       |
+| Error handling      | .catch()                                                                | try...catch                                |
+| Success handling    | .then()                                                                 | await                                      |
+| Completion handling | .finally()                                                              | finally block                              |
+| Return value        | Promise object                                                          | An async function always returns a Promise |
+| Waiting             | .then() callback                                                        | await                                      |
+| Chaining            | Multiple .then() calls                                                  | Multiple await statements                  |
+| Parallel tasks      | Promise.all()                                                           | Promise.all() with await                   |
+| Sequential tasks    | Multiple .then() calls                                                  | Multiple await statements                  |
+| Debugging           | Slightly harder                                                         | Easier                                     |
+| Best for            | Multiple chained async operations                                       | Step-by-step async logic                   |
+
+
 4. Event Loop; Microtasks vs Macrotasks
 
 Very important interview topic
@@ -2572,7 +2571,6 @@ Simplified browser execution flow:
 The exact scheduling details differ between browsers and Node.js.
 
 4.2 What are microtasks?
-Interview definition: Microtasks are high-priority queued jobs processed after the current JavaScript execution completes and before the event loop proceeds to the next task in the browser's usual scheduling model.
 
 Microtasks are high-priority, small asynchronous jobs that run immediately after the current synchronous code/task completes and before the event loop starts the next macrotask.
 
@@ -2795,7 +2793,10 @@ No. They use different scheduling mechanisms in Node.js.
 6. Node.js process.nextTick()
 Important for MERN interviews
 What is process.nextTick()?
-Interview definition: process.nextTick() is a Node.js API that schedules a callback to execute after the current JavaScript operation completes, before the event loop continues to its next phase.
+
+Interview definition: process.nextTick() is a Node.js API that schedules a callback to execute after the current JavaScript synchronous operation completes, before the event loop continues to its next phase.
+ It runs before timers, I/O callbacks, and most Promise callbacks.
+
 
 It is specific to Node.js.
 Example
@@ -2847,6 +2848,7 @@ For general microtask scheduling, prefer queueMicrotask() when appropriate. Use 
 
 7. Sequential vs Parallel API Calls
 This is a very common practical interview question in React and Node.js.
+
 7.1 What are sequential API calls?
 Interview definition: Sequential execution means one asynchronous operation is awaited before starting the next operation.
 
@@ -2878,8 +2880,11 @@ Sequential execution
 
 
 Use case: When the next API requires data from the previous API.
+
 7.2 What are parallel API calls?
+
 Interview definition: Parallel execution means starting multiple independent asynchronous operations without waiting for each one to complete before starting the next.
+
 async function getData() {
   const [users, products, orders] = await Promise.all([
     fetchUsers(),
@@ -2903,14 +2908,18 @@ Orders
 
 
 
-Wait for all results
-
-Sequential vs Parallel
-Sequential  Parallel
-One operation starts after another completes  Independent operations start without waiting
-Usually takes longer for independent requests Usually reduces total waiting time
-Useful when operations depend on each other Useful when operations are independent
-Often uses multiple await statements  Often uses Promise.all()
+| Point          | Sequential                                      | Parallel                                        |
+| -------------- | ----------------------------------------------- | ----------------------------------------------- |
+| Execution      | One operation starts after another completes    | Independent operations start without waiting    |
+| Waiting time   | Usually takes longer for independent requests   | Usually reduces total waiting time              |
+| Dependency     | Useful when operations depend on each other     | Useful when operations are independent          |
+| Syntax         | Often uses multiple await statements            | Often uses Promise.all()                        |
+| Example        | Get user details, then get user posts           | Get user details and site settings together     |
+| API calls      | Second request starts after the first completes | All requests start at the same time             |
+| Error handling | Stops when a request fails                      | Promise.all() rejects if any request fails      |
+| Best use case  | Dependent API calls                             | Independent API calls                           |
+| Performance    | Slower for independent requests                 | Faster for independent requests                 |
+| Result         | Results available one by one                    | All results available together after completion |
 
 Important interview example: Compare execution time
 Assume three independent APIs each take approximately 2 seconds.
@@ -2975,30 +2984,49 @@ Q4. Is Promise.all() actually executing JavaScript on multiple threads?
 No. It coordinates multiple asynchronous operations. It does not itself create additional JavaScript threads.
 
 8. AbortController, Cancellation and Timeout Handling
+
+
 Important React practical topic
 8.1 What is AbortController?
+
 Interview definition: AbortController is a JavaScript API used to communicate cancellation requests to asynchronous operations that support AbortSignal.
 
 It is commonly used with the Fetch API to cancel HTTP requests.
 
+| Benefit                | Explanation                                    |
+| ---------------------- | ---------------------------------------------- |
+| Prevent stale updates  | Old response will not overwrite new data       |
+| Avoid memory leaks     | Pending requests are cancelled                 |
+| Avoid race conditions  | Latest request result is used                  |
+| Save network bandwidth | Unwanted requests are cancelled                |
+| Improve UX             | Fast navigation does not wait for old requests |
+| Clean React effects    | Cleanup cancels requests on unmount            |
+
 Example
-const controller = new AbortController();
+const fetchDataWithTimeout = async (url, timeout = 5000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-fetch("/api/users", {
-  signal: controller.signal
-})
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => {
-    if (error.name === "AbortError") {
-      console.log("Request cancelled");
-    } else {
-      console.log(error);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-  });
 
-// Cancel the request
-controller.abort();
+    return await response.json();
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("Request timed out");
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 
 How does it work?
@@ -3122,7 +3150,44 @@ const response = await fetch("/api/users", {
 It is supported in modern browsers and Node.js versions. Check runtime compatibility when using it in production.
 
 
+ Prototype chain and prototypal inheritance
 
+
+A prototype is an object that acts as a template or fallback for another object.
+ It enables prototypal inheritance in JavaScript. When a property or method is not found directly on an object, JavaScript looks for it in the object’s prototype, then continues up the prototype chain until it finds the property or reaches null.
+
+
+function Person(name) {
+  this.name = name;
+}
+
+Person.prototype.greet = function () {
+  console.log(`Hello, I am ${this.name}`);
+};
+
+const user = new Person("Ravi");
+
+user.greet(); // Hello, I am Ravi
+
+why  prototype useful
+
+| Benefit        | Explanation                                     |
+| -------------- | ----------------------------------------------- |
+| Code reuse     | Shared methods are defined once                 |
+| Memory saving  | Methods are not copied to every instance        |
+| Inheritance    | Objects can inherit from other objects          |
+| Method sharing | All instances can access prototype methods      |
+| Flexible OOP   | JavaScript supports prototype-based inheritance |
+
+Prototype vs __proto__
+
+| Point              | prototype                              | __proto__                     |
+| ------------------ | -------------------------------------- | ----------------------------- |
+| Available on       | Functions and classes                  | Objects                       |
+| Purpose            | Template for objects created using new | Link to an object’s prototype |
+| Example            | Person.prototype                       | user.__proto__                |
+| Recommended        | Yes                                    | No, deprecated                |
+| Modern alternative | Person.prototype                       | Object.getPrototypeOf()       |
 
 
 garbage collection  and memory leak otpic kavali net
