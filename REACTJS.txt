@@ -1544,15 +1544,77 @@ RTK Query manages server state with caching, deduplication and refetching. Unlik
 5. SERVER STATE VS CLIENT STATE AND OPTIMISTIC UPDATES
 
 Server state:
-Data owned by backend.
-Example: users, products, orders.
+ Data whose original source is the server, usually fetched using an API and kept in the browser as a copy.
 
-Client state:
-Data owned by UI.
-Example: modal visibility, selected tab, theme.
+Example:
+User profile
+Product list
+Blog posts
+Orders
+Comments
+Notifications
+
+import { useEffect, useState } from "react";
+
+function Users() {
+  // Server state: data comes from the API
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("https://api.example.com/users")
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <p>Loading users...</p>;
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+Here, users is server state because the real user data is stored on the server. React only displays a local copy of it.
+
+
+Client State:
+ Data created and managed inside the user interface, such as form values, UI visibility, selected tabs, or theme.
+
+Example: 
+Whether a modal is open or closed
+Text typed in a search box
+Currently selected tab
+Dark/light theme
+Form validation errors
+
+import { useState } from "react";
+
+function Modal() {
+  // Client state: only exists in this component/browser
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <button onClick={() => setIsOpen(true)}>Open</button>
+
+      {isOpen && <p>This modal is open</p>}
+    </>
+  );
+}
+
+Here, isOpen is client state because the server does not need to know whether the modal is open.
+
 
 Optimistic update:
-UI updates immediately before server confirms, then rolls back if request fails.
+An optimistic update means the UI changes immediately when the user performs an action, without waiting for the server response.
+
 
 Example flow:
 1. User likes a post.
@@ -1560,8 +1622,37 @@ Example flow:
 3. API request is sent.
 4. If API fails, UI reverts and shows error.
 
-Use case:
-Likes, cart updates, todo completion, drag-and-drop ordering.
+Good examples:
+  Like a post
+  Add a todo
+  Mark notification as read
+  Toggle a switch
+
+Avoid for:
+  Payment
+  Delete account
+  Important form submission
+
+const [likes, setLikes] = useState(10);
+
+async function handleLike() {
+  const previousLikes = likes;
+
+  // UI updates immediately
+  setLikes(previousLikes + 1);
+
+  try {
+    // Server request
+    await fetch("/api/like", {
+      method: "POST",
+    });
+  } catch (error) {
+    // Roll back if request fails
+    setLikes(previousLikes);
+  }
+}
+
+return <button onClick={handleLike}>Likes: {likes}</button>;
 
 Internal working:
 Optimistic updates improve perceived performance but require rollback and cache reconciliation logic.
@@ -1586,6 +1677,30 @@ DAY 9: PERFORMANCE OPTIMIZATION
 
 1. LAZY LOADING, SUSPENSE AND CODE SPLITTING
 
+Code Splitting:
+ Code splitting means breaking one large JavaScript bundle into smaller files called chunks. 
+ The browser downloads only the chunk needed for the current page or feature.
+
+
+Lazy Loading:
+
+Lazy loading means delaying the loading of a component, route, image, or library until it is actually needed. 
+It improves initial page load performance because unnecessary JavaScript is not downloaded upfront.
+example :
+
+const Dashboard = lazy(() => import("./Dashboard"));
+
+Suspense : 
+
+Suspense is a React component used to show a fallback UI, such as a loader or skeleton,
+ while a lazy-loaded component or asynchronous data is loading.”
+
+ <Suspense fallback={<p>Loading...</p>}>
+  <Dashboard />
+</Suspense>
+
+
+
 Definition:
 Lazy loading loads components only when needed. Code splitting divides a large JavaScript bundle into smaller chunks. Suspense shows fallback UI while a lazy component loads.
 
@@ -1596,21 +1711,63 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
   <Dashboard />
 </Suspense>
 
+
 Use case:
 Route-level loading for large pages, charts, editors, admin modules.
 
 Internal working:
 Dynamic import creates a chunk boundary. Bundlers such as Webpack or Vite generate separate JavaScript chunks. When the component is needed, browser downloads that chunk; React.lazy resolves it and Suspense displays fallback until ready.
 
-Follow-up questions:
 1. Can React.lazy work without Suspense?
+Answer:
+“No. React.lazy() needs a Suspense boundary when the lazy component is rendered, because React must show a fallback UI while the component chunk is downloading. Without Suspense, React throws an error.”
+
+jsx
+<Suspense fallback={<p>Loading...</p>}>
+  <Dashboard />
+</Suspense>
+
 2. Difference between lazy loading and code splitting?
+Answer:
+“Code splitting divides the JavaScript bundle into smaller chunks. Lazy loading downloads a specific chunk only when the user needs it. So, code splitting creates separate files, and lazy loading controls when those files are loaded.”
+
+| Code splitting                             | Lazy loading                         |
+| ------------------------------------------ | ------------------------------------ |
+| Divides a large bundle into smaller chunks | Loads a chunk only when needed       |
+| Creates separate JavaScript files          | Delays downloading those files       |
+| Build-time optimization                    | Runtime loading strategy             |
+| Example: separate Dashboard.js             | Example: Dashboard loads when opened |
+
+
 3. What happens if chunk loading fails?
+Answer:
+“If a lazy-loaded chunk fails to load, React throws an error and the component cannot render. We should handle this using an Error Boundary, which can show a fallback UI or a retry option.”
+
+jsx
+<ErrorBoundary fallback={<p>Failed to load</p>}>
+  <Suspense fallback={<p>Loading...</p>}>
+    <Dashboard />
+  </Suspense>
+</ErrorBoundary>
+
 4. Where should lazy loading be used?
+Answer:
+“Lazy loading should be used for heavy, non-critical, or rarely used components and libraries. It should not be used for critical above-the-fold content because it can delay the first visible content.”
 
-Interview-ready answer:
-Code splitting creates smaller bundles, lazy loading requests them only when needed, and Suspense shows loading UI. I apply route-level lazy loading for large pages and heavy components.
+Use lazy loading for:
+  Dashboard
+  Charts
+  Admin panel
+  Modal
+  Heavy libraries
+  Below-the-fold sections
 
+Avoid lazy loading for:
+  Navbar
+  Hero section
+  Main landing page content
+
+Critical UI visible on first load
 --------------------------------------------------------------------
 2. VIRTUALIZATION, PAGINATION AND INFINITE SCROLL
 

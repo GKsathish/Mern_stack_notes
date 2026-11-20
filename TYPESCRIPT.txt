@@ -139,11 +139,17 @@ Use Cases
 
 never:
 never is a TypeScript type that represents a value that can never occur. 
-It is used for functions that never return normally, such as functions that always throw errors or run infinite loops.
 
+never is used when a function will never return a value because it always throws an error or runs forever.
 
 function handleError(): never {
   throw new Error("Failed");
+}
+
+function infiniteLoop(): never {
+  while (true) {
+    // Runs forever
+  }
 }
 
 Use Cases
@@ -153,32 +159,113 @@ Use Cases
   Unreachable code
 
 void:
-void is a TypeScript type that represents the absence of a meaningful return value. 
-It is used for functions that do not return a value.
+void is a TypeScript type that represents the absence of a meaningful return value.
+
+void is used when a function performs an action but does not return a meaningful value.
+
 
 function logMessage(): void {
   console.log("Done");
 }
+function handleClick(): void {
+  console.log("Button clicked");
+}
 
 Use Cases
-Logging functions
-Event handlers
-Side-effect functions
+  Logging functions
+  Event handlers
+  Side-effect functions
 
 
 Internal working:
 TypeScript allows any operations on any, but unknown requires type narrowing. never helps TypeScript prove that all cases in a union are handled.
 
-Follow-up questions:
-1. Why is unknown better than any?
+| void                             | never                             |
+| -------------------------------- | --------------------------------- |
+| Function completes normally      | Function never completes normally |
+| Returns no useful value          | Never returns a value             |
+| Can return undefined             | Cannot return any value           |
+| Used for actions such as logging | Used for errors or infinite loops |
+| Example: console.log()           | Example: throw new Error()        |
+
+
+. Why is unknown better than any?
+Answer:
+“unknown is better than any because it keeps type safety. With any, TypeScript allows any operation without checking types, which can cause runtime errors. With unknown, we must first check or narrow the type before using the value.”
+
+ts
+let value: unknown = "Hello";
+
+// Error: must narrow first
+// value.toUpperCase();
+
+if (typeof value === "string") {
+  console.log(value.toUpperCase()); // Safe
+}
+
+
 2. When do we use never?
+Answer:
+“We use never when a value can never occur. Common cases are functions that always throw an error, functions with infinite loops, and unreachable code after exhaustive type checks.”
+
+ts
+function throwError(message: string): never {
+  throw new Error(message);
+}
+ts
+type Shape = "circle" | "square";
+
+function getArea(shape: Shape) {
+  switch (shape) {
+    case "circle":
+      return "Circle area";
+    case "square":
+      return "Square area";
+    default:
+      const impossible: never = shape;
+      return impossible;
+  }
+}
+
 3. Difference between void and undefined?
+Answer:
+“void is mainly used as a function return type when the function does not return a meaningful value. undefined is an actual value that represents something not assigned or not present.”
+
+ts
+function logMessage(): void {
+  console.log("Hello");
+}
+
+let x: undefined = undefined;
+void	undefined
+Function return type	Actual value
+Means “no useful return value”	Means “no value assigned”
+Used for functions	Used for variables, optional properties, missing values
+Example: function log(): void	Example: let name: string \| undefined
+
+
 4. How do you narrow unknown?
+Answer:
+“We narrow unknown using type guards such as typeof, instanceof, in, equality checks, custom validation functions, or schema validation libraries like Zod.”
 
-Interview-ready answer:
-I avoid any because it disables type safety. I use unknown for uncertain external data and narrow it using typeof, instanceof or validation. void means no meaningful return value, while never means a value can never occur.
+ts
+function processValue(value: unknown) {
+  if (typeof value === "string") {
+    console.log(value.toUpperCase());
+  }
 
+  if (typeof value === "number") {
+    console.log(value * 2);
+  }
+}
+ts
+class Car {
+  drive() {}
+}
 
+function isCar(value: unknown): value is Car {
+  return value instanceof Car;
+}
 
 --------------------------------------------------------------------
 5. TYPE ALIASES VS INTERFACES
