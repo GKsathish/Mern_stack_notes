@@ -3152,22 +3152,76 @@ It is supported in modern browsers and Node.js versions. Check runtime compatibi
 
  Prototype chain and prototypal inheritance
 
+Prototype:
+Every JavaScript object has an internal link called its prototype ([[Prototype]]). 
+If a property or method is not found directly on the object, JavaScript looks for it on its prototype.
 
-A prototype is an object that acts as a template or fallback for another object.
- It enables prototypal inheritance in JavaScript. When a property or method is not found directly on an object, JavaScript looks for it in the object’s prototype, then continues up the prototype chain until it finds the property or reaches null.
-
-
-function Person(name) {
-  this.name = name;
-}
-
-Person.prototype.greet = function () {
-  console.log(`Hello, I am ${this.name}`);
+const user = {
+  name: "Ravi",
 };
 
-const user = new Person("Ravi");
+console.log(user.toString());
 
-user.greet(); // Hello, I am Ravi
+Here, toString() is not defined on user, so JavaScript finds it on Object.prototype through the prototype chain.
+
+
+Prototype chain
+The prototype chain is the chain of objects connected through their prototypes. 
+JavaScript searches this chain until it finds the requested property or reaches null.
+
+
+const animal = {
+  eat() {
+    console.log("Animal eats");
+  },
+};
+
+const dog = Object.create(animal);
+
+dog.bark = function () {
+  console.log("Dog barks");
+};
+
+dog.bark(); // Own property
+dog.eat();  // Found through prototype chain
+
+If the property is not found anywhere in the chain, JavaScript returns undefined.
+
+Prototypal inheritance:
+
+Prototypal inheritance means one object inherits properties and methods from another object through its prototype. 
+JavaScript does not copy methods into every object; instead, objects are linked through prototypes.
+
+const vehicle = {
+  start() {
+    console.log("Vehicle started");
+  },
+};
+
+const car = Object.create(vehicle);
+
+car.drive = function () {
+  console.log("Car is driving");
+};
+
+car.start(); // Inherited from vehicle
+car.drive(); // Own method
+
+Property shadowing:
+
+Property shadowing happens when an object has its own property with the same name as a property on its prototype. The object’s own property takes priority.
+developer.mozilla
+
+const animal = {
+  sound: "Generic sound",
+};
+
+const dog = Object.create(animal);
+
+dog.sound = "Bark";
+
+console.log(dog.sound); // "Bark"
+Here, dog.sound shadows animal.sound.
 
 why  prototype useful
 
@@ -3190,7 +3244,238 @@ Prototype vs __proto__
 | Modern alternative | Person.prototype                       | Object.getPrototypeOf()       |
 
 
-garbage collection  and memory leak otpic kavali net
+Classes, extends, super, static methods and OOP principles
+
+
+Object-Oriented Programming (OOP) is a programming paradigm in which a program is modeled as a collection of interacting objects. Each object encapsulates its internal state (properties/data) and behavior (methods), and exposes a controlled public interface for other parts of the program to use.
+
+OOPs means Object-Oriented Programming. It is a way of writing programs by grouping related data and actions into objects.
+
+
+Class
+A class defines the structure and behavior of objects. 
+It can contain a constructor, instance methods, instance fields, static methods, getters, and setters
+
+class User {
+  constructor(name, email) {
+    this.name = name;
+    this.email = email;
+  }
+
+  login() {
+    console.log(`${this.name} logged in`);
+  }
+}
+
+const user = new User("Ravi", "ravi@example.com");
+
+user.login();
+
+Instance vs Static
+
+| Type                     | Belongs to                         | Accessed using  | Example            |
+| ------------------------ | ---------------------------------- | --------------- | ------------------ |
+| Instance property/method | Each object created from the class | Object instance | user.login()       |
+| Static property/method   | The class itself  
+
+
+extends:
+extends is key word that creates a child class from a parent class. The child class inherits properties and methods from the parent class.
+
+
+class Animal {
+  constructor(name) {
+    this.name = name;
+  }
+
+  eat() {
+    console.log(`${this.name} eats food`);
+  }
+}
+
+class Dog extends Animal {
+  bark() {
+    console.log(`${this.name} barks`);
+  }
+}
+
+const dog = new Dog("Tommy");
+
+dog.eat(); // Inherited from Animal
+dog.bark(); // Own method of Dog
+
+super:
+
+super is used to access the parent class. It can call the parent constructor using super() or call a parent method using super.methodName().
+
+Important rules:
+
+In a child class constructor, super() must be called before using this.
+super() calls the parent class constructor.
+super.methodName() calls the parent class method.
+super can also be used in static methods.
+
+class Animal {
+  constructor(name) {
+    this.name = name;
+  }
+
+  eat() {
+    console.log(`${this.name} eats food`);
+  }
+}
+
+class Dog extends Animal {
+  bark() {
+    console.log(`${this.name} barks`);
+  }
+}
+
+const dog = new Dog("Tommy");
+
+dog.eat(); // Inherited from Animal
+dog.bark(); // Own method of Dog
+
+
+Method overriding:
+
+Method overriding happens when a child class defines a method with the same name as a method in the parent class. The child class version replaces the parent version when called on a child object.
+
+class Animal {
+  speak() {
+    console.log("Animal makes a sound");
+  }
+}
+
+class Cat extends Animal {
+  speak() {
+    console.log("Cat meows");
+  }
+}
+
+const cat = new Cat();
+
+cat.speak(); // "Cat meows"
+
+
+Static methods:
+A static method belongs to the class itself, not to instances of the class.
+ It is defined using the static keyword and is called using the class name.
+
+
+class MathUtils {
+  static add(a, b) {
+    return a + b;
+  }
+
+  static multiply(a, b) {
+    return a * b;
+  }
+}
+
+console.log(MathUtils.add(2, 3)); // 5
+console.log(MathUtils.multiply(2, 3)); // 6
+
+
+Encapsulation:
+
+Encapsulation means bundling data and methods into a single unit and restricting direct access to internal details. 
+In JavaScript, this can be done using #private fields, getters, and setters.
+
+class BankAccount {
+  #balance = 0;
+
+  deposit(amount) {
+    if (amount > 0) {
+      this.#balance += amount;
+    }
+  }
+
+  getBalance() {
+    return this.#balance;
+  }
+}
+
+const account = new BankAccount();
+
+account.deposit(1000);
+
+console.log(account.getBalance()); // 1000
+console.log(account.#balance); // Error
+
+
+
+Abstraction:
+
+Abstraction means hiding complex implementation details and exposing only the necessary functionality. 
+Users of a class do not need to know how the internal logic works.
+
+class AuthService {
+  login(email, password) {
+    // Complex validation, hashing, token generation
+    return "Login successful";
+  }
+}
+
+const auth = new AuthService();
+
+auth.login("ravi@example.com", "123456");
+The user only needs to call login(); they do not need to know the internal authentication steps
+
+Inheritance:
+
+Inheritance allows a child class to reuse properties and methods from a parent class. 
+It reduces duplication and creates a parent-child relationship
+
+
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+
+  introduce() {
+    console.log(`I am ${this.name}`);
+  }
+}
+
+class Student extends Person {
+  constructor(name, college) {
+    super(name);
+    this.college = college;
+  }
+}
+
+const student = new Student("Ravi", "ABC College");
+
+student.introduce();
+
+
+Polymorphism
+Polymorphism means the same method name can have different implementations in different classes. 
+It allows objects of different types to respond to the same method call in their own way.
+
+class Animal {
+  speak() {
+    console.log("Animal makes a sound");
+  }
+}
+
+class Dog extends Animal {
+  speak() {
+    console.log("Dog barks");
+  }
+}
+
+class Cat extends Animal {
+  speak() {
+    console.log("Cat meows");
+  }
+}
+
+const animals = [new Dog(), new Cat()];
+
+animals.forEach((animal) => animal.speak());
+
 JavaScript: Garbage Collection and Memory Leaks
 This is an important topic for a 4+ years React.js / MERN Stack interview, especially when discussing application performance and production issues.
 

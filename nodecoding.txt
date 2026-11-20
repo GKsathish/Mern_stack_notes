@@ -336,3 +336,105 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
+File Upload.js
+============
+
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const app = express();
+
+// uploads ఫోల్డర్ లేకపోతే ఆటోమేటిక్‌గా క్రియేట్ చేయడం
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+// 1. Storage Configuration: ఫైల్ ఎక్కడ, ఏ పేరుతో సేవ్ అవ్వాలి
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir); // uploads/ ఫోల్డర్‌లో సేవ్ అవుతుంది
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  },
+});
+
+// 2. File Filter: ఏ ఫైల్ టైప్‌లను అనుమతించాలి (ఉదా: Images & PDF)
+function fileFilter(req, file, cb) {
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPEG, PNG, WEBP, and PDF files are allowed"), false);
+  }
+}
+
+// 3. Multer Instance: Size limit (5MB) + Storage + Filter
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB
+  },
+});
+
+// --------------------------------------------------
+// ROUTES
+// --------------------------------------------------
+
+// A) Single File Upload (field name: "file")
+app.post("/upload/single", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+
+  res.json({
+    message: "Single file uploaded successfully",
+    file: {
+      originalName: req.file.originalname,
+      savedName: req.file.filename,
+      size: req.file.size,
+      path: req.file.path,
+    },
+  });
+});
+
+// B) Multiple Files Upload (field name: "files", max 5 files)
+app.post("/upload/multiple", upload.array("files", 5), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ message: "No files uploaded" });
+  }
+
+  const uploadedFiles = req.files.map((file) => ({
+    originalName: file.originalname,
+    savedName: file.filename,
+    size: file.size,
+  }));
+
+  res.json({
+    message: `${req.files.length} files uploaded successfully`,
+    files: uploadedFiles,
+  });
+});
+
+// C) Multer & General Error Handler
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: `Upload error: ${err.message}` });
+  }
+  if (err) {
+    return res.status(400).json({ message: err.message });
+  }
+  next();
+});
+
+app.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
