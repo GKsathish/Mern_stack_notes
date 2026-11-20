@@ -739,14 +739,36 @@ Follow-up questions:
 4. What is least privilege?
 
 Interview-ready answer:
-Authentication identifies the user; authorization decides access. I enforce authorization on backend for every sensitive operation, never relying only on frontend checks.
+1A :
+RBAC means Role-Based Access Control. Access is granted based on the roles assigned to a user, such as admin, manager, editor, or viewer. 
+Permissions are attached to roles, and users inherit the permissions of their assigned roles.
+2A:
+ABAC means Attribute-Based Access Control.
+ Access is decided by evaluating attributes of the user, resource, action, and sometimes environment conditions against policies.
+
+| Feature           | RBAC                   | ABAC                                                          |
+| ----------------- | ---------------------- | ------------------------------------------------------------- |
+| Access based on   | Roles                  | Attributes and policies                                       |
+| Example           | Admin can delete users | Manager can approve expenses below 50,000 in their department |
+| Complexity        | Simpler                | More flexible but more complex                                |
+| Best for          | Common business roles  | Fine-grained, dynamic access rules                            |
+| Example condition | user.role === "admin"  | user.department === resource.department && amount <= limit    |
+
+3A:
+Authorization must be enforced on the backend/server side for every sensitive operation.
+ It may also be checked at an API gateway or serverless function, but frontend checks alone are never sufficient.
+
+4A:
+Least privilege means giving a user, service, or role only the minimum permissions required to complete its task—nothing more.
+
+
 
 --------------------------------------------------------------------
 2. JWT, ACCESS AND REFRESH TOKENS
 
 JWT:
-JSON Web Token containing header, payload and signature.
-Technical definition: JWT (JSON Web Token) is a compact, URL-safe token format used to securely transmit claims between parties. In authentication systems, it is commonly used to represent an authenticated user's identity and related claims.
+Technical definition: JWT (JSON Web Token) is a compact, URL-safe token format used to securely transmit claims between parties. 
+In authentication systems, it is commonly used to represent an authenticated user's identity and related claims.
 
 JWT helps us:
 - Identify authenticated users.
@@ -910,9 +932,7 @@ Vary: Origin tells CDNs and caches not to serve a response meant for one origin 
 
 Interview-ready answer
 CORS is a browser security mechanism that controls cross-origin access. Same-origin policy blocks JavaScript from reading responses from another origin. CORS headers allow specific origins. For non-simple requests, the browser sends a preflight OPTIONS request. If credentials are used, we cannot use *; we must use the exact origin and set Access-Control-Allow-Credentials: true. CORS is not authentication; it only controls whether the browser can read the response.
-
-Can we use * with credentials?
-equeiosn neat gaoepxoainchesyava artam kaledhu
+esyava artam kaledhu
 
 
 Can we use * with credentials?
