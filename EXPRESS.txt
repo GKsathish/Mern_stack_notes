@@ -830,18 +830,53 @@ I use short-lived access tokens and secure HTTP-only refresh tokens with rotatio
 3. BCRYPT AND RBAC
 
 bcrypt:
-Password hashing algorithm with salt and cost factor.
+bcrypt is a library used to hash passwords before saving them in the database.
+bcrypt is a hashing algorithm, not encoding or encryption.
+It converts a password into a secure hash using salt. Hashing is one-way, so we cannot recover the original password from the hash.
 
-const hash = await bcrypt.hash(password, 10);
-const match = await bcrypt.compare(password, hash);
+npm install bcrypt
+
+import bcrypt from "bcrypt";
+
+const password = "123456";
+
+// Hash password
+const hashedPassword = await bcrypt.hash(password, 10);
+
+// Compare password
+const isMatch = await bcrypt.compare("123456", hashedPassword);
+
+console.log(isMatch); // true
+
+Use case
+  Secure user passwords
+  Login verification
+  Prevent password theft
 
 RBAC:
-Role-Based Access Control.
 
-roles: ["user", "admin", "manager"]
+RBAC means Role-Based Access Control. Access is granted based on the roles assigned to a user, such as admin, manager, editor, or viewer. 
+Permissions are attached to roles, and users inherit the permissions of their assigned roles.
 
-Use case:
-Secure password storage, admin-only routes, permission checks.
+const checkRole = (role) => {
+  return (req, res, next) => {
+    if (req.user.role === role) {
+      next();
+    } else {
+      res.status(403).json({ message: "Access denied" });
+    }
+  };
+};
+
+app.get("/admin", checkRole("admin"), (req, res) => {
+  res.send("Admin page");
+});
+
+Use case
+  Admin panel access
+  Manager reports access
+  User profile access
+  Role-based permissions
 
 Internal working:
 bcrypt hashes passwords using salt and configurable work factor. RBAC checks user role before allowing operation.
@@ -854,6 +889,83 @@ Follow-up questions:
 
 Interview-ready answer:
 I hash passwords with bcrypt and compare using bcrypt.compare. For authorization, I implement role middleware that validates allowed roles before controller execution.
+
+
+Authentication Middleware:
+
+Definition
+Authentication middleware checks whether the user is logged in or not.
+
+Simple explanation
+It verifies the user’s identity using a token like JWT.
+
+Example
+User sends token
+Middleware checks token
+If valid → allow access
+If invalid → 401 Unauthorized
+
+Code.js
+import jwt from "jsonwebtoken";
+
+const authenticate = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, "secretkey");
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+app.get("/profile", authenticate, (req, res) => {
+  res.send("Profile page");
+});
+
+Use case
+  Protect user profile
+  Protect dashboard
+  Protect orders
+  Check login status
+
+Authorization Middleware:
+
+Definition
+Authorization middleware checks whether the logged-in user has permission to access a resource.
+
+Simple explanation
+It checks the user role or permission.
+
+Example
+Admin → can access admin page
+User → cannot access admin page
+
+Code.js
+const authorize = (role) => {
+  return (req, res, next) => {
+    if (req.user.role === role) {
+      next();
+    } else {
+      res.status(403).json({ message: "Access denied" });
+    }
+  };
+};
+
+app.get("/admin", authenticate, authorize("admin"), (req, res) => {
+  res.send("Admin page");
+});
+
+Use case
+  Protect admin routes
+  Protect manager routes
+  Role-based access
+  Permission control
 
 --------------------------------------------------------------------
 4. CORS, HELMET AND RATE LIMITING
